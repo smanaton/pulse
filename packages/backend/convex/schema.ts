@@ -116,6 +116,7 @@ export const clientsValidator = {
 
 export const agentsValidator = {
 	workspaceId: v.id("workspaces"),
+	agentId: v.optional(v.string()), // External/orchestration ID
 	name: v.string(),
 	description: v.optional(v.string()),
 	type: v.union(
@@ -123,9 +124,40 @@ export const agentsValidator = {
 		v.literal("automation"), // Process automation agent
 		v.literal("researcher"), // Research and data gathering
 		v.literal("writer"), // Content generation
+		v.literal("external"), // External orchestration agent
 	),
-	capabilities: v.array(v.string()), // ["web_search", "code_generation", etc.]
+	capabilities: v.array(v.string()), // ["web_search", "code_generation", "hubspot.audit@1.0", etc.]
 	config: v.any(), // Agent-specific configuration (model, prompts, etc.)
+	// Orchestration fields
+	owner: v.optional(v.string()), // "vendor:acme" | "internal:pulse"
+	version: v.optional(v.string()),
+	accepts: v.optional(
+		v.array(
+			v.object({
+				capability: v.string(),
+				inputSchemaRef: v.string(),
+				outputSchemaRef: v.string(),
+			}),
+		),
+	),
+	health: v.optional(
+		v.object({
+			status: v.union(v.literal("up"), v.literal("down")),
+			lastHeartbeatAt: v.optional(v.number()),
+			queueLength: v.optional(v.number()),
+			maxConcurrency: v.optional(v.number()),
+		}),
+	),
+	auth: v.optional(
+		v.object({
+			methods: v.array(v.string()), // ["bearer", "hmac"]
+		}),
+	),
+	endpoints: v.optional(
+		v.object({
+			baseUrl: v.string(),
+		}),
+	),
 	isActive: v.boolean(),
 	avatar: v.optional(v.string()), // Avatar URL or identifier
 	createdBy: v.id("users"),
@@ -312,7 +344,9 @@ export default defineSchema({
 	agents: defineTable(agentsValidator)
 		.index("by_workspace", ["workspaceId", "isActive", "name"])
 		.index("by_workspace_type", ["workspaceId", "type"])
-		.index("by_workspace_created", ["workspaceId", "createdAt"]),
+		.index("by_workspace_created", ["workspaceId", "createdAt"])
+		.index("by_workspace_agentId", ["workspaceId", "agentId"])
+		.index("by_workspace_capability", ["workspaceId", "capabilities"]),
 
 	// Activities: Audit log and timeline for workspace activities
 	activities: defineTable(activitiesValidator)
@@ -529,6 +563,11 @@ export default defineSchema({
 			v.literal("api_key_used"),
 			v.literal("api_key_revoked"),
 			v.literal("navigation_customized"),
+			// Orchestration events
+			v.literal("orchestration_job_created"),
+			v.literal("orchestration_run_assigned"),
+			v.literal("orchestration_run_completed"),
+			v.literal("orchestration_run_failed"),
 		),
 		entity: v.string(), // Entity type (idea, project, etc.)
 		entityId: v.string(), // Entity ID
@@ -538,6 +577,153 @@ export default defineSchema({
 		.index("by_workspace", ["workspaceId", "createdAt"])
 		.index("by_type", ["type", "createdAt"])
 		.index("by_actor", ["actorUserId", "createdAt"]),
+
+	// Orchestration Jobs: Units of work with intent and constraints
+	orchestrationJobs: defineTable({
+		workspaceId: v.id("workspaces"),
+		jobId: v.string(),
+		corrId: v.string(), // Correlation ID for tracing
+		intent: v.string(),
+		inputs: v.any(),
+		constraints: v.optional(
+			v.object({
+				deadline: v.optional(v.string()),
+				maxRetries: v.optional(v.number()),
+				timeout: v.optional(v.number()), // ms
+			}),
+		),
+		artifactsDesired: v.optional(v.any()),
+		planId: v.optional(v.string()),
+		createdBy: v.id("users"),
+		createdAt: v.number(),
+	})
+		.index("by_workspace_jobId", ["workspaceId", "jobId"])
+		.index("by_workspace_created", ["workspaceId", "createdAt"])
+		.index("by_workspace_corrId", ["workspaceId", "corrId"]),
+
+	// Orchestration Plans: DAG of steps for job execution
+	orchestrationPlans: defineTable({
+		workspaceId: v.id("workspaces"),
+		planId: v.string(),
+		jobId: v.string(),
+		steps: v.array(
+			v.object({
+				id: v.string(),
+				name: v.optional(v.string()),
+				capability: v.string(),
+				dependsOn: v.array(v.string()),
+				inputs: v.optional(v.any()), // Can reference prior step outputs
+			}),
+		),
+		createdAt: v.number(),
+	})
+		.index("by_workspace_job", ["workspaceId", "jobId"])
+		.index("by_workspace_planId", ["workspaceId", "planId"]),
+
+	// Orchestration Runs: Job/step execution bindings
+	orchestrationRuns: defineTable({
+		workspaceId: v.id("workspaces"),
+		runId: v.string(),
+		jobId: v.string(),
+		stepId: v.optional(v.string()),
+		assignedTo: v.string(), // agentId
+		status: v.union(
+			v.literal("assigned"),
+			v.literal("started"),
+			v.literal("progress"),
+			v.literal("blocked"),
+			v.literal("paused"),
+			v.literal("completed"),
+			v.literal("failed"),
+			v.literal("queued"),
+			v.literal("timed_out"),
+		),
+		// Version tracking
+		capabilityVersionUsed: v.optional(v.string()),
+		agentVersionUsed: v.optional(v.string()),
+		// Command tracking
+		lastCommand: v.optional(
+			v.object({
+				type: v.union(
+					v.literal("run.pause"),
+					v.literal("run.resume"),
+					v.literal("run.cancel"),
+					v.literal("run.retry"),
+				),
+				issuedAt: v.number(),
+				acknowledgedAt: v.optional(v.number()),
+			}),
+		),
+		// Timing
+		startedAt: v.optional(v.number()),
+		endedAt: v.optional(v.number()),
+		lastEventAt: v.optional(v.number()),
+		lastHeartbeatAt: v.optional(v.number()),
+		// Metadata
+		scopes: v.array(v.string()),
+		corrId: v.string(),
+		retryCount: v.optional(v.number()),
+		errorCode: v.optional(v.string()), // Standardized error taxonomy
+		errorMessage: v.optional(v.string()),
+		createdAt: v.number(),
+	})
+		.index("by_workspace_status", ["workspaceId", "status"])
+		.index("by_workspace_job", ["workspaceId", "jobId"])
+		.index("by_workspace_heartbeat", ["workspaceId", "lastHeartbeatAt"])
+		.index("by_workspace_runId", ["workspaceId", "runId"])
+		.index("by_workspace_lastEvent", ["workspaceId", "lastEventAt"]),
+
+	// Orchestration Events: Run progress and state changes
+	orchestrationEvents: defineTable({
+		workspaceId: v.id("workspaces"),
+		runId: v.string(),
+		eventId: v.string(), // UUID for idempotency
+		type: v.string(), // run.started, run.progress, etc.
+		timestamp: v.number(),
+		data: v.any(),
+		ttl: v.optional(v.number()), // Expiry for cleanup
+		createdAt: v.number(),
+	})
+		.index("by_run_time", ["runId", "timestamp"])
+		.index("by_workspace_run_time", ["workspaceId", "runId", "timestamp"])
+		.index("dedupe", ["workspaceId", "runId", "eventId"]), // Composite for dedupe
+
+	// Orchestration Artifacts: Output metadata
+	orchestrationArtifacts: defineTable({
+		workspaceId: v.id("workspaces"),
+		artifactId: v.string(),
+		runId: v.string(),
+		type: v.string(),
+		uri: v.string(), // S3/R2 URL
+		hash: v.optional(v.string()),
+		sizeBytes: v.optional(v.number()),
+		retentionDays: v.number(), // Default 90
+		expiresAt: v.number(), // Calculated from retentionDays
+		deletedAt: v.optional(v.number()), // Soft delete
+		createdAt: v.number(),
+	})
+		.index("by_run", ["runId"])
+		.index("by_workspace_created", ["workspaceId", "createdAt"])
+		.index("by_workspace_expires", ["workspaceId", "expiresAt"])
+		.index("by_workspace_artifactId", ["workspaceId", "artifactId"]),
+
+	// Agent Heartbeats: Health monitoring
+	agentHeartbeats: defineTable({
+		workspaceId: v.id("workspaces"),
+		agentId: v.string(),
+		at: v.number(),
+		metrics: v.optional(
+			v.object({
+				activeRuns: v.optional(v.number()),
+				queuedRuns: v.optional(v.number()),
+				cpuPercent: v.optional(v.number()),
+				memoryPercent: v.optional(v.number()),
+				errors: v.optional(v.number()),
+			}),
+		),
+	})
+		.index("by_workspace_agent", ["workspaceId", "agentId", "at"])
+		.index("by_workspace_recent", ["workspaceId", "at"]),
 
 	// Navigation Preferences: User-specific navigation customization
 	navigationPreferences: defineTable({

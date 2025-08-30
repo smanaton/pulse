@@ -17,9 +17,11 @@ export function getDisplayName(user: {
 	if (user.email) {
 		// Extract name from email (e.g., "john.doe@example.com" -> "john.doe")
 		const emailName = user.email.split("@")[0];
-		return emailName
-			.replace(/[._-]/g, " ")
-			.replace(/\b\w/g, (l) => l.toUpperCase());
+		if (emailName) {
+			return emailName
+				.replace(/[._-]/g, " ")
+				.replace(/\b\w/g, (l) => l.toUpperCase());
+		}
 	}
 
 	return "Anonymous User";
@@ -35,10 +37,19 @@ export function getInitials(user: { name?: string; email?: string }): string {
 	}
 
 	if (words.length === 1) {
-		return words[0].substring(0, 2).toUpperCase();
+		const firstWord = words[0];
+		if (firstWord) {
+			return firstWord.substring(0, 2).toUpperCase();
+		}
 	}
 
-	return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+	const firstWord = words[0];
+	const lastWord = words[words.length - 1];
+	if (firstWord && lastWord && firstWord[0] && lastWord[0]) {
+		return (firstWord[0] + lastWord[0]).toUpperCase();
+	}
+
+	return "AU";
 }
 
 // ============================================================================
@@ -150,7 +161,10 @@ export function parseTokenIdentifier(
 	}
 
 	const [provider, id] = tokenIdentifier.split("|", 2);
-	return { provider, id };
+	if (provider && id) {
+		return { provider, id };
+	}
+	return null;
 }
 
 export function isTestUser(tokenIdentifier?: string): boolean {
