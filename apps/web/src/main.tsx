@@ -1,15 +1,19 @@
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { Spinner } from "flowbite-react";
 import ReactDOM from "react-dom/client";
-import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
 
-import { ConvexProvider, ConvexReactClient } from "convex/react";
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
 const router = createRouter({
 	routeTree,
 	defaultPreload: "intent",
-	defaultPendingComponent: () => <Loader />,
+	defaultPendingComponent: () => (
+		<div className="flex h-full items-center justify-center">
+			<Spinner size="lg" />
+		</div>
+	),
 	context: {},
 	Wrap: function WrapComponent({ children }: { children: React.ReactNode }) {
 		return <ConvexProvider client={convex}>{children}</ConvexProvider>;

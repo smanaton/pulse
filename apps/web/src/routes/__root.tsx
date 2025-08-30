@@ -1,17 +1,15 @@
-import Header from "@/components/header";
-import Loader from "@/components/loader";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
-	createRootRouteWithContext,
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Spinner } from "flowbite-react";
+import { Toaster } from "sonner";
 import "../index.css";
 
-export interface RouterAppContext {}
+export type RouterAppContext = Record<string, never>;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootComponent,
@@ -42,18 +40,16 @@ function RootComponent() {
 	return (
 		<>
 			<HeadContent />
-			<ThemeProvider
-				attribute="class"
-				defaultTheme="dark"
-				disableTransitionOnChange
-				storageKey="vite-ui-theme"
-			>
-				<div className="grid grid-rows-[auto_1fr] h-svh">
-					<Header />
-					{isFetching ? <Loader /> : <Outlet />}
-				</div>
-				<Toaster richColors />
-			</ThemeProvider>
+			<div className="h-svh">
+				{isFetching ? (
+					<div className="flex h-full items-center justify-center">
+						<Spinner size="lg" />
+					</div>
+				) : (
+					<Outlet />
+				)}
+			</div>
+			<Toaster richColors />
 			<TanStackRouterDevtools position="bottom-left" />
 		</>
 	);

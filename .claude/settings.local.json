@@ -1,0 +1,11 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(rm:*)",
+			"WebFetch(domain:www.npmjs.com)",
+			"WebFetch(domain:github.com)"
+		],
+		"deny": [],
+		"ask": []
+	}
+}
