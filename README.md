@@ -7,8 +7,10 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **TypeScript** - For type safety and improved developer experience
 - **TanStack Router** - File-based routing with full type safety
 - **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
+- **Flowbite** - Modern UI components with Tailwind CSS
 - **Convex** - Reactive backend-as-a-service platform
+- **Chrome Extension** - Web clipper for capturing content directly to Pulse
+- **API Keys** - Secure device-scoped authentication for integrations
 - **Biome** - Linting and formatting
 - **Husky** - Git hooks for code quality
 - **Starlight** - Documentation site with Astro

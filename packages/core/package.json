@@ -1,0 +1,38 @@
+{
+	"name": "@pulse/core",
+	"version": "0.1.0",
+	"description": "Pulse WorkOS foundational package with authentication, workspaces, and shared utilities",
+	"type": "module",
+	"main": "src/index.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./auth": "./src/auth/index.ts",
+		"./workspaces": "./src/workspaces/index.ts",
+		"./users": "./src/users/index.ts",
+		"./shared": "./src/shared/index.ts",
+		"./ideas/interfaces": "./src/ideas/interfaces.ts",
+		"./ideas/services": "./src/ideas/services.ts"
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"check": "Biome check .",
+		"check:fix": "Biome check . --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"coverage": "vitest run --coverage"
+	},
+	"dependencies": {
+		"convex": "^1.26.2"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2",
+		"@types/node": "^22.18.0",
+		"vitest": "^3.2.4",
+		"convex-test": "0.0.38",
+		"@biomejs/biome": "^2.2.0"
+	},
+	"peerDependencies": {
+		"convex": "^1.26.2"
+	}
+}

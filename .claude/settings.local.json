@@ -1,6 +1,7 @@
 {
 	"permissions": {
 		"allow": [
+<<<<<<< Updated upstream
 			"Bash(rm:*)",
 			"WebFetch(domain:www.npmjs.com)",
 			"WebFetch(domain:github.com)"
@@ -8,4 +9,36 @@
 		"deny": [],
 		"ask": []
 	}
+=======
+			"mcp__Context_7__resolve-library-id",
+			"mcp__Context_7__get-library-docs",
+			"Bash(pnpm run:*)",
+			"Bash(pnpm add:*)",
+			"Read(/C:\\Users\\shane.CARBON-PIXEL\\Pictures\\Screenshots/**)",
+			"WebSearch",
+			"WebFetch(domain:labs.convex.dev)",
+			"Bash(pnpm test:*)",
+			"Bash(cat:*)",
+			"Bash(grep:*)",
+			"Bash(pnpm convex codegen:*)",
+			"Bash(pnpm build:*)",
+			"Bash(npx convex codegen:*)",
+			"Bash(pnpm typecheck:*)",
+			"Bash(pnpm -w test:web)",
+			"WebFetch(domain:stack.convex.dev)",
+			"Read(C:\\Users\\shane.CARBON-PIXEL\\Pictures\\Screenshots/**)",
+			"Read(C:\\Users\\shane.CARBON-PIXEL\\Pictures\\Screenshots/**)",
+			"WebFetch(domain:flowbite.com)",
+			"mcp__playwright__browser_click",
+			"mcp__playwright__browser_navigate",
+			"mcp__playwright__browser_close"
+		],
+		"additionalDirectories": [
+			"C:\\c\\Projects\\pulse\\packages",
+			"C:\\Templates\\flowbite-pro-nextjs-admin-dashboard-main"
+		]
+	},
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": ["Context7", "convex"]
+>>>>>>> Stashed changes
 }

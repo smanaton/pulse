@@ -1,0 +1,549 @@
+---
+title: Implementation Guide
+description: Step-by-step guide to implementing features using Pulse's OOP architecture
+---
+
+# Implementation Guide
+
+This guide walks through implementing new features in Pulse using the clean OOP architecture. We'll use the Ideas domain as an example of the established patterns.
+
+## 🚀 Adding a New Domain
+
+### Step 1: Define Domain Interfaces
+
+Create contracts in `packages/core/src/{domain}/interfaces.ts`:
+
+```typescript
+// packages/core/src/projects/interfaces.ts
+import type { Id } from "@pulse/backend/dataModel";
+
+// Input/Output Types
+export interface ProjectCreateInput {
+  workspaceId: Id<"workspaces">;
+  name: string;
+  description?: string;
+  color?: string;
+}
+
+export interface ProjectUpdateInput {
+  name?: string;
+  description?: string;
+  color?: string;
+  status?: "active" | "archived";
+}
+
+// Repository Contract
+export interface IProjectRepository {
+  create(data: ProjectCreateInput & { createdBy: Id<"users"> }): Promise<Id<"projects">>;
+  findById(id: Id<"projects">): Promise<any | null>;
+  findByWorkspace(workspaceId: Id<"workspaces">): Promise<any[]>;
+  update(id: Id<"projects">, data: Partial<ProjectUpdateInput>): Promise<void>;
+  delete(id: Id<"projects">): Promise<void>;
+}
+
+// Service Contract
+export interface IProjectService {
+  create(input: ProjectCreateInput): Promise<Id<"projects">>;
+  get(projectId: Id<"projects">): Promise<any | null>;
+  list(workspaceId: Id<"workspaces">): Promise<any[]>;
+  update(projectId: Id<"projects">, input: ProjectUpdateInput): Promise<void>;
+  delete(projectId: Id<"projects">): Promise<void>;
+}
+
+// Business Context
+export interface IBusinessContext {
+  userId: Id<"users">;
+  workspaceId: Id<"workspaces">;
+  userRole?: string;
+}
+
+// Domain Errors
+export class ProjectDomainError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string,
+    public readonly details?: any
+  ) {
+    super(message);
+    this.name = "ProjectDomainError";
+  }
+}
+```
+
+### Step 2: Implement Business Logic
+
+Create services in `packages/core/src/{domain}/services.ts`:
+
+```typescript
+// packages/core/src/projects/services.ts
+import type {
+  IProjectRepository,
+  IProjectService,
+  IBusinessContext,
+  ProjectCreateInput,
+  ProjectUpdateInput,
+  ProjectDomainError,
+} from "./interfaces";
+import type { Id } from "@pulse/backend/dataModel";
+
+export class ProjectService implements IProjectService {
+  constructor(
+    private readonly repository: IProjectRepository,
+    private readonly context: IBusinessContext
+  ) {}
+
+  async create(input: ProjectCreateInput): Promise<Id<"projects">> {
+    // Validation
+    if (!input.name?.trim()) {
+      throw new ProjectDomainError("VALIDATION_ERROR", "Project name is required");
+    }
+
+    if (input.name.length > 100) {
+      throw new ProjectDomainError("VALIDATION_ERROR", "Project name too long");
+    }
+
+    // Business rules
+    const projectData = {
+      ...input,
+      name: input.name.trim(),
+      createdBy: this.context.userId,
+    };
+
+    return await this.repository.create(projectData);
+  }
+
+  async get(projectId: Id<"projects">): Promise<any | null> {
+    return await this.repository.findById(projectId);
+  }
+
+  async list(workspaceId: Id<"workspaces">): Promise<any[]> {
+    return await this.repository.findByWorkspace(workspaceId);
+  }
+
+  async update(projectId: Id<"projects">, input: ProjectUpdateInput): Promise<void> {
+    // Get existing project for validation
+    const existing = await this.repository.findById(projectId);
+    if (!existing) {
+      throw new ProjectDomainError("NOT_FOUND", "Project not found");
+    }
+
+    // Validation
+    if (input.name !== undefined) {
+      if (!input.name?.trim()) {
+        throw new ProjectDomainError("VALIDATION_ERROR", "Project name is required");
+      }
+      
+      if (input.name.length > 100) {
+        throw new ProjectDomainError("VALIDATION_ERROR", "Project name too long");
+      }
+    }
+
+    // Business rules
+    const updateData = { ...input };
+    if (updateData.name) {
+      updateData.name = updateData.name.trim();
+    }
+
+    await this.repository.update(projectId, updateData);
+  }
+
+  async delete(projectId: Id<"projects">): Promise<void> {
+    const existing = await this.repository.findById(projectId);
+    if (!existing) {
+      throw new ProjectDomainError("NOT_FOUND", "Project not found");
+    }
+
+    await this.repository.delete(projectId);
+  }
+}
+
+// Service factory function
+export function createProjectService(
+  repository: IProjectRepository,
+  context: IBusinessContext
+): IProjectService {
+  return new ProjectService(repository, context);
+}
+```
+
+### Step 3: Implement Repository
+
+Add repository to `packages/backend/convex/adapters/repositories.ts`:
+
+```typescript
+export class ConvexProjectRepository extends BaseConvexRepository implements IProjectRepository {
+  async create(data: ProjectCreateInput & { createdBy: Id<"users"> }): Promise<Id<"projects">> {
+    this.requireMutationContext();
+    
+    return await this.ctx.db.insert("projects", {
+      ...data,
+      status: "active",
+      _creationTime: Date.now(),
+    });
+  }
+
+  async findById(id: Id<"projects">): Promise<any | null> {
+    return await this.ctx.db.get(id);
+  }
+
+  async findByWorkspace(workspaceId: Id<"workspaces">): Promise<any[]> {
+    return await this.ctx.db
+      .query("projects")
+      .withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
+      .collect();
+  }
+
+  async update(id: Id<"projects">, data: Partial<ProjectUpdateInput>): Promise<void> {
+    this.requireMutationContext();
+    await this.ctx.db.patch(id, data);
+  }
+
+  async delete(id: Id<"projects">): Promise<void> {
+    this.requireMutationContext();
+    await this.ctx.db.patch(id, { 
+      deletedAt: Date.now() 
+    });
+  }
+}
+
+// Update createRepositories function
+export function createRepositories(ctx: DatabaseAdapter) {
+  return {
+    ideaRepository: new ConvexIdeaRepository(ctx),
+    folderRepository: new ConvexFolderRepository(ctx),
+    projectRepository: new ConvexProjectRepository(ctx), // Add this
+  };
+}
+```
+
+### Step 4: Create Services Container
+
+Update `packages/backend/convex/services/container.ts`:
+
+```typescript
+// Add to imports
+import { createProjectService } from "@pulse/core/projects/services";
+import type { IProjectService } from "@pulse/core/projects/interfaces";
+
+// Update services interface
+export interface IServices {
+  ideaService: IIdeaService;
+  folderService: IFolderService;
+  projectService: IProjectService; // Add this
+}
+
+// Update createServices function
+export function createServices(
+  repositories: ReturnType<typeof createRepositories>,
+  context: IBusinessContext
+): IServices {
+  return {
+    ideaService: createIdeaService(repositories.ideaRepository, context),
+    folderService: createFolderService(repositories.folderRepository, context),
+    projectService: createProjectService(repositories.projectRepository, context), // Add this
+  };
+}
+```
+
+### Step 5: Add Database Schema
+
+Update `packages/backend/convex/schema.ts`:
+
+```typescript
+export default defineSchema({
+  // ... existing tables
+  
+  projects: defineTable({
+    workspaceId: v.id("workspaces"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    color: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("archived")),
+    createdBy: v.id("users"),
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_workspace", ["workspaceId"])
+    .index("by_workspace_status", ["workspaceId", "status"]),
+});
+```
+
+### Step 6: Create Convex Adapters
+
+Create `packages/backend/convex/projects.ts`:
+
+```typescript
+import { ConvexError, v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { requireUserId } from "./server/lib/authz";
+import { assertMember } from "./helpers";
+import { createRepositories } from "./adapters/repositories";
+import { createServices } from "./services/container";
+import { ProjectDomainError } from "@pulse/core/projects/services";
+import type { IBusinessContext } from "@pulse/core/projects/interfaces";
+
+// Validation schemas
+const projectCreateArgs = {
+  workspaceId: v.id("workspaces"),
+  name: v.string(),
+  description: v.optional(v.string()),
+  color: v.optional(v.string()),
+};
+
+const projectUpdateArgs = {
+  projectId: v.id("projects"),
+  name: v.optional(v.string()),
+  description: v.optional(v.string()),
+  color: v.optional(v.string()),
+  status: v.optional(v.union(v.literal("active"), v.literal("archived"))),
+};
+
+// Helper functions
+async function createBusinessContext(
+  ctx: any,
+  workspaceId?: string
+): Promise<IBusinessContext> {
+  const userId = await requireUserId(ctx);
+  
+  let userRole: string | undefined;
+  if (workspaceId) {
+    const membership = await ctx.db
+      .query("workspaceMembers")
+      .withIndex("by_workspace_user", (q: any) =>
+        q.eq("workspaceId", workspaceId).eq("userId", userId)
+      )
+      .first();
+    userRole = membership?.role;
+  }
+  
+  return {
+    userId,
+    workspaceId: workspaceId as any,
+    userRole,
+  };
+}
+
+function handleDomainError(error: unknown): never {
+  if (error instanceof ProjectDomainError) {
+    throw new ConvexError({
+      code: error.code,
+      message: error.message,
+    });
+  }
+  
+  throw error;
+}
+
+// CRUD Operations
+export const create = mutation({
+  args: projectCreateArgs,
+  handler: async (ctx, args) => {
+    try {
+      // 1. Authentication & Authorization
+      const businessContext = await createBusinessContext(ctx, args.workspaceId);
+      await assertMember(ctx, args.workspaceId);
+      
+      // 2. Create dependencies
+      const repositories = createRepositories(ctx);
+      const services = createServices(repositories, businessContext);
+      
+      // 3. Delegate to business logic
+      return await services.projectService.create(args);
+      
+    } catch (error) {
+      handleDomainError(error);
+    }
+  },
+});
+
+export const list = query({
+  args: { workspaceId: v.id("workspaces") },
+  handler: async (ctx, args) => {
+    try {
+      // 1. Authentication & Authorization
+      const businessContext = await createBusinessContext(ctx, args.workspaceId);
+      await assertMember(ctx, args.workspaceId);
+      
+      // 2. Create dependencies
+      const repositories = createRepositories(ctx);
+      const services = createServices(repositories, businessContext);
+      
+      // 3. Delegate to business logic
+      return await services.projectService.list(args.workspaceId);
+      
+    } catch (error) {
+      handleDomainError(error);
+    }
+  },
+});
+
+export const update = mutation({
+  args: projectUpdateArgs,
+  handler: async (ctx, args) => {
+    try {
+      const { projectId, ...updateData } = args;
+      
+      // 1. Get project to determine workspace for auth
+      const project = await ctx.db.get(projectId);
+      if (!project) {
+        throw new ConvexError({ code: "NOT_FOUND", message: "Project not found" });
+      }
+      
+      // 2. Authentication & Authorization
+      const businessContext = await createBusinessContext(ctx, project.workspaceId);
+      await assertMember(ctx, project.workspaceId);
+      
+      // 3. Create dependencies
+      const repositories = createRepositories(ctx);
+      const services = createServices(repositories, businessContext);
+      
+      // 4. Delegate to business logic
+      await services.projectService.update(projectId, updateData);
+      
+    } catch (error) {
+      handleDomainError(error);
+    }
+  },
+});
+
+export const remove = mutation({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    try {
+      // 1. Get project to determine workspace for auth
+      const project = await ctx.db.get(args.projectId);
+      if (!project) {
+        throw new ConvexError({ code: "NOT_FOUND", message: "Project not found" });
+      }
+      
+      // 2. Authentication & Authorization
+      const businessContext = await createBusinessContext(ctx, project.workspaceId);
+      await assertMember(ctx, project.workspaceId);
+      
+      // 3. Create dependencies
+      const repositories = createRepositories(ctx);
+      const services = createServices(repositories, businessContext);
+      
+      // 4. Delegate to business logic
+      await services.projectService.delete(args.projectId);
+      
+    } catch (error) {
+      handleDomainError(error);
+    }
+  },
+});
+```
+
+## 🧪 Testing Implementation
+
+### Unit Test Example
+
+```typescript
+// packages/core/src/projects/services.test.ts
+import { describe, it, expect, vi } from "vitest";
+import { ProjectService } from "./services";
+import type { IProjectRepository, IBusinessContext } from "./interfaces";
+
+describe("ProjectService", () => {
+  const mockRepository: IProjectRepository = {
+    create: vi.fn(),
+    findById: vi.fn(),
+    findByWorkspace: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  };
+
+  const mockContext: IBusinessContext = {
+    userId: "user123" as any,
+    workspaceId: "workspace123" as any,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should create project with valid data", async () => {
+    mockRepository.create = vi.fn().mockResolvedValue("project123");
+    const service = new ProjectService(mockRepository, mockContext);
+
+    const result = await service.create({
+      workspaceId: "workspace123" as any,
+      name: "Test Project",
+      description: "Test description",
+    });
+
+    expect(result).toBe("project123");
+    expect(mockRepository.create).toHaveBeenCalledWith({
+      workspaceId: "workspace123",
+      name: "Test Project",
+      description: "Test description",
+      createdBy: "user123",
+    });
+  });
+
+  it("should throw error for empty project name", async () => {
+    const service = new ProjectService(mockRepository, mockContext);
+
+    await expect(
+      service.create({
+        workspaceId: "workspace123" as any,
+        name: "",
+      })
+    ).rejects.toThrow("Project name is required");
+  });
+});
+```
+
+### Integration Test Example
+
+```typescript
+// packages/backend/convex/projects.convex.test.ts
+import { convexTest } from "convex-test";
+import { describe, it, expect } from "vitest";
+import { api } from "./_generated/api";
+import schema from "./schema";
+import { modules } from "./setup.test";
+
+describe("Projects API", () => {
+  it("should create and retrieve project", async () => {
+    const t = convexTest(schema, modules);
+    const identity = { tokenIdentifier: `user123|${crypto.randomUUID()}` };
+
+    // Create workspace first
+    const workspaceId = await t.withIdentity(identity).mutation(api.workspaces.create, {
+      name: "Test Workspace",
+    });
+
+    // Create project
+    const projectId = await t.withIdentity(identity).mutation(api.projects.create, {
+      workspaceId,
+      name: "Test Project",
+      description: "Test description",
+    });
+
+    // Verify project was created
+    const projects = await t.withIdentity(identity).query(api.projects.list, {
+      workspaceId,
+    });
+
+    expect(projects).toHaveLength(1);
+    expect(projects[0].name).toBe("Test Project");
+    expect(projects[0].description).toBe("Test description");
+  });
+});
+```
+
+## 📋 Checklist
+
+When implementing a new domain, ensure you have:
+
+- [ ] **Domain interfaces** defined in `packages/core/src/{domain}/interfaces.ts`
+- [ ] **Service implementation** in `packages/core/src/{domain}/services.ts`
+- [ ] **Repository implementation** in `packages/backend/convex/adapters/repositories.ts`
+- [ ] **Database schema** updated in `packages/backend/convex/schema.ts`
+- [ ] **Convex adapters** created in `packages/backend/convex/{domain}.ts`
+- [ ] **Services container** updated to include new services
+- [ ] **Unit tests** for service business logic
+- [ ] **Integration tests** for Convex functions
+- [ ] **Frontend components** (if needed) in `apps/web/src/components/{domain}/`
+
+This pattern ensures consistency, maintainability, and testability across all domains in the Pulse application.

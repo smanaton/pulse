@@ -1,0 +1,391 @@
+---
+title: Testing Setup
+description: Complete guide to setting up testing infrastructure for the Pulse application
+---
+
+# Testing Setup Guide
+
+This guide covers the complete testing infrastructure setup for the Pulse application, including unit tests, integration tests, and security testing.
+
+## Current Testing Status
+
+### ✅ **What's Configured**
+- **Vitest**: Modern testing framework with React Testing Library
+- **Test Environment**: JSdom for React component testing
+- **Mock Infrastructure**: Basic mocking setup for Convex and authentication
+- **Test Scripts**: Comprehensive npm scripts for different testing scenarios
+
+### 🔧 **Testing Framework Stack**
+- **Unit Testing**: Vitest + React Testing Library
+- **Component Testing**: @testing-library/react + @testing-library/jest-dom
+- **Mocking**: Vitest's built-in mocking capabilities
+- **Environment**: JSdom for browser-like testing environment
+
+## Installation and Configuration
+
+### Dependencies Installed
+
+```bash
+# Testing framework and utilities
+pnpm add -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom
+```
+
+### Vitest Configuration
+
+The testing configuration is defined in `apps/web/vitest.config.ts`:
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'node:path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+    css: true,
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+### Test Setup File
+
+The global test setup is configured in `apps/web/src/test/setup.ts`:
+
+```typescript
+import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+// Mock Convex client
+vi.mock('convex/react', () => ({
+  useQuery: vi.fn(),
+  useMutation: vi.fn(),
+  useAction: vi.fn(),
+  ConvexProvider: ({ children }: { children: React.ReactNode }) => children,
+  Authenticated: ({ children }: { children: React.ReactNode }) => children,
+  Unauthenticated: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock Convex Auth
+vi.mock('@convex-dev/auth/react', () => ({
+  useAuthActions: vi.fn(),
+  ConvexAuthProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock TanStack Router
+vi.mock('@tanstack/react-router', () => ({
+  createFileRoute: vi.fn(() => ({ component: vi.fn() })),
+  useNavigate: vi.fn(),
+  useRouterState: vi.fn(),
+  Outlet: () => null,
+}));
+
+// Mock backend API
+vi.mock('@pulse/backend', () => ({
+  api: {
+    users: {
+      getCurrentUser: 'users:getCurrentUser',
+    },
+  },
+}));
+```
+
+## Available Test Scripts
+
+The following test scripts are available in `apps/web/package.json`:
+
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest --watch"
+  }
+}
+```
+
+### Script Usage
+
+- **`pnpm test`**: Run tests in watch mode (development)
+- **`pnpm test:run`**: Run tests once (CI/CD)
+- **`pnpm test:coverage`**: Run tests with coverage report
+- **`pnpm test:ui`**: Run tests with Vitest UI
+- **`pnpm test:watch`**: Run tests in watch mode
+
+## Test Utilities
+
+### Mock Data and Helpers
+
+Test utilities are provided in `apps/web/src/test/utils.tsx`:
+
+```typescript
+// Mock user data for testing
+export const mockUser = {
+  _id: 'user123',
+  email: 'test@example.com',
+  name: 'Test User',
+  image: 'https://example.com/avatar.jpg',
+  emailVerified: Date.now(),
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
+};
+
+// Mock auth actions
+export const mockAuthActions = {
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+};
+
+// Common test data
+export const testData = {
+  user: mockUser,
+  error: new Error('Test error message'),
+  loading: undefined, // Convex uses undefined for loading state
+};
+```
+
+### Custom Render Function
+
+```typescript
+// Custom render function with providers
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { wrapper: TestWrapper, ...options });
+
+// Re-export everything
+export * from '@testing-library/react';
+export { customRender as render };
+```
+
+## Current Testing Challenges
+
+### 🚨 **Known Issues**
+
+1. **Complex Mocking Requirements**:
+   - Convex Auth hooks require sophisticated mocking
+   - TanStack Router components need proper mock setup
+   - ES Module compatibility issues with some packages
+
+2. **Component Dependencies**:
+   - Authentication components have complex dependencies
+   - Route components require router context
+   - Convex components need proper provider setup
+
+3. **Mock Synchronization**:
+   - Mocks need to be properly synchronized between setup and tests
+   - State management across different mock systems
+
+### 🔧 **Workarounds Implemented**
+
+1. **Simplified Mock Approach**: Using basic vi.mock() instead of complex dynamic mocking
+2. **Test Wrapper Components**: Providing necessary context for component testing
+3. **Isolated Test Data**: Consistent mock data across all tests
+
+## Test Structure
+
+### Recommended Test Organization
+
+```
+apps/web/src/
+├── test/
+│   ├── setup.ts              # Global test setup
+│   ├── utils.tsx             # Test utilities and helpers
+│   └── __tests__/            # Test utilities tests
+├── components/
+│   └── __tests__/            # Component tests
+├── routes/
+│   └── auth/
+│       └── __tests__/        # Route component tests
+└── lib/
+    └── __tests__/            # Utility function tests
+```
+
+### Test Naming Convention
+
+- **Component Tests**: `ComponentName.test.tsx`
+- **Utility Tests**: `utilityName.test.ts`
+- **Integration Tests**: `feature.integration.test.tsx`
+- **Setup Tests**: `setup.test.ts`
+
+## Running Tests
+
+### Development Workflow
+
+```bash
+# Start test watcher during development
+cd apps/web
+pnpm test
+
+# Run specific test file
+pnpm test:run src/components/__tests__/dashboard.test.tsx
+
+# Run tests with coverage
+pnpm test:coverage
+```
+
+### CI/CD Integration
+
+```bash
+# Run all tests (for CI/CD)
+pnpm test:run
+
+# Generate coverage report
+pnpm test:coverage
+```
+
+## Next Steps
+
+### Immediate Improvements Needed
+
+1. **Fix Mocking Issues**: Resolve ES module and complex dependency mocking
+2. **Component Test Completion**: Complete tests for all authentication components
+3. **Integration Tests**: Add end-to-end authentication flow tests
+4. **Coverage Targets**: Achieve 85%+ test coverage
+
+### Future Enhancements
+
+1. **E2E Testing**: Add Playwright for full application testing
+2. **Visual Testing**: Add visual regression testing
+3. **Performance Testing**: Add performance benchmarks
+4. **Security Testing**: Add security-focused test suites
+
+## Troubleshooting
+
+### Common Issues
+
+**"Cannot find module" errors**:
+- Check import paths in test files
+- Verify mock setup in `setup.ts`
+- Ensure proper alias configuration in `vitest.config.ts`
+
+**Mock function errors**:
+- Verify mocks are properly initialized in `beforeEach`
+- Check that mock functions are reset between tests
+- Ensure proper TypeScript types for mocked functions
+
+**Component rendering errors**:
+- Verify all required providers are mocked
+- Check that component dependencies are properly mocked
+- Ensure test wrapper provides necessary context
+
+## OAuth Identity Setup Analysis
+
+### Current Implementation Status
+
+Based on Context7 analysis of Convex Auth documentation, our OAuth setup is **correctly implemented** according to official standards:
+
+#### ✅ **Properly Configured Components:**
+
+1. **Provider Configuration** (`packages/backend/convex/auth.ts`):
+   ```typescript
+   import GitHub from "@auth/core/providers/github";
+   import Google from "@auth/core/providers/google";
+   import { Password } from "@convex-dev/auth/providers/Password";
+
+   export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
+     providers: [Password, GitHub, Google],
+   });
+   ```
+
+2. **HTTP Routes Setup** (`packages/backend/convex/http.ts`):
+   ```typescript
+   import { httpRouter } from "convex/server";
+   import { auth } from "./auth";
+
+   const http = httpRouter();
+   auth.addHttpRoutes(http);  // Handles OAuth callbacks
+   export default http;
+   ```
+
+3. **Required Environment Variables** (Need to be set):
+   ```bash
+   # GitHub OAuth
+   npx convex env set AUTH_GITHUB_ID <yourgithubclientid>
+   npx convex env set AUTH_GITHUB_SECRET <yourgithubsecret>
+
+   # Google OAuth
+   npx convex env set AUTH_GOOGLE_ID <yourgoogleclientid>
+   npx convex env set AUTH_GOOGLE_SECRET <yourgooglesecret>
+
+   # Site URL for redirects
+   npx convex env set SITE_URL http://localhost:3003
+   ```
+
+#### 🔍 **API Routes Handled by Convex Auth:**
+
+According to Context7 documentation, `auth.addHttpRoutes(http)` automatically handles:
+
+- `/.well-known/openid-configuration` - JWT configuration
+- `/.well-known/jwks.json` - JWT verification keys
+- `/api/auth/signin/*` - OAuth sign-in endpoints
+- `/api/auth/callback/*` - OAuth callback handlers
+
+#### ✅ **Custom User Profile Handling:**
+
+Our implementation includes proper user management:
+
+```typescript
+callbacks: {
+  async createOrUpdateUser(ctx, args) {
+    const { profile } = args;
+    const userInfo = {
+      email: profile.email,
+      name: profile.name,
+      image: profile.image,
+      emailVerified: Date.now(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    // Proper user creation/update logic
+  },
+}
+```
+
+### Missing API Issue Resolution
+
+The "API not found" issue mentioned is likely due to:
+
+1. **Environment Variables Not Set**: OAuth providers need proper credentials
+2. **Convex Deployment Status**: Backend needs to be running with `npx convex dev`
+3. **SITE_URL Configuration**: Required for OAuth redirects
+
+### Recommended Actions
+
+1. **Verify Environment Setup**:
+   ```bash
+   cd packages/backend
+   npx convex dev  # Start backend
+   npx convex env list  # Check current variables
+   ```
+
+2. **Set Missing Environment Variables**:
+   ```bash
+   npx convex env set SITE_URL http://localhost:3003
+   npx convex env set AUTH_GITHUB_ID <your-github-client-id>
+   npx convex env set AUTH_GITHUB_SECRET <your-github-secret>
+   npx convex env set AUTH_GOOGLE_ID <your-google-client-id>
+   npx convex env set AUTH_GOOGLE_SECRET <your-google-secret>
+   ```
+
+3. **Test OAuth Endpoints**:
+   - Visit: `http://localhost:3210/.well-known/openid-configuration`
+   - Check: OAuth sign-in flows work properly
+
+## Resources
+
+- [Vitest Documentation](https://vitest.dev/)
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- [Jest DOM Matchers](https://github.com/testing-library/jest-dom)
+- [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
+- [Convex Auth Documentation](https://github.com/get-convex/convex-auth)
+- [OAuth Provider Setup Guide](https://docs.convex.dev/auth/oauth)

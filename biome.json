@@ -1,21 +1,30 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+<<<<<<< Updated upstream
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
 		"useIgnoreFile": false
 	},
+=======
+>>>>>>> Stashed changes
 	"files": {
-		"ignoreUnknown": false,
 		"includes": [
-			"**",
-			"!**/.next",
+			"apps/web/src/**/*.{ts,tsx,js,jsx}",
+			"apps/chrome-extension/src/**/*.{ts,tsx,js,jsx}",
+			"packages/*/src/**/*.{ts,tsx,js,jsx}",
+			"packages/backend/convex/**/*.ts",
+			"scripts/**/*.{ts,js,cjs,mjs}",
+			"*.{ts,js,cjs,mjs}",
+			"apps/*/vite.config.ts",
+			"apps/*/tailwind.config.js",
+			"apps/*/*.config.{ts,js}",
+			"!**/node_modules",
 			"!**/dist",
 			"!**/.turbo",
-			"!**/dev-dist",
-			"!**/.zed",
-			"!**/.vscode",
+			"!**/convex/_generated",
 			"!**/routeTree.gen.ts",
+<<<<<<< Updated upstream
 			"!**/src-tauri",
 			"!**/.nuxt",
 			"!bts.jsonc",
@@ -27,27 +36,28 @@
 			"!**/*.css",
 			"!**/_generated",
 			"!**/.astro"
+=======
+			"!**/.astro",
+			"!**/build",
+			"!theme",
+			"!apps/storybook",
+			"!.*",
+			"!nul"
+>>>>>>> Stashed changes
 		]
 	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab"
-	},
+	"formatter": { "enabled": true, "indentStyle": "tab" },
 	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
 			"recommended": true,
-			"correctness": {
-				"useExhaustiveDependencies": "info"
-			},
+			"correctness": { "useExhaustiveDependencies": "info" },
 			"nursery": {
 				"useSortedClasses": {
 					"level": "warn",
 					"fix": "safe",
-					"options": {
-						"functions": ["clsx", "cva", "cn"]
-					}
+					"options": { "functions": ["clsx", "cva", "cn"] }
 				}
 			},
 			"style": {
@@ -64,9 +74,6 @@
 			}
 		}
 	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		}
-	}
+	"javascript": { "formatter": { "quoteStyle": "double" } },
+	"css": { "formatter": { "enabled": false }, "linter": { "enabled": false } }
 }

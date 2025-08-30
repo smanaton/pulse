@@ -1,0 +1,4 @@
+{
+	"compilerOptions": { "types": ["node"] },
+	"include": ["vitest.workspace.ts", "**/vite.config.ts"]
+}

@@ -1,0 +1,41 @@
+import type { Meta, StoryFn } from "@storybook/react-vite";
+import type { BannerProps } from "flowbite-react";
+import { Banner, BannerCollapseButton } from "flowbite-react";
+import { HiX } from "react-icons/hi";
+import { MdAnnouncement } from "react-icons/md";
+
+export default {
+	title: "Components/Banner",
+	component: Banner,
+} as Meta;
+
+const Template: StoryFn<BannerProps> = (args) => <Banner {...args} />;
+
+export const DefaultBanner = Template.bind({});
+DefaultBanner.storyName = "Default";
+DefaultBanner.args = {
+	children: (
+		<div className="fixed top-0 left-0 z-50 flex w-full justify-between border-gray-200 border-b bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
+			<div className="mx-auto flex items-center">
+				<p className="flex items-center font-normal text-gray-500 text-sm dark:text-gray-400">
+					<MdAnnouncement />
+					<span>
+						New brand identity has been launched for the{" "}
+						<a
+							href="https://flowbite.com"
+							className="inline font-medium text-cyan-600 underline decoration-solid underline-offset-2 hover:no-underline dark:text-cyan-500"
+						>
+							Flowbite Library
+						</a>
+					</span>
+				</p>
+			</div>
+			<BannerCollapseButton
+				color="gray"
+				className="border-0 bg-transparent px-0"
+			>
+				<HiX className="size-4" />
+			</BannerCollapseButton>
+		</div>
+	),
+};

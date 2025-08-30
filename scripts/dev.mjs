@@ -1,0 +1,101 @@
+import { execSync, spawn } from "node:child_process";
+import { rmSync, writeFileSync } from "node:fs";
+
+const isWin = process.platform === "win32";
+const cmd = isWin ? "pnpm.cmd" : "pnpm";
+
+// ANSI color codes for better output
+const colors = {
+	reset: "\x1b[0m",
+	red: "\x1b[31m",
+	green: "\x1b[32m",
+	yellow: "\x1b[33m",
+	blue: "\x1b[34m",
+	magenta: "\x1b[35m",
+	cyan: "\x1b[36m",
+	white: "\x1b[37m",
+};
+
+console.log(
+	`${colors.cyan}🚀 Starting Pulse Development Environment${colors.reset}\n`,
+);
+
+// Start backend and frontend concurrently
+const args = [
+	"concurrently",
+	'"pnpm -F @pulse/backend dev --verbose"',
+	'"pnpm -F web dev"',
+	"--names",
+	"backend,frontend",
+	"--prefix",
+	"name",
+	"--prefix-colors",
+	"magenta,cyan",
+];
+
+// Detach on POSIX so we can kill the whole group via -PID
+const child = spawn(cmd, args, {
+	stdio: "inherit",
+	detached: !isWin,
+	shell: isWin,
+});
+
+writeFileSync(".dev.pid", String(child.pid), "utf8");
+
+// Display service URLs after a short delay
+setTimeout(() => {
+	console.log(`\n${colors.green}📡 Service URLs:${colors.reset}`);
+	console.log(
+		`${colors.magenta}  Backend (Convex):${colors.reset} http://localhost:3210`,
+	);
+	console.log(
+		`${colors.magenta}  Convex Dashboard:${colors.reset} https://dashboard.convex.dev`,
+	);
+	console.log(
+		`${colors.cyan}  Web UI:${colors.reset} http://localhost:3003${colors.reset}\n`,
+	);
+
+	console.log(
+		`${colors.yellow}💡 Press Ctrl+C to stop all services${colors.reset}\n`,
+	);
+}, 3000);
+
+const cleanup = () => {
+	try {
+		rmSync(".dev.pid");
+		console.log(`\n${colors.red}🛑 Stopping all services...${colors.reset}`);
+	} catch {}
+};
+
+const stopTree = () => {
+	try {
+		if (isWin) {
+			execSync(`taskkill /pid ${child.pid} /T /F`, { stdio: "inherit" });
+		} else {
+			try {
+				process.kill(-child.pid, "SIGTERM");
+			} catch {}
+			try {
+				process.kill(child.pid, "SIGTERM");
+			} catch {}
+		}
+	} catch {}
+};
+
+process.on("SIGINT", () => {
+	stopTree();
+	cleanup();
+	process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+	stopTree();
+	cleanup();
+	process.exit(0);
+});
+
+child.on("exit", (code) => {
+	cleanup();
+	console.log(`${colors.red}Development environment stopped.${colors.reset}`);
+	process.exit(code ?? 0);
+});
