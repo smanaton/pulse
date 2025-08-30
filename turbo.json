@@ -13,6 +13,34 @@
 		"check-types": {
 			"dependsOn": ["^check-types"]
 		},
+		"test": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*",
+				"**/*.test.*",
+				"**/*.spec.*",
+				"**/test/**",
+				"**/tests/**"
+			],
+			"outputs": ["coverage/**", ".vitest-reports/**"],
+			"cache": true
+		},
+		"test:watch": {
+			"cache": false,
+			"persistent": true
+		},
+		"test:coverage": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*",
+				"**/*.test.*",
+				"**/*.spec.*",
+				"**/test/**",
+				"**/tests/**"
+			],
+			"outputs": ["coverage/**", ".vitest-reports/**"],
+			"cache": true
+		},
 		"dev": {
 			"cache": false,
 			"persistent": true

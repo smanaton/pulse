@@ -1,0 +1,18 @@
+# .github/workflows/ruler.yml
+name: Ruler sync
+on: [pull_request]
+jobs:
+  ruler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: pnpm dlx @intellectronica/ruler apply --no-gitignore
+      - name: Fail if changes needed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Run 'pnpm dlx @intellectronica/ruler apply' locally and commit changes."
+            git status --porcelain
+            exit 1
+          fi

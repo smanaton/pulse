@@ -1,0 +1,314 @@
+---
+title: Security Considerations
+description: Security best practices and considerations for the authentication system
+---
+
+# Authentication Security
+
+## Security Features
+
+### Row-Level Security (RLS)
+
+All database queries automatically scope data to the authenticated user:
+
+```typescript
+// Backend - Only returns todos for the current user
+export const getAll = query({
+  handler: async (ctx) => {
+    const identity = await auth.getUserIdentity(ctx);
+    if (!identity) return [];
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", identity.email!))
+      .unique();
+
+    if (!user) return [];
+
+    return await ctx.db
+      .query("todos")
+      .withIndex("userId", (q) => q.eq("userId", user._id))
+      .collect();
+  },
+});
+```
+
+### Secure Session Management
+
+- **JWT-based sessions** with proper expiration
+- **Secure token storage** using httpOnly cookies
+- **Automatic session cleanup** on sign-out
+- **Session validation** on every request
+
+### Environment Variable Protection
+
+All sensitive credentials are stored in environment variables:
+
+```bash
+# Never commit these to version control
+GOOGLE_CLIENT_ID=your_secure_client_id
+GOOGLE_CLIENT_SECRET=your_secure_client_secret
+GITHUB_CLIENT_ID=your_secure_client_id
+GITHUB_CLIENT_SECRET=your_secure_client_secret
+```
+
+## Security Best Practices
+
+### 1. Never Log Sensitive Data
+
+```typescript
+// ❌ Bad - Don't log sensitive information
+console.log("User data:", user);
+
+// ✅ Good - Log only necessary, non-sensitive data
+console.log("User authenticated:", user.email);
+```
+
+### 2. Validate User Input
+
+```typescript
+// Always validate and sanitize user input
+export const updateUser = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Additional validation
+    if (args.name && args.name.length > 100) {
+      throw new Error("Name too long");
+    }
+    // ... rest of validation
+  },
+});
+```
+
+### 3. Use HTTPS in Production
+
+```typescript
+// Ensure all authentication flows use HTTPS
+const convex = new ConvexReactClient(
+  process.env.VITE_CONVEX_URL as string,
+  {
+    // Additional security options
+    skipConvexDeploymentUrlCheck: process.env.NODE_ENV === "development",
+  }
+);
+```
+
+### 4. Implement Rate Limiting
+
+Consider implementing rate limiting for authentication endpoints:
+
+```typescript
+// Example rate limiting implementation
+const signInAttempts = new Map();
+
+export const signIn = action({
+  args: { provider: v.string() },
+  handler: async (ctx, args) => {
+    const clientIP = getClientIP(ctx);
+    const attempts = signInAttempts.get(clientIP) || 0;
+
+    if (attempts > 5) {
+      throw new Error("Too many sign-in attempts");
+    }
+
+    // ... rest of sign-in logic
+  },
+});
+```
+
+## OAuth Security
+
+### Provider Configuration
+
+**Google OAuth:**
+- Use restrictive scopes: `openid email profile`
+- Set up proper redirect URIs
+- Enable domain verification in production
+
+**GitHub OAuth:**
+- Request minimal scopes: `user:email`
+- Use state parameter for CSRF protection
+- Validate user email verification
+
+### Token Security
+
+- **Never expose tokens** in client-side code
+- **Use secure cookies** for token storage
+- **Implement token rotation** for long sessions
+- **Validate token signatures** on every request
+
+## Data Protection
+
+### User Data Encryption
+
+```typescript
+// Consider encrypting sensitive user data
+export const users = defineTable({
+  email: v.string(),           // Consider hashing for additional privacy
+  encryptedSSN: v.string(),    // Encrypt sensitive data
+  // ... other fields
+});
+```
+
+### Audit Logging
+
+```typescript
+// Log authentication events for security monitoring
+export const signIn = action({
+  args: { provider: v.string() },
+  handler: async (ctx, args) => {
+    const result = await convexAuth.signIn(ctx, args);
+
+    // Log authentication attempt
+    await ctx.db.insert("audit_logs", {
+      action: "sign_in",
+      provider: args.provider,
+      timestamp: Date.now(),
+      ipAddress: getClientIP(ctx),
+      userAgent: getUserAgent(ctx),
+    });
+
+    return result;
+  },
+});
+```
+
+## Common Security Vulnerabilities
+
+### 1. Cross-Site Scripting (XSS)
+
+**Prevention:**
+- Sanitize all user input before display
+- Use React's built-in XSS protection
+- Escape HTML in error messages
+
+```tsx
+// ✅ Safe rendering
+<div>{user.name}</div>
+
+// ❌ Unsafe - could lead to XSS
+<div dangerouslySetInnerHTML={{ __html: user.name }} />
+```
+
+### 2. Cross-Site Request Forgery (CSRF)
+
+**Prevention:**
+- Use state parameters in OAuth flows
+- Implement CSRF tokens for forms
+- Validate request origins
+
+### 3. Information Disclosure
+
+**Prevention:**
+- Don't expose sensitive error messages to users
+- Use generic error messages in production
+- Implement proper error boundaries
+
+```typescript
+// ✅ Generic error messages
+try {
+  await signIn(provider);
+} catch (error) {
+  console.error("Sign in failed:", error);
+  throw new Error("Authentication failed. Please try again.");
+}
+```
+
+### 4. Session Fixation
+
+**Prevention:**
+- Regenerate session on successful authentication
+- Use secure, random session IDs
+- Implement proper session timeout
+
+## Production Security Checklist
+
+### Environment Configuration
+- [ ] All secrets stored in environment variables
+- [ ] Environment variables not committed to version control
+- [ ] Production database access restricted
+- [ ] HTTPS enabled for all authentication flows
+
+### OAuth Configuration
+- [ ] OAuth redirect URIs configured for production domain
+- [ ] Minimal scopes requested from providers
+- [ ] Provider applications configured for production
+- [ ] State parameters used for CSRF protection
+
+### Application Security
+- [ ] Input validation on all user inputs
+- [ ] Rate limiting implemented for auth endpoints
+- [ ] Error messages don't expose sensitive information
+- [ ] Audit logging enabled for security events
+- [ ] Security headers configured (CSP, HSTS, etc.)
+
+### Database Security
+- [ ] Row-level security enabled for all tables
+- [ ] User data properly scoped and validated
+- [ ] Sensitive data encrypted at rest
+- [ ] Database access logs enabled
+- [ ] Backup and recovery procedures documented
+
+## Monitoring and Alerting
+
+### Security Monitoring
+- Monitor authentication failure rates
+- Alert on unusual sign-in patterns
+- Track OAuth provider changes
+- Monitor for suspicious database queries
+
+### Logging
+```typescript
+// Implement comprehensive security logging
+export const securityLogger = {
+  logAuthAttempt: (userId: string, success: boolean, details: any) => {
+    // Log to security monitoring system
+  },
+  logDataAccess: (userId: string, table: string, action: string) => {
+    // Log data access for audit trails
+  },
+  logSecurityEvent: (event: string, details: any) => {
+    // Log security-related events
+  },
+};
+```
+
+## Compliance Considerations
+
+### GDPR Compliance
+- Implement data deletion requests
+- Provide user data export functionality
+- Document data retention policies
+- Obtain proper user consents
+
+### SOC 2 Compliance
+- Implement access controls and auditing
+- Document security procedures
+- Regular security assessments
+- Incident response planning
+
+## Emergency Procedures
+
+### Security Breach Response
+1. **Contain**: Disable compromised accounts
+2. **Investigate**: Analyze breach scope and impact
+3. **Communicate**: Notify affected users
+4. **Remediate**: Fix security vulnerabilities
+5. **Prevent**: Implement additional security measures
+
+### Account Recovery
+- Implement secure password reset flows
+- Use email verification for account changes
+- Provide account lockout protection
+- Implement two-factor authentication if needed
+
+## Resources
+
+- [OAuth 2.0 Security Best Practices](https://tools.ietf.org/html/rfc6749)
+- [Convex Security Documentation](https://docs.convex.dev/security)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [Web Security Best Practices](https://web.dev/security/)

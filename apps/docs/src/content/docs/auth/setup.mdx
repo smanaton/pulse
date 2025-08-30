@@ -1,0 +1,333 @@
+---
+title: Setup & Configuration
+description: Complete guide to setting up OAuth authentication with Google and GitHub
+---
+
+# Authentication Setup
+
+This guide will walk you through setting up OAuth authentication with Google and GitHub for your Pulse application.
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+1. **Convex Development Server** running:
+   ```bash
+   cd packages/backend
+   npx convex dev
+   ```
+
+2. **Web Application** running:
+   ```bash
+   cd apps/web
+   npm run dev
+   ```
+
+3. **Environment Files** configured (see below)
+
+## Environment Configuration
+
+### Backend Environment Variables
+
+The backend environment file `packages/backend/.env.local` should contain:
+
+```bash
+# Convex Deployment (auto-generated)
+CONVEX_DEPLOYMENT=anonymous:anonymous-backend
+CONVEX_URL=http://127.0.0.1:3210
+
+# OAuth Provider Credentials
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+GITHUB_CLIENT_ID=your_github_client_id_here
+GITHUB_CLIENT_SECRET=your_github_client_secret_here
+
+# Site URL for OAuth redirects
+CONVEX_SITE_URL=http://localhost:3003
+```
+
+### Frontend Environment Variables
+
+The frontend environment file `apps/web/.env.local` should contain:
+
+```bash
+# Convex Configuration
+VITE_CONVEX_URL=http://127.0.0.1:3210
+```
+
+## Google OAuth Setup
+
+### Step 1: Create Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Note your project ID for reference
+
+### Step 2: Enable Required APIs
+
+1. Navigate to **APIs & Services** → **Library**
+2. Search for and enable:
+   - **Google+ API** (for basic profile info)
+   - **Google Identity API** (recommended for newer implementations)
+
+### Step 3: Create OAuth 2.0 Credentials
+
+1. Go to **APIs & Services** → **Credentials**
+2. Click **Create Credentials** → **OAuth 2.0 Client IDs**
+3. Configure the OAuth consent screen if prompted:
+   - Choose **External** for testing
+   - Fill in required fields (App name, User support email, etc.)
+   - Add your email to test users
+4. Create OAuth 2.0 Client ID:
+   - **Application type**: Web application
+   - **Name**: Pulse Development (or your preferred name)
+   - **Authorized JavaScript origins**:
+     - `http://localhost:3003`
+   - **Authorized redirect URIs**:
+     - `http://localhost:3003/auth/google/callback`
+
+### Step 4: Copy Credentials
+
+1. Copy the **Client ID** and **Client Secret**
+2. Add them to `packages/backend/.env.local`:
+   ```bash
+   GOOGLE_CLIENT_ID=your_actual_client_id_here
+   GOOGLE_CLIENT_SECRET=your_actual_client_secret_here
+   ```
+
+## GitHub OAuth Setup
+
+### Step 1: Create GitHub OAuth App
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Click **New OAuth App**
+
+### Step 2: Configure OAuth App
+
+Fill in the following details:
+- **Application name**: Pulse Development (or your preferred name)
+- **Homepage URL**: `http://localhost:3003`
+- **Application description**: (optional) OAuth app for Pulse development
+- **Authorization callback URL**: `http://localhost:3003/auth/github/callback`
+
+### Step 3: Generate Client Secret
+
+1. After creating the app, click **Generate a new client secret**
+2. Copy both the **Client ID** and **Client Secret**
+3. Add them to `packages/backend/.env.local`:
+   ```bash
+   GITHUB_CLIENT_ID=your_actual_client_id_here
+   GITHUB_CLIENT_SECRET=your_actual_client_secret_here
+   ```
+
+## Backend Configuration
+
+### Authentication Providers
+
+The authentication configuration is set up in `packages/backend/convex/auth.ts`:
+
+```typescript
+import GitHub from "@auth/core/providers/github";
+import Google from "@auth/core/providers/google";
+import { convexAuth } from "@convex-dev/auth/server";
+import { Password } from "@convex-dev/auth/providers/Password";
+
+export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
+  providers: [
+    Password,  // Email/password authentication
+    GitHub,    // GitHub OAuth
+    Google,    // Google OAuth
+  ],
+  callbacks: {
+    async createOrUpdateUser(ctx, args) {
+      // Handles user creation and updates from OAuth profiles
+      // See full implementation in the file
+    },
+  },
+});
+```
+
+### Database Schema
+
+The user schema is defined in `packages/backend/convex/schema.ts`:
+
+```typescript
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  users: defineTable({
+    email: v.string(),
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    emailVerified: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("createdAt", ["createdAt"])
+    .index("email", ["email"]),
+});
+```
+
+## Frontend Configuration
+
+### Provider Setup
+
+The frontend uses Convex's `ConvexAuthProvider` in `apps/web/src/main.tsx`:
+
+```typescript
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { ConvexReactClient } from "convex/react";
+
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
+
+// Wrap your app with ConvexAuthProvider
+<ConvexAuthProvider client={convex}>
+  <App />
+</ConvexAuthProvider>
+```
+
+### Authentication Components
+
+The app uses Convex's `Authenticated` and `Unauthenticated` components for conditional rendering:
+
+```typescript
+import { Authenticated, Unauthenticated } from "convex/react";
+
+function App() {
+  return (
+    <>
+      <Authenticated>
+        <MainLayout>
+          <Outlet />
+        </MainLayout>
+      </Authenticated>
+      <Unauthenticated>
+        <SignInPage />
+      </Unauthenticated>
+    </>
+  );
+}
+```
+
+## Testing the Setup
+
+### 1. Start Development Servers
+
+```bash
+# Terminal 1: Start Convex backend
+cd packages/backend
+npx convex dev
+
+# Terminal 2: Start web application
+cd apps/web
+npm run dev
+
+# Or use the monorepo command to start both:
+pnpm run dev
+```
+
+### 2. Test Authentication
+
+1. **Visit the application**: Open [http://localhost:3003](http://localhost:3003)
+2. **Test Password Authentication**: Click "Continue with Email" (works immediately)
+3. **Test OAuth Providers**: Click "Continue with Google" or "Continue with GitHub" (requires OAuth setup)
+
+### 3. Verify User Data
+
+- Check the Convex dashboard at [http://127.0.0.1:6790](http://127.0.0.1:6790)
+- Navigate to the "users" table to see created user records
+- Verify user profile information is properly stored
+
+## Troubleshooting
+
+### Common Issues
+
+**Application hangs on loading**
+- ✅ **Fixed**: Ensure `VITE_CONVEX_URL` is set in `apps/web/.env.local`
+- ✅ **Fixed**: Check that Convex backend is running on `http://127.0.0.1:3210`
+
+**"OAuth provider not configured" errors**
+- Check that your client IDs and secrets are correctly set in `packages/backend/.env.local`
+- Restart the Convex dev server after changing environment variables
+- Ensure credentials don't contain placeholder text like "your_client_id_here"
+
+**"Redirect URI mismatch" errors**
+- Ensure your OAuth app redirect URIs exactly match: `http://localhost:3003/auth/google/callback`
+- Check for trailing slashes or protocol mismatches (http vs https)
+
+**"Access blocked" or "App not verified" errors**
+- **Google**: Add your email to test users in OAuth consent screen
+- **GitHub**: Ensure the OAuth app is not suspended
+
+**CORS errors**
+- Verify authorized origins in Google Cloud Console include `http://localhost:3003`
+- Check that your web app is running on the correct port (3003)
+
+### Debug Mode
+
+Enable debug logging by adding to `packages/backend/.env.local`:
+
+```bash
+CONVEX_DEBUG=true
+```
+
+### Reset Authentication
+
+If you encounter persistent issues:
+
+1. **Clear browser data** for localhost:3003
+2. **Restart both servers** (Convex and web app)
+3. **Check environment variables** are properly loaded
+4. **Verify OAuth app configurations** in provider consoles
+
+## Production Deployment
+
+### Environment Updates
+
+When deploying to production:
+
+1. **Update OAuth app configurations**:
+   - Change redirect URIs to your production domain
+   - Use HTTPS for all URLs: `https://yourdomain.com/auth/google/callback`
+
+2. **Update environment variables**:
+   ```bash
+   # Production values
+   GOOGLE_CLIENT_ID=your_production_google_client_id
+   GOOGLE_CLIENT_SECRET=your_production_google_client_secret
+   GITHUB_CLIENT_ID=your_production_github_client_id
+   GITHUB_CLIENT_SECRET=your_production_github_client_secret
+   CONVEX_SITE_URL=https://yourdomain.com
+   VITE_CONVEX_URL=https://your-deployment.convex.cloud
+   ```
+
+3. **Security checklist**:
+   - Use your hosting platform's secure environment variable storage
+   - Never commit `.env.local` files to version control
+   - Regularly rotate OAuth secrets
+   - Monitor authentication logs for suspicious activity
+
+### Convex Production Deployment
+
+1. **Deploy to Convex Cloud**:
+   ```bash
+   cd packages/backend
+   npx convex deploy
+   ```
+
+2. **Update frontend environment**:
+   ```bash
+   # apps/web/.env.local
+   VITE_CONVEX_URL=https://your-deployment.convex.cloud
+   ```
+
+## Next Steps
+
+After completing OAuth setup:
+
+1. **Test all authentication flows** thoroughly
+2. **Implement additional security measures** (rate limiting, etc.)
+3. **Set up monitoring and logging**
+4. **Create production OAuth apps** with production URLs
+5. **Configure user profile management** features

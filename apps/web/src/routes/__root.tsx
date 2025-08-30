@@ -1,17 +1,19 @@
-import Header from "@/components/header";
-import Loader from "@/components/loader";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { api } from "@pulse/backend";
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
-	createRootRouteWithContext,
+	useLocation,
+	useNavigate,
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { useQuery } from "convex/react";
+import { useEffect } from "react";
+import { Toaster } from "@/components/ui/sonner";
 import "../index.css";
 
-export interface RouterAppContext {}
+export type RouterAppContext = Record<string, never>;
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
 	component: RootComponent,
@@ -31,6 +33,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				href: "/favicon.ico",
 			},
 		],
+		scripts: [
+			{
+				src: "https://unpkg.com/flowbite@2.3.0/dist/flowbite.min.js",
+			},
+		],
 	}),
 });
 
@@ -38,22 +45,57 @@ function RootComponent() {
 	const isFetching = useRouterState({
 		select: (s) => s.isLoading,
 	});
+	const navigate = useNavigate();
+	const location = useLocation();
+	const user = useQuery(api.users.getCurrentUser);
 
+	// Handle authentication redirects
+	useEffect(() => {
+		console.log(
+			"🌍 RootComponent useEffect - user:",
+			!!user,
+			"path:",
+			location.pathname,
+		);
+
+		// Skip if user query is still loading
+		if (user === undefined) return;
+
+		const isAuthPage = location.pathname.startsWith("/auth");
+
+		// If user is authenticated and on auth pages, redirect to root
+		if (user && isAuthPage) {
+			console.log(
+				"🌍 RootComponent - authenticated user on auth page, redirecting to /",
+			);
+			navigate({ to: "/", replace: true });
+		}
+	}, [user, location.pathname, navigate]);
+
+	// Show loading while checking auth status
+	if (user === undefined) {
+		return (
+			<>
+				<HeadContent />
+				<div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+					<div className="h-32 w-32 animate-spin rounded-full border-gray-900 border-b-2 dark:border-white" />
+				</div>
+			</>
+		);
+	}
+
+	// Show main layout for all pages - auth routing handled by individual routes
 	return (
 		<>
 			<HeadContent />
-			<ThemeProvider
-				attribute="class"
-				defaultTheme="dark"
-				disableTransitionOnChange
-				storageKey="vite-ui-theme"
-			>
-				<div className="grid grid-rows-[auto_1fr] h-svh">
-					<Header />
-					{isFetching ? <Loader /> : <Outlet />}
+			{isFetching ? (
+				<div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+					<div className="h-32 w-32 animate-spin rounded-full border-blue-600 border-b-2" />
 				</div>
-				<Toaster richColors />
-			</ThemeProvider>
+			) : (
+				<Outlet />
+			)}
+			<Toaster richColors />
 			<TanStackRouterDevtools position="bottom-left" />
 		</>
 	);

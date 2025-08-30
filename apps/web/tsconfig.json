@@ -8,7 +8,7 @@
 		"moduleResolution": "Bundler",
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
-		"types": ["vite/client"],
+		"types": ["vitest/globals", "@testing-library/jest-dom", "node"],
 		"rootDirs": ["."],
 		"baseUrl": ".",
 		"paths": {

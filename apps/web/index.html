@@ -1,9 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" suppressHydrationWarning>
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>pulse</title>
+		<script>
+			// Flowbite React ThemeModeScript - prevent FOUC
+			(function () {
+				try {
+					// Clean up conflicting localStorage keys first
+					if (localStorage.getItem('theme')) {
+						console.log('Removing conflicting "theme" key:', localStorage.getItem('theme'));
+						localStorage.removeItem('theme');
+					}
+					
+					// Flowbite React uses 'flowbite-theme-mode' as the key
+					let theme = localStorage.getItem('flowbite-theme-mode') || 'auto';
+					
+					const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					const isDark = theme === 'dark' || (theme === 'auto' && systemDark);
+					
+					document.documentElement.classList.toggle('dark', isDark);
+					
+					// Debug log to see what's happening  
+					console.log('ThemeModeScript:', { 
+						'flowbite-theme-mode': theme,
+						isDark, 
+						systemDark,
+						explanation: theme === 'auto' ? `Following system preference (${systemDark ? 'dark' : 'light'})` : `Manual theme: ${theme}`
+					});
+				} catch (e) {
+					// Fallback to system preference if localStorage fails
+					const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					document.documentElement.classList.toggle('dark', systemDark);
+					console.log('ThemeModeScript fallback:', { systemDark });
+				}
+			})();
+		</script>
 	</head>
 
 	<body>

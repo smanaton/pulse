@@ -1,0 +1,368 @@
+---
+title: Project Structure
+description: Understanding the Pulse monorepo architecture and file organization
+---
+
+# Project Structure
+
+Pulse is built as a **Turborepo monorepo** with **clean OOP architecture** featuring separation of concerns through adapters, services, and repositories. This structure enables maintainable, testable, and scalable development.
+
+## 📁 Root Directory Structure
+
+```
+pulse/
+├── apps/
+│   ├── docs/           # Starlight documentation site
+│   ├── storybook/      # Component development environment  
+│   └── web/            # Main React application
+├── packages/
+│   ├── backend/        # Convex backend with thin adapters
+│   └── core/           # Business logic and domain services
+├── .ruler/            # Project rules and guidelines
+├── pnpm-workspace.yaml # Workspace configuration
+├── turbo.json         # Turborepo configuration
+└── package.json       # Root dependencies and scripts
+```
+
+## 🏗️ Application Structure
+
+### Frontend Application (`apps/web/`)
+
+```
+apps/web/
+├── src/
+│   ├── components/      # Reusable UI components
+│   │   ├── ui/          # Base UI components (shadcn/ui)
+│   │   ├── ideas/       # Ideas domain components
+│   │   ├── projects/    # Project management components
+│   │   ├── workspaces/  # Workspace components
+│   │   ├── layouts/     # Application layouts
+│   │   └── primitives/  # Low-level UI primitives
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility functions and configurations
+│   │   ├── auth.tsx     # Authentication context and hooks
+│   │   ├── utils.ts     # General utility functions
+│   │   └── query-client.ts # TanStack Query configuration
+│   ├── routes/          # TanStack Router route definitions
+│   │   ├── __root.tsx   # Root layout with providers
+│   │   ├── auth/        # Authentication-related routes
+│   │   ├── index.tsx    # Dashboard/home page
+│   │   ├── ideas.tsx    # Ideas management page
+│   │   ├── projects.tsx # Projects management page
+│   │   └── routeTree.gen.ts # Auto-generated route tree
+│   ├── types/           # Shared TypeScript types
+│   ├── index.css        # Global styles and Tailwind imports
+│   └── main.tsx         # Application entry point
+├── package.json         # Frontend dependencies
+└── vite.config.ts       # Vite configuration
+```
+
+### Backend Package (`packages/backend/`) - Convex Adapters
+
+```
+packages/backend/
+├── convex/
+│   ├── _generated/      # Auto-generated Convex types and API
+│   ├── adapters/        # Repository implementations
+│   │   └── repositories.ts # Convex database repositories
+│   ├── server/          # Server utilities and helpers
+│   │   └── lib/         # Authentication and security helpers
+│   ├── auth.config.ts   # OAuth provider configuration
+│   ├── auth.ts          # Authentication setup and providers
+│   ├── schema.ts        # Database schema definition
+│   ├── ideas.ts         # Ideas domain thin adapters
+│   ├── users.ts         # User management functions
+│   ├── workspaces.ts    # Workspace management adapters
+│   ├── projects.ts      # Project management adapters
+│   └── convex.config.ts # Convex app configuration
+├── .env.local           # Environment variables (not committed)
+├── package.json         # Backend dependencies
+└── tsconfig.json        # TypeScript configuration
+```
+
+### Core Package (`packages/core/`) - Business Logic
+
+```
+packages/core/
+├── src/
+│   ├── ideas/           # Ideas domain
+│   │   ├── interfaces.ts # Service and repository contracts
+│   │   └── services.ts   # Business logic implementation
+│   ├── workspaces/      # Workspaces domain (future)
+│   ├── projects/        # Projects domain (future)
+│   └── shared/          # Shared domain types and utilities
+├── package.json         # Core package dependencies
+└── tsconfig.json        # TypeScript configuration
+```
+
+### Documentation (`apps/docs/`)
+
+```
+apps/docs/
+├── src/
+│   └── content/
+│       └── docs/
+│           ├── auth/           # Authentication documentation
+│           │   ├── overview.mdx
+│           │   ├── setup.mdx
+│           │   ├── usage.mdx
+│           │   └── security.mdx
+│           ├── getting-started/
+│           │   └── project-structure.mdx
+│           ├── reference/      # API reference (auto-generated)
+│           └── index.mdx       # Main documentation page
+├── astro.config.mjs    # Starlight configuration
+└── package.json        # Documentation dependencies
+```
+
+## 🏛️ Architecture Overview
+
+Pulse follows **clean OOP architecture** with clear separation of concerns:
+
+### Layer Separation
+- **`packages/core/`** - **Domain Layer**: Pure business logic, services, and contracts
+- **`packages/backend/convex/`** - **Adapter Layer**: Thin Convex adapters that delegate to services
+- **`apps/web/src/`** - **Presentation Layer**: React components and UI logic
+
+### Design Patterns
+- **Repository Pattern**: Abstract data access with `IIdeaRepository`, `IFolderRepository`
+- **Service Pattern**: Business logic encapsulation with `IdeaService`, `FolderService`
+- **Adapter Pattern**: Thin Convex functions that handle auth and delegate to services
+- **Dependency Injection**: Services receive their dependencies through constructors
+
+### Data Flow
+1. **Frontend** calls Convex function (mutation/query)
+2. **Adapter** handles auth, creates business context, instantiates services
+3. **Service** executes business logic using repository for data access
+4. **Repository** handles actual database operations via Convex context
+
+## 🛠️ Key Technologies
+
+### Frontend Stack
+- **React 19**: Latest React with concurrent features
+- **TypeScript**: Type-safe development
+- **TanStack Router**: Modern client-side routing
+- **Tailwind CSS**: Utility-first styling
+- **Flowbite React**: Pre-built UI components
+- **Vite**: Fast build tool and dev server
+
+### Backend Stack
+- **Convex**: Serverless backend with real-time database
+- **Convex Auth**: OAuth authentication system
+- **Convex Agent**: AI integration for intelligent features
+- **ProseMirror Sync**: Real-time collaborative editing
+- **TypeScript**: Type-safe backend functions with strict checking
+- **OOP Architecture**: Clean separation with adapters, services, repositories
+
+### Development Tools
+- **Turborepo**: High-performance monorepo build system
+- **pnpm**: Fast package manager with workspace support
+- **Vitest**: Fast unit and integration testing
+- **convex-test**: Backend service testing framework
+- **Storybook**: Component development and testing
+- **Biome**: Fast linting and formatting
+- **Starlight**: Documentation site generator
+
+## 🔧 Configuration Files
+
+### Root Configuration
+- **`package.json`**: Root scripts and workspace dependencies
+- **`pnpm-workspace.yaml`**: Workspace package locations
+- **`turbo.json`**: Build pipeline configuration
+- **`.ruler/`**: Project rules and guidelines
+
+### Application Configuration
+- **`apps/web/vite.config.mjs`**: Vite build configuration
+- **`apps/docs/astro.config.mjs`**: Starlight documentation config
+- **`packages/backend/convex/schema.ts`**: Database schema
+- **`packages/backend/convex/auth.config.ts`**: Auth providers
+
+## 🚀 Development Workflow
+
+### Starting Development
+```bash
+# Start all applications (web + backend)
+pnpm dev
+
+# Start only the web application
+pnpm dev:web
+
+# Start only the backend (Convex)
+pnpm dev:server
+
+# Start documentation site
+cd apps/docs && pnpm dev
+
+# Start Storybook for component development  
+cd apps/storybook && pnpm dev
+```
+
+### Quality Checks
+```bash
+# TypeScript type checking
+pnpm typecheck
+
+# Linting and formatting with Biome
+pnpm check
+pnpm check --write  # Auto-fix issues
+
+# Backend tests (unit + integration)
+pnpm test:backend
+
+# Frontend tests
+pnpm test:web
+
+# All tests
+pnpm test
+
+# Security pattern validation
+pnpm repo:guards
+```
+
+### Building for Production
+```bash
+# Build all applications
+pnpm build
+
+# Build specific workspace
+pnpm build --filter=web
+pnpm build --filter=backend
+pnpm build --filter=docs
+
+# Deploy backend to Convex
+cd packages/backend && pnpm deploy
+```
+
+## 📦 Package Management
+
+### Workspace Dependencies
+- **Shared packages** are defined in the root `package.json`
+- **Application-specific** dependencies in each app's `package.json`
+- **Workspace protocol** (`workspace:*`) for internal packages
+
+### Adding Dependencies
+```bash
+# Add to root (shared across all apps)
+pnpm add -w package-name
+
+# Add to specific app
+pnpm add -F web package-name
+
+# Add dev dependency
+pnpm add -D package-name
+```
+
+## 🔒 Security & Environment
+
+### Environment Variables
+- **`apps/web/.env`**: Frontend environment variables
+- **`packages/backend/.env.local`**: Convex secrets (not committed)
+- **Never commit secrets** to version control
+
+### Security Architecture
+- **Authentication Guards**: Every adapter function uses `requireUserId(ctx)`
+- **Authorization Checks**: Workspace membership validation with `assertMember()`  
+- **Multi-tenant Isolation**: All queries filtered by workspace
+- **Rate Limiting**: Protection against abuse in expensive operations
+- **Input Validation**: Domain services validate all business rules
+- **Error Handling**: Domain errors converted to safe Convex errors
+
+### Security Pattern Example
+```typescript
+export const create = mutation({
+  handler: async (ctx, args) => {
+    // 1. Authentication - required for all operations
+    const businessContext = await createBusinessContext(ctx, args.workspaceId);
+    
+    // 2. Authorization - verify workspace membership  
+    await assertMember(ctx, args.workspaceId);
+    
+    // 3. Rate limiting for expensive operations
+    await checkRateLimit(ctx, businessContext.userId, "create_idea");
+    
+    // 4. Delegate to validated business logic
+    const services = createServices(repositories, businessContext);
+    return await services.ideaService.create(args);
+  }
+});
+```
+
+## 📚 Documentation
+
+### Code Documentation
+- **TypeScript interfaces** for all data structures
+- **JSDoc comments** for complex functions
+- **Inline code examples** in documentation
+
+### User Documentation
+- **Starlight** for beautiful documentation
+- **Interactive examples** and code snippets
+- **Step-by-step guides** for common tasks
+
+## 🔄 Continuous Integration
+
+### Git Workflow
+- **Feature branches** for development
+- **Pull requests** for code review  
+- **Main branch** for production releases
+- **Husky hooks** for automated quality checks
+
+### Code Quality
+- **TypeScript strict mode** with `--noImplicitAny`
+- **Biome** for ultra-fast linting and formatting  
+- **Vitest** for unit and integration testing
+- **convex-test** for backend service testing
+- **Pre-commit hooks** run Biome on changed files
+- **Pre-push hooks** run full typecheck and tests
+
+### Quality Gates
+```bash
+# Pre-commit (via Husky)
+- Biome check on staged files
+- Format and lint changed files only
+
+# Pre-push (via Husky)  
+- TypeScript typecheck across all packages
+- Backend unit and integration tests
+- Frontend component tests
+- Security guard pattern validation
+```
+
+### Architecture Validation
+Custom scripts ensure architectural integrity:
+- **`pnpm repo:guards`**: Validates Convex security patterns
+- **`pnpm typecheck`**: Cross-package type checking
+- **Test coverage**: Services and adapters must have tests
+
+## 🚀 Deployment
+
+### Frontend Deployment
+- **Static hosting** (Vercel, Netlify, Cloudflare Pages)
+- **Build command**: `pnpm build --filter=web`
+- **Output directory**: `apps/web/dist`
+- **Environment variables**: Set `VITE_CONVEX_URL` to production Convex deployment
+
+### Backend Deployment  
+- **Convex Cloud** serverless deployment
+- **Deploy command**: `cd packages/backend && pnpm deploy`
+- **Environment variables**: Set in Convex dashboard or `.env.local`
+- **Automatic scaling** and real-time synchronization
+- **Global edge functions** for low latency
+
+### Documentation Deployment
+- **Starlight static site** generation
+- **Build command**: `cd apps/docs && pnpm build`
+- **Deploy to**: Vercel, Netlify, GitHub Pages, or any static host
+- **Automatic builds**: Trigger on documentation changes
+
+### Production Checklist
+- [ ] All tests passing (`pnpm test`)
+- [ ] TypeScript compiling (`pnpm typecheck`)
+- [ ] Security patterns validated (`pnpm repo:guards`)  
+- [ ] Environment variables configured
+- [ ] Convex backend deployed with production data
+- [ ] Frontend built and deployed with correct Convex URL
+- [ ] OAuth providers configured with production domains
+- [ ] Error monitoring and analytics set up
+
+This OOP architecture provides a solid foundation for scalable development while maintaining excellent developer experience, type safety, and code organization.

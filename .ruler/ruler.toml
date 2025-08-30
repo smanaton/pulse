@@ -1,5 +1,20 @@
-# Ruler Configuration File
-# See https://okigu.com/ruler for documentation.
+default_agents = ["copilot", "augment", "claude", "windsurf", "cline", codex]
 
-# Default agents to run when --agents is not specified
-default_agents = []
+[mcp]
+enabled = true
+strategy = "merge" # or "overwrite"
+
+[gitignore]
+enabled = true
+
+[agents.copilot]
+enabled = true
+output = ".github/copilot-instructions.md"
+
+[agents.cursor]
+enabled = true
+output = ".cursor/rules/ruler_cursor_instructions.mdc"
+
+[agents.claude]
+enabled = true
+output = "CLAUDE.md"

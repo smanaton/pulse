@@ -1,0 +1,433 @@
+---
+title: Usage Guide
+description: How to use the authentication system in your components and pages
+---
+
+# Authentication Usage Guide
+
+## Authentication Flow
+
+The authentication system uses Convex's built-in `Authenticated` and `Unauthenticated` components for automatic route protection and conditional rendering.
+
+### Sign-In Page
+
+The application includes a professionally designed sign-in page with:
+
+- **Modern Card Layout**: Clean design using Flowbite React components
+- **Multiple Auth Options**: Password, Google OAuth, and GitHub OAuth
+- **Responsive Design**: Works perfectly on mobile and desktop devices
+- **Loading States**: Proper feedback during authentication
+- **Error Handling**: Clear error messages for failed attempts
+
+The sign-in page is automatically displayed for unauthenticated users:
+
+```tsx
+// Root component automatically handles authentication state
+<Authenticated>
+  <MainLayout><Outlet /></MainLayout>
+</Authenticated>
+<Unauthenticated>
+  <SignInPage />
+</Unauthenticated>
+```
+
+## Using Authentication in Components
+
+### Getting Current User
+
+Use Convex's `useQuery` hook to get the current user:
+
+```tsx
+import { useQuery } from "convex/react";
+import { api } from "@pulse/backend";
+
+function MyComponent() {
+  const user = useQuery(api.users.getCurrentUser);
+
+  if (user === undefined) {
+    return <div>Loading...</div>;
+  }
+
+  if (user === null) {
+    return <div>Please sign in to continue</div>;
+  }
+
+  return (
+    <div>
+      <h1>Welcome, {user.name || user.email}!</h1>
+      {user.image && <img src={user.image} alt="Profile" />}
+    </div>
+  );
+}
+```
+
+### Authentication Actions
+
+Use Convex's `useAuthActions` hook for sign-in and sign-out:
+
+```tsx
+import { useAuthActions } from "@convex-dev/auth/react";
+
+function AuthButtons() {
+  const { signIn, signOut } = useAuthActions();
+
+  const handleSignIn = async (provider: string) => {
+    try {
+      await signIn(provider);
+    } catch (error) {
+      console.error("Sign in failed:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={() => handleSignIn("google")}>
+        Sign in with Google
+      </button>
+      <button onClick={() => handleSignIn("github")}>
+        Sign in with GitHub
+      </button>
+      <button onClick={() => handleSignIn("password")}>
+        Sign in with Email
+      </button>
+      <button onClick={handleSignOut}>
+        Sign Out
+      </button>
+    </div>
+  );
+}
+```
+
+### Conditional Rendering
+
+Use Convex's built-in components for conditional rendering:
+
+```tsx
+import { Authenticated, Unauthenticated } from "convex/react";
+
+function MyPage() {
+  return (
+    <>
+      <Authenticated>
+        <div>This content is only visible to authenticated users</div>
+        <UserDashboard />
+      </Authenticated>
+      <Unauthenticated>
+        <div>Please sign in to access this content</div>
+        <SignInPrompt />
+      </Unauthenticated>
+    </>
+  );
+}
+```
+
+### User Object
+
+```typescript
+interface User {
+  _id: string;              // Convex document ID
+  email: string;            // User email
+  name?: string;            // Display name
+  image?: string;           // Profile image URL
+  emailVerified?: number;   // Email verification timestamp
+  createdAt: number;        // Account creation timestamp
+  updatedAt: number;        // Last update timestamp
+}
+```
+
+## Protected Routes
+
+Routes are automatically protected at the root level. All pages require authentication.
+
+### Manual Route Protection
+
+If you need additional protection:
+
+```tsx
+import { ProtectedRoute } from "@/components/protected-route";
+
+function MyProtectedPage() {
+  return (
+    <ProtectedRoute redirectTo="/auth/sign-in">
+      <MyContent />
+    </ProtectedRoute>
+  );
+}
+```
+
+### Using the HOC
+
+```tsx
+import { withAuthProtection } from "@/components/protected-route";
+
+const ProtectedComponent = withAuthProtection(MyComponent);
+```
+
+## Working with User Data
+
+### Getting Current User
+
+```tsx
+import { useQuery } from "convex/react";
+import { api } from "@pulse/backend";
+
+function UserProfile() {
+  const { user } = useAuth();
+  const userDetails = useQuery(api.users.getUser, { userId: user?._id });
+
+  if (!userDetails) return <div>Loading...</div>;
+
+  return <div>Name: {userDetails.name}</div>;
+}
+```
+
+### Updating User Profile
+
+```tsx
+import { useMutation } from "convex/react";
+import { api } from "@pulse/backend";
+
+function UpdateProfile() {
+  const { user } = useAuth();
+  const updateUser = useMutation(api.users.updateUser);
+
+  const handleUpdate = async (name: string) => {
+    if (!user) return;
+
+    await updateUser({
+      userId: user._id,
+      name,
+    });
+  };
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleUpdate("New Name");
+    }}>
+      <button type="submit">Update Name</button>
+    </form>
+  );
+}
+```
+
+## User-Specific Data
+
+All data operations automatically scope to the authenticated user:
+
+### Creating User Data
+
+```tsx
+import { useMutation } from "convex/react";
+import { api } from "@pulse/backend";
+
+function CreateTodo() {
+  const createTodo = useMutation(api.todos.create);
+
+  const handleCreate = async (text: string) => {
+    await createTodo({ text }); // userId is automatically added
+  };
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      handleCreate("New todo");
+    }}>
+      <button type="submit">Create Todo</button>
+    </form>
+  );
+}
+```
+
+### Querying User Data
+
+```tsx
+import { useQuery } from "convex/react";
+import { api } from "@pulse/backend";
+
+function TodoList() {
+  const todos = useQuery(api.todos.getAll); // Only returns user's todos
+
+  if (!todos) return <div>Loading...</div>;
+
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo._id}>{todo.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Authentication Flow
+
+### Sign In Process
+
+1. **User clicks sign-in button** → `signIn("google")` or `signIn("github")`
+2. **OAuth redirect** → User authenticates with provider
+3. **Callback handling** → Convex processes the authentication
+4. **User creation/update** → User record is created or updated
+5. **Session creation** → JWT token is issued
+6. **Redirect** → User is redirected back to the app
+
+### Sign Out Process
+
+1. **User clicks sign-out** → `signOut()` is called
+2. **Session cleanup** → JWT token is invalidated
+3. **Redirect** → User is redirected to sign-in page
+
+## Error Handling
+
+Always wrap authentication calls in try-catch blocks:
+
+```tsx
+function SignInButton() {
+  const { signIn } = useAuth();
+
+  const handleSignIn = async () => {
+    try {
+      await signIn("google");
+    } catch (error) {
+      console.error("Sign in failed:", error);
+      // Show error message to user
+    }
+  };
+
+  return <button onClick={handleSignIn}>Sign In</button>;
+}
+```
+
+## Best Practices
+
+### 1. Always Check Authentication State
+
+```tsx
+function MyComponent() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!isAuthenticated) return <SignInPrompt />;
+
+  return <ProtectedContent />;
+}
+```
+
+### 2. Handle Loading States
+
+```tsx
+function UserGreeting() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) return <div>Loading user...</div>;
+  if (!user) return <div>Welcome, guest!</div>;
+
+  return <div>Hello, {user.name || user.email}!</div>;
+}
+```
+
+### 3. Use Proper Redirects
+
+```tsx
+function SignInPage() {
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+
+  const handleSignIn = async (provider: string) => {
+    await signIn(provider);
+    // Redirect to intended page or home
+    navigate({ to: search.redirect || "/" });
+  };
+}
+```
+
+### 4. Secure Data Operations
+
+All backend functions automatically check authentication:
+
+```tsx
+// This will throw an error if user is not authenticated
+const todos = useQuery(api.todos.getAll);
+```
+
+### 5. Error Boundaries
+
+Consider wrapping auth-related components in error boundaries:
+
+```tsx
+import { ErrorBoundary } from "react-error-boundary";
+
+function App() {
+  return (
+    <ErrorBoundary fallback={<AuthError />}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
+  );
+}
+```
+
+## Common Patterns
+
+### Conditional Rendering
+
+```tsx
+function Navigation() {
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <nav>
+      {isAuthenticated ? (
+        <div>
+          <span>Welcome, {user?.name}</span>
+          <button onClick={() => signOut()}>Logout</button>
+        </div>
+      ) : (
+        <button onClick={() => navigate("/auth/sign-in")}>Sign In</button>
+      )}
+    </nav>
+  );
+}
+```
+
+### Loading States
+
+```tsx
+function AppContent() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+      </div>
+    );
+  }
+
+  return <RouterProvider router={router} />;
+}
+```
+
+### Protected Components
+
+```tsx
+function AdminPanel() {
+  const { user } = useAuth();
+
+  // Additional role-based checks
+  if (!user?.email?.endsWith("@admin.com")) {
+    return <div>Access denied</div>;
+  }
+
+  return <AdminContent />;
+}

@@ -1,12 +1,15 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+
 import starlight from "@astrojs/starlight";
+import { defineConfig } from "astro/config";
 
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: "My Docs",
+			title: "Pulse Documentation",
+			description:
+				"Complete documentation for the Pulse application with Convex Auth",
 			social: [
 				{
 					icon: "github",
@@ -16,14 +19,26 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
-					label: "Guides",
+					label: "Getting Started",
 					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: "Example Guide", slug: "guides/example" },
+						{ label: "Overview", slug: "index" },
+						{
+							label: "Project Structure",
+							slug: "getting-started/project-structure",
+						},
 					],
 				},
 				{
-					label: "Reference",
+					label: "Authentication",
+					items: [
+						{ label: "Auth Overview", slug: "auth/overview" },
+						{ label: "Setup & Configuration", slug: "auth/setup" },
+						{ label: "Usage Guide", slug: "auth/usage" },
+						{ label: "Security", slug: "auth/security" },
+					],
+				},
+				{
+					label: "API Reference",
 					autogenerate: { directory: "reference" },
 				},
 			],

@@ -3,15 +3,42 @@
 	"version": "1.0.0",
 	"scripts": {
 		"dev": "convex dev",
-		"dev:setup": "convex dev --configure --until-success"
+		"dev:setup": "convex dev --configure --until-success",
+		"deploy": "convex deploy",
+		"test": "vitest",
+		"test:unit": "vitest run convex/**/*.{test,mock.test,unit.test}.ts",
+		"test:integration": "vitest --config vitest.integration.config.ts",
+		"test:watch": "vitest --watch",
+		"test:coverage": "vitest --coverage",
+		"test:all": "npm run test:unit && npm run test:integration",
+		"lint": "npx convex dev --once --typecheck enable",
+		"build": "npx convex codegen --typecheck=disable && tsc --noEmit"
 	},
 	"author": "",
 	"license": "ISC",
 	"description": "",
+	"exports": {
+		".": "./convex/_generated/api.js",
+		"./types": "./convex/_generated/api.d.ts",
+		"./dataModel": "./convex/_generated/dataModel.d.ts"
+	},
+	"main": "./convex/_generated/api.js",
+	"types": "./convex/_generated/api.d.ts",
 	"devDependencies": {
-		"typescript": "^5.9.2"
+		"@auth/core": "0.37.0",
+		"@convex-dev/auth": "0.0.88",
+		"@edge-runtime/vm": "5.0.0",
+		"@types/node": "^22.18.0",
+		"convex": "^1.26.2",
+		"convex-test": "0.0.38",
+		"typescript": "^5.9.2",
+		"vitest": "^3.2.4"
 	},
 	"dependencies": {
-		"convex": "^1.25.4"
+		"@convex-dev/agent": "0.2.5",
+		"@convex-dev/prosemirror-sync": "0.1.28",
+		"@pulse/core": "workspace:*",
+		"convex-helpers": "0.1.104",
+		"openai": "5.16.0"
 	}
 }
