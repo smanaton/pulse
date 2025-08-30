@@ -1,10 +1,6 @@
 @import "tailwindcss";
 @plugin "flowbite/plugin";
-<<<<<<< Updated upstream
-@source "../node_modules/flowbite-react";
-=======
 @source "../node_modules/flowbite";
->>>>>>> Stashed changes
 
 @variant dark (.dark &);
 

@@ -1,15 +1,6 @@
 {
 	"permissions": {
 		"allow": [
-<<<<<<< Updated upstream
-			"Bash(rm:*)",
-			"WebFetch(domain:www.npmjs.com)",
-			"WebFetch(domain:github.com)"
-		],
-		"deny": [],
-		"ask": []
-	}
-=======
 			"mcp__Context_7__resolve-library-id",
 			"mcp__Context_7__get-library-docs",
 			"Bash(pnpm run:*)",
@@ -31,8 +22,13 @@
 			"WebFetch(domain:flowbite.com)",
 			"mcp__playwright__browser_click",
 			"mcp__playwright__browser_navigate",
-			"mcp__playwright__browser_close"
+			"mcp__playwright__browser_close",
+			"Bash(rm:*)",
+			"WebFetch(domain:www.npmjs.com)",
+			"WebFetch(domain:github.com)"
 		],
+		"deny": [],
+		"ask": [],
 		"additionalDirectories": [
 			"C:\\c\\Projects\\pulse\\packages",
 			"C:\\Templates\\flowbite-pro-nextjs-admin-dashboard-main"
@@ -40,5 +36,4 @@
 	},
 	"enableAllProjectMcpServers": true,
 	"enabledMcpjsonServers": ["Context7", "convex"]
->>>>>>> Stashed changes
 }

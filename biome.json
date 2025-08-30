@@ -1,13 +1,5 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
-<<<<<<< Updated upstream
-	"vcs": {
-		"enabled": false,
-		"clientKind": "git",
-		"useIgnoreFile": false
-	},
-=======
->>>>>>> Stashed changes
 	"files": {
 		"includes": [
 			"apps/web/src/**/*.{ts,tsx,js,jsx}",
@@ -24,26 +16,12 @@
 			"!**/.turbo",
 			"!**/convex/_generated",
 			"!**/routeTree.gen.ts",
-<<<<<<< Updated upstream
-			"!**/src-tauri",
-			"!**/.nuxt",
-			"!bts.jsonc",
-			"!**/.expo",
-			"!**/.wrangler",
-			"!**/.alchemy",
-			"!**/wrangler.jsonc",
-			"!**/.source",
-			"!**/*.css",
-			"!**/_generated",
-			"!**/.astro"
-=======
 			"!**/.astro",
 			"!**/build",
 			"!theme",
 			"!apps/storybook",
 			"!.*",
 			"!nul"
->>>>>>> Stashed changes
 		]
 	},
 	"formatter": { "enabled": true, "indentStyle": "tab" },
