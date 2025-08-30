@@ -1,0 +1,48 @@
+{
+    "augment.advanced": {
+        "mcpServers": [
+            {
+                "name": "context7",
+                "command": "docker",
+                "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "mcp/context7"
+                ]
+            },
+            {
+                "name": "convex",
+                "command": "cmd",
+                "args": [
+                    "/c",
+                    "npx",
+                    "convex",
+                    "mcp",
+                    "start"
+                ]
+            },
+            {
+                "name": "Context7",
+                "command": "docker",
+                "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "mcp/context7"
+                ]
+            },
+            {
+                "name": "playwright",
+                "command": "docker",
+                "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "mcp/playwright"
+                ]
+            }
+        ]
+    },
+    "chatgpt.config": {}
+}

@@ -1,0 +1,18 @@
+{
+	"mcp": {
+		"Context7": {
+			"command": "docker",
+			"args": ["run", "-i", "--rm", "mcp/context7"]
+		},
+		"convex": {
+			"type": "stdio",
+			"command": "cmd",
+			"args": ["/c", "npx", "convex", "mcp", "start"],
+			"cwd": "./packages/backend"
+		},
+		"playwright": {
+			"command": "docker",
+			"args": ["run", "-i", "--rm", "mcp/playwright"]
+		}
+	}
+}

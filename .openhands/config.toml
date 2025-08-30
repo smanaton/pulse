@@ -1,0 +1,14 @@
+[[mcp.stdio_servers]]
+name = "Context7"
+command = "docker"
+args = [ "run", "-i", "--rm", "mcp/context7" ]
+
+[[mcp.stdio_servers]]
+name = "convex"
+command = "cmd"
+args = [ "/c", "npx", "convex", "mcp", "start" ]
+
+[[mcp.stdio_servers]]
+name = "playwright"
+command = "docker"
+args = [ "run", "-i", "--rm", "mcp/playwright" ]
