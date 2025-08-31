@@ -68,7 +68,7 @@ export interface UpdateClientInput {
 
 // Query hooks
 export function useClients(
-	workspaceId: Id<"workspaces">,
+	workspaceId: Id<"workspaces"> | undefined,
 	options?: {
 		status?: "active" | "inactive";
 		search?: string;
@@ -78,10 +78,10 @@ export function useClients(
 	const convex = useConvex();
 
 	return useQuery({
-		queryKey: [...queryKeys.clients.byWorkspace(workspaceId), options],
+		queryKey: [...queryKeys.clients.byWorkspace(workspaceId || ""), options],
 		queryFn: () =>
 			convex.query(api.clients.list, {
-				workspaceId,
+				workspaceId: workspaceId!,
 				...options,
 			}),
 		enabled: !!workspaceId,
