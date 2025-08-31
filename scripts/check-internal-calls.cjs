@@ -19,7 +19,7 @@ const BAD_PATTERNS = [
 ];
 
 const GOOD_PATTERN =
-	/import\s+\{[^}]*internal[^}]*\}\s+from\s+['"]\.\/_generated\/api['"]/;
+	/import\s+\{[^}]*internal[^}]*\}\s+from\s+['"]\.\.?\/_generated\/api['"]/;
 
 function checkFile(filePath) {
 	const content = fs.readFileSync(filePath, "utf-8");
