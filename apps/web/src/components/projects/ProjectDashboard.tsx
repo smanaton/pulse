@@ -1,5 +1,5 @@
 import type { Id } from "@pulse/backend/dataModel";
-import { Badge, Button, Card, Progress } from "flowbite-react";
+import { Badge, Card, Progress } from "flowbite-react";
 import {
 	AlertCircle,
 	BarChart3,
@@ -8,9 +8,7 @@ import {
 	Clock,
 	DollarSign,
 	Target,
-	Timer,
 	TrendingUp,
-	Users,
 } from "lucide-react";
 import { useMemo } from "react";
 import { useWorkspaceContext } from "../../contexts/workspace-context";

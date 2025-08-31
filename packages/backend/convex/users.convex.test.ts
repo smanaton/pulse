@@ -100,7 +100,7 @@ describe("User Functions - convex-test", () => {
 			const t = convexTest(schema, modules);
 
 			// Create user and get authenticated context
-			const userId = await t.run(async (ctx) => {
+			const _userId = await t.run(async (ctx) => {
 				const now = Date.now();
 				return await ctx.db.insert("users", {
 					name: "Old Name",
@@ -143,7 +143,7 @@ describe("User Functions - convex-test", () => {
 			const t = convexTest(schema, modules);
 
 			// Create user
-			const userId = await t.run(async (ctx) => {
+			const _userId = await t.run(async (ctx) => {
 				const now = Date.now();
 				return await ctx.db.insert("users", {
 					name: "Original Name",
@@ -191,7 +191,7 @@ describe("User Functions - convex-test", () => {
 			const t = convexTest(schema, modules);
 
 			// Create user directly - will be created by auth shim
-			const testToken = "testing|user789";
+			const _testToken = "testing|user789";
 
 			// Empty update should not throw error
 			const emptyUpdateResult = await t
@@ -209,7 +209,7 @@ describe("User Functions - convex-test", () => {
 		test("handles special characters in user data", async () => {
 			const t = convexTest(schema, modules);
 
-			const userId = await t.run(async (ctx) => {
+			const _userId = await t.run(async (ctx) => {
 				const now = Date.now();
 				return await ctx.db.insert("users", {
 					name: "Regular Name",
@@ -243,7 +243,7 @@ describe("User Functions - convex-test", () => {
 		test("handles very long names appropriately", async () => {
 			const t = convexTest(schema, modules);
 
-			const userId = await t.run(async (ctx) => {
+			const _userId = await t.run(async (ctx) => {
 				const now = Date.now();
 				return await ctx.db.insert("users", {
 					name: "Short Name",

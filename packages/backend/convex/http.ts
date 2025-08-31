@@ -11,7 +11,7 @@ auth.addHttpRoutes(http);
  * API Key authentication helper
  * Note: This function creates the hash but validation must happen in httpAction context
  */
-function extractAndHashApiKey(request: Request): string {
+function _extractAndHashApiKey(request: Request): string {
 	const authHeader = request.headers.get("Authorization");
 	if (!authHeader || !authHeader.startsWith("Bearer ")) {
 		throw new Error("Missing or invalid Authorization header");

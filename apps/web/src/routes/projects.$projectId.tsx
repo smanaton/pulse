@@ -8,7 +8,6 @@ import {
 	ArrowLeft,
 	Calendar,
 	CheckSquare,
-	Clock,
 	Edit,
 	FolderOpen,
 	Target,

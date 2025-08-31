@@ -188,7 +188,7 @@ export interface StatusChangeResult {
 }
 
 export function processStatusChange(
-	currentStatus: "draft" | "active" | "archived",
+	_currentStatus: "draft" | "active" | "archived",
 	newStatus: "draft" | "active" | "archived",
 	ideaData: { title: string; contentMD: string },
 ): StatusChangeResult {

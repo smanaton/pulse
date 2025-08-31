@@ -151,7 +151,7 @@ describe("DashboardLayout", () => {
 	describe("Sidebar Integration", () => {
 		it("loads sidebar state from storage", () => {
 			// Access the global mock through import
-			const sidebarStorageModule = vi.importMock("@/lib/sidebar-storage");
+			const _sidebarStorageModule = vi.importMock("@/lib/sidebar-storage");
 
 			render(
 				<DashboardLayout>

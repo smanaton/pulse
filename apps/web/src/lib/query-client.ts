@@ -35,7 +35,7 @@ const defaultOptions: DefaultOptions = {
 		},
 
 		// Global mutation error handling
-		onError: (error: any, variables, context) => {
+		onError: (error: any, _variables, _context) => {
 			console.error("Mutation error:", error);
 			// You could add toast notifications here
 		},

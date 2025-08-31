@@ -1,14 +1,7 @@
 import { api } from "@pulse/backend";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import {
-	AlertCircle,
-	CheckCircle,
-	Copy,
-	Key,
-	Plus,
-	Trash2,
-} from "lucide-react";
+import { CheckCircle, Copy, Key, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { AppLayout } from "@/components/layouts/dashboard/layout";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -101,7 +94,7 @@ function SettingsPage() {
 	const formatLastUsed = (timestamp?: number) => {
 		if (!timestamp) return "Never";
 		const date = new Date(timestamp);
-		return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+		return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 	};
 
 	return (

@@ -6,7 +6,7 @@
 
 import type { Id } from "../core/types";
 import { buildSearchTerms, transformSearchQuery } from "../transformers";
-import type { IdeaFilter, IdeaSearchInput } from "../types";
+import type { IdeaSearchInput } from "../types";
 
 // ============================================================================
 // Search Query Processing
@@ -122,7 +122,7 @@ export function rankSearchResults(
 			searchTerms,
 		);
 		const matchedTerms = getMatchedTerms(
-			idea.title + " " + idea.contentMD,
+			`${idea.title} ${idea.contentMD}`,
 			searchTerms,
 		);
 		const contentPreview = generateContentPreview(idea.contentMD, searchTerms);
@@ -276,8 +276,8 @@ function generateContentPreview(
 	let preview = content.substring(contextStart, contextEnd);
 
 	// Add ellipsis if truncated
-	if (contextStart > 0) preview = "..." + preview;
-	if (contextEnd < content.length) preview = preview + "...";
+	if (contextStart > 0) preview = `...${preview}`;
+	if (contextEnd < content.length) preview = `${preview}...`;
 
 	return preview;
 }
@@ -406,13 +406,13 @@ export function calculateSearchAnalytics(
 				(filterCounts[`status:${search.filters.status}`] || 0) + 1;
 		}
 		if (search.filters.folderId) {
-			filterCounts["hasFolder"] = (filterCounts["hasFolder"] || 0) + 1;
+			filterCounts.hasFolder = (filterCounts.hasFolder || 0) + 1;
 		}
 		if (search.filters.projectId) {
-			filterCounts["hasProject"] = (filterCounts["hasProject"] || 0) + 1;
+			filterCounts.hasProject = (filterCounts.hasProject || 0) + 1;
 		}
 		if (search.filters.tagIds?.length) {
-			filterCounts["hasTags"] = (filterCounts["hasTags"] || 0) + 1;
+			filterCounts.hasTags = (filterCounts.hasTags || 0) + 1;
 		}
 	}
 

@@ -10,7 +10,6 @@ import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 import {
-	projectId,
 	taskCommentCreateArgs,
 	taskCommentDeleteArgs,
 	taskCommentUpdateArgs,
@@ -20,7 +19,6 @@ import {
 	taskListArgs,
 	taskMoveArgs,
 	taskUpdateArgs,
-	userId,
 	workspaceId,
 } from "./validators";
 
@@ -181,7 +179,7 @@ export const create = mutation({
 export const get = query({
 	args: { workspaceId, taskId },
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId, "viewer");
 
 		const task = await ctx.db.get(args.taskId);
@@ -243,7 +241,7 @@ export const get = query({
 export const list = query({
 	args: taskListArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId, "viewer");
 
 		let query = ctx.db
@@ -628,7 +626,7 @@ export const addComment = mutation({
 export const getComments = query({
 	args: { workspaceId, taskId },
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId, "viewer");
 
 		const task = await ctx.db.get(args.taskId);

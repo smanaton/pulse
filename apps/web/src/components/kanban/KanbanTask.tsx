@@ -6,14 +6,12 @@ import {
 	Calendar,
 	CheckCircle2,
 	Circle,
-	Clock,
 	Edit,
 	Paperclip,
 	Timer,
 	User,
 	Users,
 } from "lucide-react";
-import React from "react";
 import { cn } from "../../lib/utils";
 import type { KanbanTask as KanbanTaskType } from "../../types/kanban";
 

@@ -124,7 +124,7 @@ export function useCreateSharedWorkspace() {
 
 			return { previousWorkspaces };
 		},
-		onError: (error, variables, context) => {
+		onError: (_error, _variables, context) => {
 			// Rollback on error
 			if (context?.previousWorkspaces) {
 				queryClient.setQueryData(
@@ -133,7 +133,7 @@ export function useCreateSharedWorkspace() {
 				);
 			}
 		},
-		onSuccess: (newWorkspace, variables) => {
+		onSuccess: (newWorkspace, _variables) => {
 			if (!newWorkspace) return;
 
 			// Replace optimistic update with real data
@@ -186,7 +186,7 @@ export function useInviteMember() {
 		}) => {
 			return await convex.mutation(api.workspaces.inviteMember, input);
 		},
-		onSuccess: (newMember, variables) => {
+		onSuccess: (_newMember, variables) => {
 			// Invalidate members list
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.workspaces.members(variables.workspaceId),
@@ -237,7 +237,7 @@ export function useUpdateMemberRole() {
 		}) => {
 			return await convex.mutation(api.workspaces.updateMemberRole, input);
 		},
-		onSuccess: (updatedMember, variables) => {
+		onSuccess: (_updatedMember, variables) => {
 			// Update member in cache
 			queryClient.setQueryData(
 				queryKeys.workspaces.members(variables.workspaceId),

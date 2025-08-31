@@ -1,4 +1,4 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { forwardRef } from "react";
 
 type AProps = Omit<React.ComponentProps<"a">, "href"> & { href: string };

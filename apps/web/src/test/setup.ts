@@ -48,7 +48,7 @@ vi.mock("@tanstack/react-router", () => ({
 	Link: vi.fn(({ children, to, ...props }: any) =>
 		React.createElement("a", { href: to, ...props }, children),
 	),
-	createFileRoute: vi.fn((path: string) => ({
+	createFileRoute: vi.fn((_path: string) => ({
 		component: vi.fn(),
 		useSearch: () => ({}),
 	})),
@@ -60,7 +60,7 @@ vi.mock("@tanstack/react-router", () => ({
 
 // Mock Convex with smart defaults
 vi.mock("convex/react", () => ({
-	useQuery: vi.fn((query, args) => {
+	useQuery: vi.fn((query, _args) => {
 		// Return appropriate test data based on query
 		if (typeof query === "string") {
 			if (query.includes("getCurrentUser") || query.includes("users")) {

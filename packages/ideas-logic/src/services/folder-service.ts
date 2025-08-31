@@ -48,7 +48,7 @@ export async function processFolderCreation(
 	}
 
 	// Check for name conflicts within the same parent
-	if (existingFolderNames && existingFolderNames.includes(input.name.trim())) {
+	if (existingFolderNames?.includes(input.name.trim())) {
 		return {
 			success: false,
 			errors: ["A folder with this name already exists in this location"],
@@ -192,7 +192,7 @@ export function buildFolderHierarchy(
 	ideaCounts?: Map<Id<"folders">, number>,
 ): FolderHierarchy[] {
 	// Create a map for quick lookup
-	const folderMap = new Map(folders.map((f) => [f._id, f]));
+	const _folderMap = new Map(folders.map((f) => [f._id, f]));
 	const children = new Map<Id<"folders"> | undefined, typeof folders>();
 
 	// Group folders by parent
@@ -201,7 +201,7 @@ export function buildFolderHierarchy(
 		if (!children.has(parentId)) {
 			children.set(parentId, []);
 		}
-		children.get(parentId)!.push(folder);
+		children.get(parentId)?.push(folder);
 	}
 
 	// Build hierarchy recursively

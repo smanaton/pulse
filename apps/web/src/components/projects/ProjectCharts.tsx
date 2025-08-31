@@ -258,7 +258,7 @@ export function ProjectCharts({ charts }: ProjectChartsProps) {
 					<div className="space-y-4">
 						{charts.workload.map((member, index) => {
 							const maxTasks = Math.max(
-								...charts.workload!.map((m) => m.tasks),
+								...(charts.workload?.map((m) => m.tasks) || [0]),
 							);
 							const taskPercentage =
 								maxTasks > 0 ? (member.tasks / maxTasks) * 100 : 0;

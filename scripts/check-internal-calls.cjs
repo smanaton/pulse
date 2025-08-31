@@ -7,8 +7,8 @@
  * not string literals which can break during refactoring.
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const CONVEX_DIR = path.join(__dirname, "..", "packages", "backend", "convex");
 const BAD_PATTERNS = [
@@ -27,7 +27,7 @@ function checkFile(filePath) {
 	const errors = [];
 
 	// Check for bad patterns
-	BAD_PATTERNS.forEach((pattern, index) => {
+	BAD_PATTERNS.forEach((pattern, _index) => {
 		const matches = content.match(pattern);
 		if (matches) {
 			const lines = content.split("\n");

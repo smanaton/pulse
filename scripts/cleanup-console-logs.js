@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 /**
  * Removes development console.log statements while preserving console.error, console.warn, etc.
@@ -11,7 +11,7 @@ const path = require("path");
 const PRESERVED_CONSOLE_METHODS = ["error", "warn", "info"];
 const EXTENSIONS = ["ts", "tsx", "js", "jsx"];
 
-function shouldPreserveLine(line, context = {}) {
+function shouldPreserveLine(line, _context = {}) {
 	const trimmed = line.trim();
 
 	// Preserve non-console.log statements
@@ -115,7 +115,7 @@ function findFiles(dir, extensions, excludes = []) {
 					}
 				}
 			}
-		} catch (error) {
+		} catch (_error) {
 			// Skip inaccessible directories
 		}
 	}

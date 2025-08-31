@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { SidebarLayout } from "@/components/layouts/dashboard/layout";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
-import type { Project } from "@/hooks/use-projects";
 import { useProjects } from "@/hooks/use-projects";
 import type { Task } from "@/hooks/use-tasks";
 import { useTasks } from "@/hooks/use-tasks";

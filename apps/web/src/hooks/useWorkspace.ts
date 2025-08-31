@@ -2,7 +2,6 @@ import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { useQuery } from "@tanstack/react-query";
 import { useConvex } from "convex/react";
-import { queryKeys } from "@/lib/query-client";
 import { useCreatePersonalWorkspace, useWorkspaces } from "./use-workspaces";
 
 export function useWorkspace() {

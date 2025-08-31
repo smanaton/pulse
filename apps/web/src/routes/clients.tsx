@@ -31,11 +31,11 @@ function ClientsPage() {
 		// TODO: Open create client modal
 	};
 
-	const handleEditClient = (client: any) => {
+	const handleEditClient = (_client: any) => {
 		// TODO: Open edit client modal
 	};
 
-	const handleViewClient = (client: any) => {
+	const handleViewClient = (_client: any) => {
 		// TODO: Navigate to client detail page or open modal
 	};
 

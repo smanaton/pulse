@@ -229,7 +229,7 @@ export const recordUsage = mutation({
 		metadata: v.optional(v.any()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const agent = await ctx.db.get(args.agentId);
 		if (!agent || !agent.isActive) {
@@ -274,7 +274,7 @@ export const getById = query({
 			return null;
 		}
 
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, agent.workspaceId);
 
 		return agent;
@@ -287,7 +287,7 @@ export const getById = query({
 export const list = query({
 	args: agentListArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -326,7 +326,7 @@ export const getByType = query({
 		activeOnly: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -395,7 +395,7 @@ export const getUsageAnalytics = query({
 		days: v.optional(v.number()), // Default to 30 days
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const days = args.days ?? 30;

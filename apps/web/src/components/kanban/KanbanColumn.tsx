@@ -5,7 +5,6 @@ import {
 } from "@dnd-kit/sortable";
 import { Button } from "flowbite-react";
 import { Plus } from "lucide-react";
-import React from "react";
 import { cn } from "../../lib/utils";
 import type {
 	KanbanBoard,

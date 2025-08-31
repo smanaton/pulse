@@ -14,7 +14,6 @@ import {
 import {
 	Brain,
 	ChevronLeft,
-	Clock,
 	Download,
 	FileText,
 	History,
@@ -75,7 +74,7 @@ export function IdeasActions({
 						ideaId: idea._id,
 						tagName,
 					});
-				} catch (error) {
+				} catch (_error) {
 					// Tag might already exist, continue with others
 				}
 			}
@@ -99,7 +98,7 @@ export function IdeasActions({
 			});
 			setNewTag("");
 			toast.success("Tag added!");
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to add tag");
 		}
 	};
@@ -111,7 +110,7 @@ export function IdeasActions({
 				tagId,
 			});
 			toast.success("Tag removed!");
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to remove tag");
 		}
 	};
@@ -154,7 +153,7 @@ export function IdeasActions({
 
 		setIsProcessing(true);
 		try {
-			const result = await summarizeIdea({
+			const _result = await summarizeIdea({
 				workspaceId,
 				ideaId: idea._id,
 			});

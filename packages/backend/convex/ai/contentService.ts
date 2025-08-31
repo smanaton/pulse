@@ -7,7 +7,7 @@
 
 import OpenAI from "openai";
 import { SYSTEM_PROMPTS } from "./config";
-import { type AIContentService, AIError } from "./types";
+import type { AIContentService } from "./types";
 
 export class AIContentServiceImpl implements AIContentService {
 	private openai: OpenAI;

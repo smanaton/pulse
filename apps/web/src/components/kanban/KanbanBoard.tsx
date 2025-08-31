@@ -11,7 +11,7 @@ import {
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { Button } from "flowbite-react";
 import { Plus } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useWorkspaceContext } from "../../contexts/workspace-context";
 import type {
 	KanbanBoard as KanbanBoardType,

@@ -7,7 +7,7 @@
 
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { action, mutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 
@@ -186,7 +186,7 @@ export const executeMove = mutation({
 			await Promise.all(
 				ideas.map(async (idea) => {
 					const { _id, _creationTime, ...ideaData } = idea;
-					const newIdeaId = await ctx.db.insert("ideas", {
+					const _newIdeaId = await ctx.db.insert("ideas", {
 						...ideaData,
 						workspaceId: targetWorkspaceId,
 						projectId: newProjectId,

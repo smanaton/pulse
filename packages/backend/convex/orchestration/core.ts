@@ -1,5 +1,4 @@
 import { ConvexError, v } from "convex/values";
-import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { mutation, query } from "../_generated/server";
@@ -7,7 +6,6 @@ import { assertMember, checkRateLimit, incrementRateLimit } from "../helpers";
 import { requireUserId } from "../server/lib/authz";
 import {
 	canTransition,
-	ERROR_CODES,
 	type ErrorCode,
 	isTerminal,
 	type RunStatus,
@@ -100,7 +98,7 @@ export const queryJob = query({
 		jobId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const job = await ctx.db
@@ -258,7 +256,7 @@ export const queryRun = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const run = await ctx.db
@@ -285,7 +283,7 @@ export const listRunsForJob = query({
 		jobId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const runs = await ctx.db
@@ -308,7 +306,7 @@ export const listJobs = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const jobs = await ctx.db

@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { Button } from "flowbite-react";
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { IdeaCard } from "./idea-card";
 import { IdeaForm } from "./idea-form";

@@ -18,9 +18,7 @@ import {
 	Badge,
 	Button,
 	Card,
-	Kbd,
 	Textarea,
-	TextInput,
 	Tooltip,
 } from "flowbite-react";
 import {

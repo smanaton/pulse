@@ -10,7 +10,6 @@ import type { Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import {
 	getUserId,
-	getUserIdReadOnly,
 	requireUserId,
 	requireUserIdReadOnly,
 } from "./server/lib/authz";

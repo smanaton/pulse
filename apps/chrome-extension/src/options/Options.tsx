@@ -21,7 +21,7 @@ const Options: React.FC = () => {
 		isAuthenticated: false,
 		apiUrl: "http://127.0.0.1:3210", // Default for Convex development
 	});
-	const [patToken, setPatToken] = useState("");
+	const [patToken, _setPatToken] = useState("");
 	const [customApiUrl, setCustomApiUrl] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [message, setMessage] = useState<{
@@ -34,7 +34,7 @@ const Options: React.FC = () => {
 
 	useEffect(() => {
 		loadSettings();
-	}, []);
+	}, [loadSettings]);
 
 	const loadSettings = async () => {
 		try {
@@ -74,7 +74,7 @@ const Options: React.FC = () => {
 				},
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				if (response.result.type === "redirect") {
 					setMessage({
 						type: "success",
@@ -118,7 +118,7 @@ const Options: React.FC = () => {
 				data: { type: "confirm_auth" },
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				await loadSettings();
 				setAwaitingConfirmation(false);
 				setMessage({ type: "success", text: "Successfully authenticated!" });

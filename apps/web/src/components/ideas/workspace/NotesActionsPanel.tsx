@@ -11,13 +11,10 @@ import {
 } from "flowbite-react";
 import {
 	Brain,
-	ChevronLeft,
-	Clock,
 	Download,
 	FileText,
 	History,
 	Share2,
-	Sparkles,
 	Tags,
 	Target,
 	User,
@@ -347,7 +344,7 @@ function TagsPanel({ ideaId }: TagsPanelProps) {
 			});
 			setNewTag("");
 			toast.success("Tag added!");
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to add tag");
 		}
 	};
@@ -359,7 +356,7 @@ function TagsPanel({ ideaId }: TagsPanelProps) {
 				tagId,
 			});
 			toast.success("Tag removed!");
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to remove tag");
 		}
 	};

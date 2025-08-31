@@ -7,7 +7,7 @@
 
 import { convexTest } from "convex-test";
 import { describe, expect, test } from "vitest";
-import { api, internal } from "./_generated/api";
+import { api } from "./_generated/api";
 import schema from "./schema";
 import { modules } from "./test.setup";
 
@@ -66,7 +66,7 @@ describe("Workspace Functions - convex-test", () => {
 				});
 
 			expect(result).not.toBeNull();
-			expect(result!.name).toHaveLength(100); // Truncated to 100 chars
+			expect(result?.name).toHaveLength(100); // Truncated to 100 chars
 		});
 
 		test("validates and normalizes slug", async () => {
@@ -111,7 +111,7 @@ describe("Workspace Functions - convex-test", () => {
 			const t = convexTest(schema, modules);
 
 			// Create workspace directly in database (bypassing auth)
-			const workspaceId = await t.run(async (ctx) => {
+			const _workspaceId = await t.run(async (ctx) => {
 				return await ctx.db.insert("workspaces", {
 					type: "shared",
 					isPersonal: false,

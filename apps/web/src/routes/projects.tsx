@@ -1,5 +1,4 @@
 import { api } from "@pulse/backend";
-import type { Id } from "@pulse/backend/dataModel";
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Badge, Button } from "flowbite-react";
@@ -10,7 +9,6 @@ import { ProjectListView } from "@/components/projects/ProjectListView";
 import { useWorkspaceContext } from "@/contexts/workspace-context";
 import type { Project } from "@/hooks/use-projects";
 import { useProjects } from "@/hooks/use-projects";
-import { useKanbanTasks } from "@/hooks/use-tasks";
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsPage,
@@ -23,7 +21,7 @@ function ProjectsPage() {
 	const { projects } = useProjects(currentWorkspace?._id);
 
 	const [viewMode, setViewMode] = useState<"table" | "grid">("table");
-	const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+	const [selectedProject, _setSelectedProject] = useState<Project | null>(null);
 
 	// Navigate to individual project page when clicked
 	const handleProjectClick = (project: Project) => {

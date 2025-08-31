@@ -48,8 +48,7 @@ export async function processTagCreation(
 
 	// Check for name conflicts (normalized comparison)
 	if (
-		existingTagNames &&
-		existingTagNames.some((name) => normalizeTagName(name) === normalizedName)
+		existingTagNames?.some((name) => normalizeTagName(name) === normalizedName)
 	) {
 		return {
 			success: false,
@@ -80,7 +79,7 @@ export function processTagApplication(
 	existingTaggedIdeas?: Id<"ideas">[], // For duplicate check
 ): TagApplicationResult {
 	// Check if tag is already applied to this idea
-	if (existingTaggedIdeas && existingTaggedIdeas.includes(input.ideaId)) {
+	if (existingTaggedIdeas?.includes(input.ideaId)) {
 		return {
 			success: false,
 			errors: ["Tag is already applied to this idea"],
@@ -291,8 +290,7 @@ export function calculateTagAnalytics(
 	);
 	const averageTagsPerIdea =
 		totalTaggedIdeas > 0
-			? totalTaggedIdeas /
-				new Set(Array.from(tagUsage.values()).flatMap((u) => u)).size
+			? totalTaggedIdeas / new Set(Array.from(tagUsage.values()).flat()).size
 			: 0;
 
 	// Most used tags (sorted by usage count)

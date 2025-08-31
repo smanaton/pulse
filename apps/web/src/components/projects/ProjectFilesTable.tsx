@@ -4,7 +4,6 @@ import {
 	Button,
 	Card,
 	Dropdown,
-	Label,
 	Modal,
 	Progress,
 	TextInput,
@@ -20,7 +19,6 @@ import {
 	FileVideo,
 	Image,
 	MoreHorizontal,
-	Plus,
 	Search,
 	Trash2,
 	Upload,
@@ -104,7 +102,7 @@ function formatFileSize(bytes: number): string {
 	const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-	return Number.parseFloat((bytes / k ** i).toFixed(2)) + " " + sizes[i];
+	return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 function getFileTypeLabel(mimeType: string, fileName: string): string {

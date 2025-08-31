@@ -1,11 +1,11 @@
 import { BlockNoteView } from "@blocknote/mantine";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
 import { Button } from "flowbite-react";
 import { ArrowLeft, Eye, Save, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useBlockNoteSync } from "@/hooks/useBlockNoteSync";
 import "@blocknote/core/fonts/inter.css";

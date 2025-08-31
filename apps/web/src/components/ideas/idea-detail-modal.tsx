@@ -3,7 +3,7 @@ import type { Id } from "@pulse/backend/dataModel";
 import { Link } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 import { Button } from "flowbite-react";
-import { Edit, ExternalLink, FileEdit, Save, X } from "lucide-react";
+import { Edit, FileEdit, Save, X } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";

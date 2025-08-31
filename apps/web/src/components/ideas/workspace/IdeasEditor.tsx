@@ -75,7 +75,7 @@ export function IdeasEditor({
 			});
 			setIsEditingTitle(false);
 			toast.success("Title updated!");
-		} catch (error) {
+		} catch (_error) {
 			toast.error("Failed to update title");
 			setTitleValue(idea.title);
 			setIsEditingTitle(false);

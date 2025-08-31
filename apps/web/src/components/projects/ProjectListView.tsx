@@ -13,14 +13,10 @@ import {
 	Calendar,
 	Clock,
 	Download,
-	Filter,
-	Grid,
-	List,
 	MoreHorizontal,
 	Plus,
 	Search,
 	Target,
-	Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useWorkspaceContext } from "../../contexts/workspace-context";
@@ -77,6 +73,26 @@ export function ProjectListView({
 
 		return filtered;
 	}, [projects, statusFilter, searchQuery]);
+
+	// Function definitions (moved here to avoid hoisting issues)
+	const handleCreateProject = () => {
+		setCreateModalOpen(true);
+	};
+
+	const handleEditProject = (project: Project) => {
+		setEditingProject(project);
+		setEditModalOpen(true);
+	};
+
+	const handleDeleteProject = async (project: Project) => {
+		if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+			try {
+				await deleteProject({ projectId: project._id });
+			} catch (error) {
+				console.error("Failed to delete project:", error);
+			}
+		}
+	};
 
 	// Column definitions for the data table
 	const columns = useMemo<ColumnDef<Project>[]>(
@@ -394,27 +410,8 @@ export function ProjectListView({
 				},
 			},
 		],
-		[onProjectClick],
+		[onProjectClick, handleDeleteProject, handleEditProject],
 	);
-
-	const handleCreateProject = () => {
-		setCreateModalOpen(true);
-	};
-
-	const handleEditProject = (project: Project) => {
-		setEditingProject(project);
-		setEditModalOpen(true);
-	};
-
-	const handleDeleteProject = async (project: Project) => {
-		if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
-			try {
-				await deleteProject({ projectId: project._id });
-			} catch (error) {
-				console.error("Failed to delete project:", error);
-			}
-		}
-	};
 
 	const handleSubmitCreate = async (formData: FormData) => {
 		if (!currentWorkspace) return;

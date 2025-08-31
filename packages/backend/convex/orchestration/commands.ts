@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import { mutation, query } from "../_generated/server";
 import { assertMember } from "../helpers";
 import { requireUserId } from "../server/lib/authz";
@@ -50,7 +50,7 @@ export const pauseRun = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const run = await getRun(ctx, args.workspaceId, args.runId);
@@ -103,7 +103,7 @@ export const resumeRun = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const run = await getRun(ctx, args.workspaceId, args.runId);
@@ -152,7 +152,7 @@ export const cancelRun = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const run = await getRun(ctx, args.workspaceId, args.runId);
@@ -211,7 +211,7 @@ export const retryRun = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const run = await getRun(ctx, args.workspaceId, args.runId);
@@ -359,8 +359,8 @@ export const listPendingCommands = query({
 			.filter((run) => run.lastCommand && !run.lastCommand.acknowledgedAt)
 			.map((run) => ({
 				runId: run.runId,
-				command: run.lastCommand!.type,
-				issuedAt: run.lastCommand!.issuedAt,
+				command: run.lastCommand?.type,
+				issuedAt: run.lastCommand?.issuedAt,
 			}));
 
 		return pendingCommands;
@@ -376,7 +376,7 @@ export const getCommandStatus = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const run = await getRun(ctx, args.workspaceId, args.runId);

@@ -14,7 +14,6 @@ import {
 import { useState } from "react";
 import {
 	HiDocument,
-	HiDotsHorizontal,
 	HiDotsVertical,
 	HiFolder,
 	HiFolderOpen,
@@ -22,7 +21,6 @@ import {
 	HiPlus,
 	HiSearch,
 	HiTrash,
-	HiX,
 } from "react-icons/hi";
 import { toast } from "sonner";
 
@@ -377,26 +375,23 @@ export function IdeasSecondarySidebar({
 								</SidebarItem>
 
 								{/* Archived Contents (when expanded) */}
-								{expandedFolders.has("archived") && (
-									<>
-										{archivedIdeas.map((idea) => (
-											<SidebarItem
-												key={idea._id}
-												icon={HiDocument}
-												className={`ml-6 cursor-pointer ${
-													selectedIdeaId === idea._id
-														? "bg-gray-100 dark:bg-gray-700"
-														: "hover:bg-gray-50 dark:hover:bg-gray-800"
-												}`}
-												onClick={() => onSelectIdea(idea._id)}
-											>
-												<span className="truncate text-gray-500 dark:text-gray-400">
-													{idea.title}
-												</span>
-											</SidebarItem>
-										))}
-									</>
-								)}
+								{expandedFolders.has("archived") &&
+									archivedIdeas.map((idea) => (
+										<SidebarItem
+											key={idea._id}
+											icon={HiDocument}
+											className={`ml-6 cursor-pointer ${
+												selectedIdeaId === idea._id
+													? "bg-gray-100 dark:bg-gray-700"
+													: "hover:bg-gray-50 dark:hover:bg-gray-800"
+											}`}
+											onClick={() => onSelectIdea(idea._id)}
+										>
+											<span className="truncate text-gray-500 dark:text-gray-400">
+												{idea.title}
+											</span>
+										</SidebarItem>
+									))}
 							</SidebarItemGroup>
 						)}
 

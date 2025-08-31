@@ -15,7 +15,6 @@ import {
 	validateCreateFolderInput,
 	validateCreateIdeaInput,
 	validateCreateTagInput,
-	validateUpdateFolderInput,
 	validateUpdateIdeaInput,
 } from "./index";
 
@@ -97,7 +96,7 @@ describe("Ideas Logic Validators", () => {
 			};
 
 			expect(() => {
-				const result = validateCreateIdeaInput(circularInput);
+				const _result = validateCreateIdeaInput(circularInput);
 				// The validator uses JSON.stringify which will throw on circular references
 			}).toThrow();
 		});

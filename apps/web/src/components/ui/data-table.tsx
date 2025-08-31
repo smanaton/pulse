@@ -24,7 +24,7 @@ import {
 	TextInput,
 } from "flowbite-react";
 import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { cn } from "../../lib/utils";
 
 interface DataTableProps<TData, TValue> {

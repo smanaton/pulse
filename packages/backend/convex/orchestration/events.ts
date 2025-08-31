@@ -1,5 +1,4 @@
-import { ConvexError, v } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
+import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { assertMember } from "../helpers";
 import { requireUserId } from "../server/lib/authz";
@@ -8,7 +7,6 @@ import {
 	canTransition,
 	ERROR_CODES,
 	eventTypeToStatus,
-	isTerminal,
 	type RunStatus,
 } from "./stateMachine";
 
@@ -237,7 +235,7 @@ export const ingestEvent = mutation({
 					)
 					.first();
 
-				if (agent && agent.health) {
+				if (agent?.health) {
 					await ctx.db.patch(agent._id, {
 						health: {
 							...agent.health,
@@ -269,7 +267,7 @@ export const listEvents = query({
 		cursor: v.optional(v.number()), // timestamp cursor for pagination
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -304,7 +302,7 @@ export const watchEvents = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		// Return all events - Convex handles real-time updates
@@ -329,7 +327,7 @@ export const getEventStats = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const events = await ctx.db

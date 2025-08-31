@@ -4,10 +4,8 @@
 
 import { describe, expect, it } from "vitest";
 import type {
-	Folder,
 	Idea,
 	ModuleDefinition,
-	Tag,
 	User,
 	Workspace,
 	WorkspaceMember,

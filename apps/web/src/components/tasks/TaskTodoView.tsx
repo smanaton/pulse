@@ -302,7 +302,7 @@ export function TaskTodoView({ projectId }: TaskTodoViewProps) {
 		}
 	};
 
-	const handleAddTask = (priority: string) => {
+	const handleAddTask = (_priority: string) => {
 		// TODO: Open task creation modal or form
 	};
 

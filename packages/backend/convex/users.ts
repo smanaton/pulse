@@ -1,10 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import {
-	getUserId,
-	getUserIdReadOnly,
-	requireUserId,
-} from "./server/lib/authz";
+import { getUserIdReadOnly, requireUserId } from "./server/lib/authz";
 
 // Get current user
 export const getCurrentUser = query({

@@ -20,7 +20,6 @@ import {
 	projectReorderArgs,
 	projectStatsArgs,
 	projectUpdateArgs,
-	userId,
 	workspaceId,
 } from "./validators";
 
@@ -326,7 +325,7 @@ export const reorder = mutation({
 		await assertWriteEnabled(ctx, workspaceId, "editor");
 
 		// Verify all projects belong to workspace
-		const projects = await Promise.all(
+		const _projects = await Promise.all(
 			projectIds.map(async (id) => {
 				const project = await ctx.db.get(id);
 				if (!project || project.workspaceId !== workspaceId) {
@@ -616,7 +615,7 @@ export const removeMember = mutation({
 export const listMembers = query({
 	args: { projectId, workspaceId },
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId, "viewer");
 
 		const project = await ctx.db.get(args.projectId);
@@ -660,7 +659,7 @@ export const listMembers = query({
 export const getStats = query({
 	args: projectStatsArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId, "viewer");
 
 		if (args.projectId) {

@@ -41,7 +41,7 @@ export function useBlockNoteSync(ideaId: Id<"ideas">) {
 					: [{ type: "paragraph", content: idea.contentMD || "" }];
 
 				setInitialContent(blocks);
-			} catch (error) {
+			} catch (_error) {
 				// Fallback to markdown content if blocks parsing fails
 				const fallbackBlocks: PartialBlock[] = idea.contentMD
 					? [

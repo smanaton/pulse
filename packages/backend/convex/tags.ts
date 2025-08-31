@@ -6,16 +6,10 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import { api } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
-import {
-	tagCreateArgs,
-	tagIdeaArgs,
-	tagIdeaRemoveArgs,
-	tagListArgs,
-} from "./validators";
+import { tagCreateArgs } from "./validators";
 
 /**
  * Normalize tag name for consistent storage and comparison.
@@ -373,7 +367,7 @@ export const listForIdea = query({
 		ideaId: v.id("ideas"),
 	},
 	handler: async (ctx, { ideaId }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const idea = await ctx.db.get(ideaId);
 		if (!idea) {
@@ -492,7 +486,7 @@ export const removeFromIdea = mutation({
 		tagId: v.id("tags"),
 	},
 	handler: async (ctx, { ideaId, tagId }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const idea = await ctx.db.get(ideaId);
 		if (!idea) {

@@ -1,5 +1,4 @@
 import type { Id } from "@pulse/backend/dataModel";
-import { useState } from "react";
 import { IdeasEditor } from "./IdeasEditor";
 import { NotesActionsPanel } from "./NotesActionsPanel";
 

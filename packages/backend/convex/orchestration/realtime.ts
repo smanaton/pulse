@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { assertMember } from "../helpers";
 import { requireUserId } from "../server/lib/authz";
@@ -28,7 +27,7 @@ export const watchRunBoard = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -85,7 +84,7 @@ export const watchRun = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		// Get run details
@@ -149,7 +148,7 @@ export const watchOrchestrationDashboard = query({
 		workspaceId: v.id("workspaces"),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		// Get run counts by status
@@ -224,7 +223,7 @@ export const watchStalledRuns = query({
 		stalledThreshold: v.optional(v.number()), // Minutes
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const threshold = args.stalledThreshold ?? 15; // Default 15 minutes
@@ -286,7 +285,7 @@ export const watchAgentHealth = query({
 		agentId: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -353,7 +352,7 @@ export const watchJobProgress = query({
 		jobId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		// Get job

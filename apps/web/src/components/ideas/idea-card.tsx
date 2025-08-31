@@ -2,7 +2,6 @@ import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { useMutation } from "convex/react";
 import {
-	Button,
 	Dropdown,
 	DropdownDivider,
 	DropdownHeader,
@@ -86,7 +85,7 @@ export function IdeaCard({ idea, workspaceId }: IdeaCardProps) {
 
 	const truncatedContent =
 		idea.contentMD.length > 150
-			? idea.contentMD.substring(0, 150) + "..."
+			? `${idea.contentMD.substring(0, 150)}...`
 			: idea.contentMD;
 
 	return (

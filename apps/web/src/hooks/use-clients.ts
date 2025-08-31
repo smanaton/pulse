@@ -129,7 +129,7 @@ export function useCreateClient() {
 
 			// Add to cache
 			queryClient.setQueryData(
-				queryKeys.clients.byId(newClient!._id),
+				queryKeys.clients.byId(newClient?._id || ""),
 				newClient,
 			);
 		},
@@ -172,7 +172,7 @@ export function useUpdateClient() {
 
 			return { previousClient };
 		},
-		onError: (error, variables, context) => {
+		onError: (_error, variables, context) => {
 			// Rollback on error
 			queryClient.setQueryData(
 				queryKeys.clients.byId(variables.clientId),
@@ -227,7 +227,7 @@ export function useDeleteClient() {
 
 			return { client };
 		},
-		onError: (error, clientId, context) => {
+		onError: (_error, clientId, context) => {
 			// Rollback on error
 			if (context?.client) {
 				queryClient.setQueryData(
@@ -236,7 +236,7 @@ export function useDeleteClient() {
 				);
 			}
 		},
-		onSuccess: (result, clientId, context) => {
+		onSuccess: (_result, _clientId, context) => {
 			// Invalidate workspace clients list
 			if (context?.client) {
 				queryClient.invalidateQueries({
@@ -265,7 +265,7 @@ export function useLinkClientToProject() {
 			projectId: Id<"projects">;
 			isPrimary?: boolean;
 		}) => convex.mutation(api.clients.linkToProject, input),
-		onSuccess: (result, variables) => {
+		onSuccess: (_result, variables) => {
 			// Invalidate project clients
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.clients.byProject(variables.projectId),

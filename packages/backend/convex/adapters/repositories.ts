@@ -94,7 +94,7 @@ export class ConvexIdeaRepository
 		const idea = await this.ctx.db.get(id);
 
 		// Filter out soft-deleted ideas
-		if (idea && idea.deletedAt) {
+		if (idea?.deletedAt) {
 			return null;
 		}
 
@@ -142,7 +142,7 @@ export class ConvexIdeaRepository
 
 		// If there's a text query, do client-side filtering for now
 		// TODO: Implement full-text search with search indexes
-		if (options.query && options.query.trim()) {
+		if (options.query?.trim()) {
 			const searchTerm = options.query.toLowerCase();
 			return results.filter(
 				(idea) =>
@@ -189,7 +189,7 @@ export class ConvexFolderRepository
 		const folder = await this.ctx.db.get(id);
 
 		// Filter out soft-deleted folders
-		if (folder && folder.deletedAt) {
+		if (folder?.deletedAt) {
 			return null;
 		}
 

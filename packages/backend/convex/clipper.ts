@@ -7,7 +7,7 @@
 import { ConvexError, v } from "convex/values";
 import { api } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
-import { assertMember, logEvent, sanitizeContent } from "./helpers";
+import { logEvent, sanitizeContent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 
 /**
@@ -129,7 +129,7 @@ export const processTask = action({
 			const contentHash = await generateContentHash(content.text);
 
 			// Check for duplicates
-			const existingClip = await ctx.runQuery(api.clipper.findByContentHash, {
+			const _existingClip = await ctx.runQuery(api.clipper.findByContentHash, {
 				workspaceId: task.workspaceId,
 				contentHash,
 			});
@@ -317,7 +317,7 @@ export const logCapture = mutation({
 		url: v.string(),
 	},
 	handler: async (ctx, { workspaceId, entityId, captureType, url }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		await logEvent(ctx, workspaceId, "web_clip_created", "idea", entityId, {
 			captureType,
@@ -439,7 +439,7 @@ function extractMainText(html: string): string {
 		.replace(
 			/<h([1-6])[^>]*>([^<]*)<\/h[1-6]>/gi,
 			(_, level, text) =>
-				"\n" + "#".repeat(Number.parseInt(level)) + " " + text.trim() + "\n",
+				`\n${"#".repeat(Number.parseInt(level, 10))} ${text.trim()}\n`,
 		)
 		.replace(/<p[^>]*>([^<]*)<\/p>/gi, "\n$1\n")
 		.replace(/<br[^>]*\/?>/gi, "\n")

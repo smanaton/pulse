@@ -279,7 +279,7 @@ export const getAvailableApplications = query({
 			isCustom: v.boolean(),
 		}),
 	),
-	handler: async (ctx, args) => {
+	handler: async (ctx, _args) => {
 		await requireUserIdReadOnly(ctx); // Ensure user is authenticated
 
 		return DEFAULT_APPLICATIONS.map((app) => ({ ...app }));
@@ -296,7 +296,7 @@ export const toggleApplicationVisibility = mutation({
 	},
 	returns: v.null(),
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		// Get current preferences
 		const prefs = await ctx.runQuery(

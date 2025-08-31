@@ -13,7 +13,6 @@ import {
 	NavbarBrand,
 	TextInput,
 } from "flowbite-react";
-import { useId } from "react";
 import {
 	HiBell,
 	HiCog,
@@ -22,10 +21,8 @@ import {
 	HiSearch,
 	HiUserCircle,
 	HiViewGrid,
-	HiX,
 } from "react-icons/hi";
 import { RouterLink } from "@/components/primitives/RouterLink";
-import { useSidebarContext } from "@/contexts/sidebar-context";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -34,7 +31,7 @@ interface DashboardNavbarProps {
 }
 
 export function DashboardNavbar({ hideSearch = false }: DashboardNavbarProps) {
-	const isDesktop = useMediaQuery("(min-width: 1024px)");
+	const _isDesktop = useMediaQuery("(min-width: 1024px)");
 	const user = useQuery(api.users.getCurrentUser);
 	const { signOut } = useAuthActions();
 

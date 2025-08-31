@@ -1,13 +1,5 @@
-import type { Id } from "@pulse/backend/dataModel";
 import { Badge, Button, Card } from "flowbite-react";
-import {
-	AlertCircle,
-	Calendar,
-	Clock,
-	DollarSign,
-	Edit,
-	Users,
-} from "lucide-react";
+import { AlertCircle, Calendar, Clock, DollarSign, Edit } from "lucide-react";
 import { useState } from "react";
 import type { Project } from "@/hooks/use-projects";
 

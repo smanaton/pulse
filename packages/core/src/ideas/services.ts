@@ -254,7 +254,7 @@ export class IdeaService implements IIdeaService {
 export class FolderService implements IFolderService {
 	constructor(
 		private readonly repository: IFolderRepository,
-		private readonly ideaRepository: IIdeaRepository,
+		readonly _ideaRepository: IIdeaRepository,
 		private readonly context: IBusinessContext,
 	) {}
 

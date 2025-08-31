@@ -1,13 +1,5 @@
-import { Badge, Button, Card, Dropdown, TextInput } from "flowbite-react";
-import {
-	Calendar,
-	DollarSign,
-	Filter,
-	Search,
-	Tag,
-	Users,
-	X,
-} from "lucide-react";
+import { Badge, Button, Card, TextInput } from "flowbite-react";
+import { Filter, Search, Tag, Users, X } from "lucide-react";
 import { useState } from "react";
 
 interface ProjectFiltersProps {
@@ -286,7 +278,7 @@ export function ProjectFilters({
 										updateFilters({
 											progress: {
 												...filters.progress,
-												min: Number.parseInt(e.target.value),
+												min: Number.parseInt(e.target.value, 10),
 											},
 										})
 									}
@@ -302,7 +294,7 @@ export function ProjectFilters({
 										updateFilters({
 											progress: {
 												...filters.progress,
-												max: Number.parseInt(e.target.value),
+												max: Number.parseInt(e.target.value, 10),
 											},
 										})
 									}

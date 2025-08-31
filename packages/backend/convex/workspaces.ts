@@ -19,19 +19,14 @@ import {
 import { requireUserId } from "./server/lib/authz";
 import {
 	emptyArgs,
-	slug,
 	workspaceByIdArgs,
 	workspaceBySlugArgs,
-	workspaceCreateArgs,
 	workspaceCreateSharedArgs,
-	workspaceId,
 	workspaceKillSwitchArgs,
 	workspaceListMembersArgs,
 	workspaceMemberInviteArgs,
 	workspaceMemberRemoveArgs,
 	workspaceMemberRoleUpdateArgs,
-	workspaceMemberUpdateArgs,
-	workspaceUpdateArgs,
 } from "./validators";
 
 /**
@@ -40,7 +35,7 @@ import {
  */
 export const getOrCreatePersonal = mutation({
 	args: emptyArgs,
-	handler: async (ctx, args) => {
+	handler: async (ctx, _args) => {
 		const userId = await requireUserId(ctx);
 		if (!userId) {
 			throw new ConvexError({
@@ -329,7 +324,7 @@ export const inviteMember = mutation({
 			"invite_sent",
 			"workspaceMember",
 			memberId,
-			{ role, invitedUserEmail: email.split("@")[0] + "@***" }, // Sanitized email
+			{ role, invitedUserEmail: `${email.split("@")[0]}@***` }, // Sanitized email
 		);
 
 		await logEvent(
@@ -528,7 +523,7 @@ export const setKillSwitch = mutation({
  */
 export const listUserWorkspaces = query({
 	args: emptyArgs,
-	handler: async (ctx, args) => {
+	handler: async (ctx, _args) => {
 		const userId = await requireUserId(ctx);
 		if (!userId) {
 			return [];

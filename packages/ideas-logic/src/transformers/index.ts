@@ -43,7 +43,7 @@ export function transformCreateIdeaInput(
 
 export function transformUpdateIdeaInput(
 	input: UpdateIdeaInput,
-	existingIdea: {
+	_existingIdea: {
 		title: string;
 		contentMD: string;
 		contentBlocks?: any;
@@ -106,7 +106,7 @@ export function transformCreateFolderInput(
 
 export function transformUpdateFolderInput(
 	input: UpdateFolderInput,
-	existingFolder: { name: string; parentId?: Id<"folders"> },
+	_existingFolder: { name: string; parentId?: Id<"folders"> },
 ): Partial<ProcessedFolderData> {
 	const updates: Partial<ProcessedFolderData> = {
 		updatedAt: Date.now(),
@@ -124,7 +124,7 @@ export function transformUpdateFolderInput(
 }
 
 export function calculateFolderSortKey(
-	parentId?: Id<"folders">,
+	_parentId?: Id<"folders">,
 	insertAfter?: number,
 ): number {
 	// If inserting after a specific item, add a small increment

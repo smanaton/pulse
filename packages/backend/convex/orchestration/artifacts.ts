@@ -1,6 +1,4 @@
-import { ConvexError, v } from "convex/values";
-import { api, internal } from "../_generated/api";
-import type { Doc, Id } from "../_generated/dataModel";
+import { v } from "convex/values";
 import { action, mutation, query } from "../_generated/server";
 import { assertMember, generateFileUrl } from "../helpers";
 import { requireUserId } from "../server/lib/authz";
@@ -97,7 +95,7 @@ export const getArtifact = query({
 		artifactId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const artifact = await ctx.db
@@ -124,7 +122,7 @@ export const listArtifactsForRun = query({
 		runId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const artifacts = await ctx.db
@@ -154,7 +152,7 @@ export const presignUpload = action({
 		artifactUri: v.string(),
 		expiresIn: v.number(),
 	}),
-	handler: async (ctx, args) => {
+	handler: async (_ctx, args) => {
 		// Note: This would typically be called by agents
 		// In production, verify agent authentication
 
@@ -190,7 +188,7 @@ export const presignDownload = action({
 		downloadUrl: v.string(),
 		expiresIn: v.number(),
 	}),
-	handler: async (ctx, args) => {
+	handler: async (_ctx, args) => {
 		// Generate download URL for artifact access
 		const downloadUrl = generateFileUrl(
 			args.workspaceId,
@@ -219,7 +217,7 @@ export const deleteArtifact = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const artifact = await ctx.db
@@ -268,7 +266,7 @@ export const updateRetention = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const artifact = await ctx.db
@@ -314,7 +312,7 @@ export const getWorkspaceArtifactStats = query({
 		workspaceId: v.id("workspaces"),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const artifacts = await ctx.db
@@ -363,7 +361,7 @@ export const listCleanupCandidates = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const now = Date.now();

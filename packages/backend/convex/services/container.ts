@@ -154,8 +154,8 @@ export class ServiceLocator {
  * ```
  */
 export async function createContainer(
-	ctx: MutationCtx | QueryCtx,
-	workspaceId?: Id<"workspaces">,
+	_ctx: MutationCtx | QueryCtx,
+	_workspaceId?: Id<"workspaces">,
 ): Promise<IAppContainer> {
 	// Note: This would need to extract userId from context
 	// For now, assuming it's available in the calling function
@@ -192,7 +192,7 @@ export function withContainer<T extends any[], R>(
 // ============================================================================
 
 async function extractUserId(
-	ctx: MutationCtx | QueryCtx,
+	_ctx: MutationCtx | QueryCtx,
 ): Promise<Id<"users">> {
 	// This would use your actual auth implementation
 	throw new Error("Implement userId extraction from context");

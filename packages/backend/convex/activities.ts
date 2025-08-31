@@ -52,7 +52,7 @@ const activitiesTimelineArgs = {
 export const list = query({
 	args: activitiesListArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -81,7 +81,7 @@ export const list = query({
 
 		// Apply cursor-based pagination
 		if (args.cursor) {
-			const cursorTime = Number.parseInt(args.cursor);
+			const cursorTime = Number.parseInt(args.cursor, 10);
 			query = query.filter((q) => q.lt(q.field("createdAt"), cursorTime));
 		}
 
@@ -139,7 +139,7 @@ export const list = query({
 export const getTimeline = query({
 	args: activitiesTimelineArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const days = args.days ?? 7; // Default to last 7 days
@@ -225,7 +225,7 @@ export const getForEntity = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const limit = Math.min(args.limit ?? 20, 50);
@@ -284,7 +284,7 @@ export const getStats = query({
 		days: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const days = args.days ?? 30; // Default to last 30 days
@@ -377,7 +377,7 @@ export const getByActor = query({
 		limit: v.optional(v.number()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const limit = Math.min(args.limit ?? 20, 50);

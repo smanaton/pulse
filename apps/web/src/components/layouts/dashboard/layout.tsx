@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from "react";
 import { twMerge } from "tailwind-merge";
 import { CustomDashboardNavbar } from "./navbar";
-import { SidebarLayout } from "./sidebar-layout";
 
 interface LayoutProps extends PropsWithChildren {
 	className?: string;

@@ -306,7 +306,7 @@ export const summarizeIdea = action({
 		// Update idea with summary
 		await ctx.runMutation(internal.internal.ideasUpdateInternal, {
 			ideaId: args.ideaId,
-			contentMD: idea.contentMD + "\n\n## AI Summary\n\n" + summary,
+			contentMD: `${idea.contentMD}\n\n## AI Summary\n\n${summary}`,
 		});
 
 		// Increment rate limit

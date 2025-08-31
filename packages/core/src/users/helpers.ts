@@ -10,7 +10,7 @@ export function getDisplayName(user: {
 	name?: string;
 	email?: string;
 }): string {
-	if (user.name && user.name.trim()) {
+	if (user.name?.trim()) {
 		return user.name.trim();
 	}
 

@@ -497,7 +497,7 @@ export const appendWebClip = mutation({
 			const services = createServices(repositories, businessContext);
 
 			// 4. Append content to existing idea
-			const updatedContent = idea.contentMD + "\n\n---\n\n" + args.content;
+			const updatedContent = `${idea.contentMD}\n\n---\n\n${args.content}`;
 			await services.ideaService.update(args.ideaId, {
 				contentMD: updatedContent,
 			});

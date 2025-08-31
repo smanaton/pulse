@@ -1,7 +1,5 @@
 import { cronJobs } from "convex/server";
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
-import type { Doc } from "../_generated/dataModel";
 import { internalAction, internalMutation } from "../_generated/server";
 import { updateRunStatus } from "./core";
 import { ERROR_CODES, type ErrorCode, isRetryableError } from "./stateMachine";
@@ -346,7 +344,7 @@ export const pingAgentHealth = internalAction({
 		agentsPinged: v.number(),
 		healthyAgents: v.number(),
 	}),
-	handler: async (ctx) => {
+	handler: async (_ctx) => {
 		// For now, skip agent health pings until we have the proper API generated
 		// Agent health ping function - currently a no-op until agents provide health endpoints
 		// Implementation will be added when agents provide health endpoints

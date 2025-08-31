@@ -6,9 +6,9 @@
  * into a single schema.ts file for Convex compilation.
  */
 
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,7 +42,7 @@ const MODULE_SCHEMAS = [
  */
 function generateMergedSchema() {
 	const imports = [];
-	const validators = [];
+	const _validators = [];
 
 	// Add base imports
 	imports.push(`import { authTables } from "@convex-dev/auth/server";`);
@@ -69,7 +69,7 @@ function generateMergedSchema() {
 	let existingSchemaContent = "";
 	try {
 		existingSchemaContent = readFileSync(SCHEMA_OUTPUT, "utf-8");
-	} catch (error) {
+	} catch (_error) {
 		console.warn("Could not read existing schema, creating from scratch");
 	}
 
@@ -170,7 +170,7 @@ function extractExistingTables(content) {
 
 	return tables
 		.split("\n")
-		.map((line) => "  " + line)
+		.map((line) => `  ${line}`)
 		.join("\n");
 }
 

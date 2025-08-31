@@ -12,7 +12,7 @@ export const list = query({
 		parentId: v.optional(v.id("folders")),
 	},
 	handler: async (ctx, { workspaceId, parentId }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, workspaceId);
 
 		const folders = await ctx.db
@@ -77,7 +77,7 @@ export const update = mutation({
 		name: v.optional(v.string()),
 	},
 	handler: async (ctx, { folderId, name }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const folder = await ctx.db.get(folderId);
 		if (!folder) {
@@ -107,7 +107,7 @@ export const remove = mutation({
 		folderId: v.id("folders"),
 	},
 	handler: async (ctx, { folderId }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const folder = await ctx.db.get(folderId);
 		if (!folder) {
@@ -146,7 +146,7 @@ export const getPath = query({
 		folderId: v.id("folders"),
 	},
 	handler: async (ctx, { folderId }) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const path = [];
 		let currentId: string | undefined = folderId;

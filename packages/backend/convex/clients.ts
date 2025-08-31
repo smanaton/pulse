@@ -6,7 +6,6 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logActivity } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
@@ -200,7 +199,7 @@ export const getById = query({
 			return null;
 		}
 
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, client.workspaceId);
 
 		return client;
@@ -213,7 +212,7 @@ export const getById = query({
 export const list = query({
 	args: clientListArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -228,7 +227,7 @@ export const list = query({
 
 		// Apply search if provided (simple contains search)
 		if (args.search) {
-			const searchTerm = args.search.toLowerCase();
+			const _searchTerm = args.search.toLowerCase();
 			query = query.filter((q) =>
 				q.or(
 					// Use search index or simple filtering for text fields
@@ -245,7 +244,7 @@ export const list = query({
 		if (args.cursor) {
 			// Parse cursor for pagination (simplified implementation)
 			query = query.filter((q) =>
-				q.gt(q.field("_creationTime"), Number.parseInt(args.cursor!)),
+				q.gt(q.field("_creationTime"), Number.parseInt(args.cursor!, 10)),
 			);
 		}
 
@@ -278,7 +277,7 @@ export const getByProject = query({
 			return [];
 		}
 
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, project.workspaceId);
 
 		// Get client relationships for this project

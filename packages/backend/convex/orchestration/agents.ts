@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import type { Doc, Id } from "../_generated/dataModel";
 import {
 	internalMutation,
 	internalQuery,
@@ -135,7 +134,7 @@ export const listAgents = query({
 		onlyActive: v.optional(v.boolean()),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let query = ctx.db
@@ -172,7 +171,7 @@ export const getAgent = query({
 		agentId: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const agent = await ctx.db
@@ -200,7 +199,7 @@ export const matchCapability = query({
 		excludeAgentIds: v.optional(v.array(v.string())),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		let agents = await ctx.db
@@ -304,7 +303,7 @@ export const deactivateAgent = mutation({
 	}),
 	handler: async (ctx, args) => {
 		try {
-			const userId = await requireUserId(ctx);
+			const _userId = await requireUserId(ctx);
 			await assertMember(ctx, args.workspaceId);
 
 			const agent = await ctx.db
@@ -381,7 +380,7 @@ export const getAgentStats = query({
 		timeRange: v.optional(v.number()), // Hours to look back
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const agent = await ctx.db
@@ -491,7 +490,7 @@ export const getWorkspaceAgentOverview = query({
 		workspaceId: v.id("workspaces"),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
 		const agents = await ctx.db

@@ -1,5 +1,5 @@
 import type { Id } from "@pulse/backend/dataModel";
-import { type PropsWithChildren, useEffect, useState } from "react";
+import { type PropsWithChildren, useEffect } from "react";
 import { IdeasSecondarySidebar } from "@/components/ideas/ideas-secondary-sidebar";
 import { SidebarProvider, useSidebarContext } from "@/contexts/sidebar-context";
 import { sidebarStorage } from "@/lib/sidebar-storage";
@@ -19,7 +19,7 @@ export function IdeasLayout({
 	onSelectIdea,
 }: IdeasLayoutProps) {
 	// Force main sidebar to be collapsed when we have a secondary sidebar
-	const sidebarState = sidebarStorage.get();
+	const _sidebarState = sidebarStorage.get();
 	const initialCollapsed = true; // Always start collapsed for ideas workspace
 
 	return (
@@ -50,7 +50,7 @@ function IdeasLayoutWithSidebar({
 		if (!sidebar.desktop.isCollapsed) {
 			sidebar.desktop.setCollapsed(true);
 		}
-	}, []);
+	}, [sidebar.desktop.isCollapsed, sidebar.desktop.setCollapsed]);
 
 	return (
 		<>

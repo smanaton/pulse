@@ -48,7 +48,7 @@ describe("Idea Service", () => {
 			expect(result.success).toBe(false);
 			expect(result.data).toBeUndefined();
 			expect(result.errors).toBeDefined();
-			expect(result.errors!.length).toBeGreaterThan(0);
+			expect(result.errors?.length).toBeGreaterThan(0);
 		});
 
 		it("should sanitize title and content", async () => {
@@ -197,7 +197,7 @@ describe("Idea Service", () => {
 
 			expect(result.success).toBe(false);
 			expect(result.errors).toBeDefined();
-			expect(result.errors![0]).toContain("at least 3 characters");
+			expect(result.errors?.[0]).toContain("at least 3 characters");
 		});
 
 		it("should allow archiving any idea", () => {

@@ -83,7 +83,7 @@ const Popup: React.FC = () => {
 		return () => {
 			browser.storage.onChanged.removeListener(handleStorageChange);
 		};
-	}, []);
+	}, [checkAuthStatus]);
 
 	// Load workspaces and recent ideas when authenticated
 	useEffect(() => {
@@ -93,7 +93,12 @@ const Popup: React.FC = () => {
 				loadRecentIdeas(capture.selectedWorkspace);
 			}
 		}
-	}, [auth.isAuthenticated, capture.selectedWorkspace]);
+	}, [
+		auth.isAuthenticated,
+		capture.selectedWorkspace,
+		loadRecentIdeas,
+		loadWorkspaces,
+	]);
 
 	const checkAuthStatus = async () => {
 		try {
@@ -135,9 +140,9 @@ const Popup: React.FC = () => {
 		}
 	};
 
-	const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+	const [_awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
-	const handleLogin = async () => {
+	const _handleLogin = async () => {
 		try {
 			const response = await browser.runtime.sendMessage({
 				action: "auth",
@@ -147,7 +152,7 @@ const Popup: React.FC = () => {
 				},
 			});
 
-			if (response && response.success && response.result.type === "redirect") {
+			if (response?.success && response.result.type === "redirect") {
 				setAwaitingConfirmation(true);
 			}
 		} catch (error) {
@@ -168,7 +173,7 @@ const Popup: React.FC = () => {
 				},
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				await checkAuthStatus();
 				setApiKey("");
 			} else {
@@ -207,7 +212,7 @@ const Popup: React.FC = () => {
 				},
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				// Close popup after successful capture
 				window.close();
 			} else {
@@ -252,7 +257,7 @@ const Popup: React.FC = () => {
 				action: "getWorkspaces",
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				setWorkspaces(response.workspaces || []);
 
 				// Set default workspace if not already selected
@@ -281,7 +286,7 @@ const Popup: React.FC = () => {
 				data: { workspaceId, limit: 10 },
 			});
 
-			if (response && response.success) {
+			if (response?.success) {
 				setRecentIdeas(response.ideas || []);
 			}
 		} catch (error) {

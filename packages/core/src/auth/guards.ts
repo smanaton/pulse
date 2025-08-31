@@ -6,7 +6,6 @@
  */
 
 import type { Id } from "../types";
-import { PulseError } from "./errors";
 
 // ============================================================================
 // Guard Interfaces
@@ -152,16 +151,16 @@ export function getRolePermissions(role: WorkspaceRole): Permission[] {
 // ============================================================================
 
 export function createMockAuthGuards() {
-	const requireUserId: RequireUserIdFn = async (ctx) => {
+	const requireUserId: RequireUserIdFn = async (_ctx) => {
 		// Mock implementation for testing
 		return "test-user-id" as Id<"users">;
 	};
 
 	const assertMembership: AssertMembershipFn = async (
-		ctx,
+		_ctx,
 		userId,
 		workspaceId,
-		minRole = "viewer",
+		_minRole = "viewer",
 	) => {
 		// Mock implementation for testing
 		return {
@@ -172,10 +171,10 @@ export function createMockAuthGuards() {
 	};
 
 	const checkPermission: CheckPermissionFn = async (
-		ctx,
-		userId,
-		workspaceId,
-		permission,
+		_ctx,
+		_userId,
+		_workspaceId,
+		_permission,
 	) => {
 		// Mock implementation for testing - grant all permissions
 		return true;

@@ -7,7 +7,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
+import { assertMember, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 
 // Crypto functions for key generation

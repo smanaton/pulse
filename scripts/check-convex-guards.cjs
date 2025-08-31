@@ -7,8 +7,8 @@
  * and authentication before performing operations on workspace-scoped data.
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const CONVEX_DIR = path.join(__dirname, "..", "packages", "backend", "convex");
 const IGNORE_FILES = [

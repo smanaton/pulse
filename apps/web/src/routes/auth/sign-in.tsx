@@ -3,7 +3,7 @@ import { api } from "@pulse/backend";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Button, Card, Checkbox, Label, TextInput } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const Route = createFileRoute("/auth/sign-in")({
 	component: SignInPage,
@@ -11,8 +11,8 @@ export const Route = createFileRoute("/auth/sign-in")({
 
 function SignInPage() {
 	const { signIn } = useAuthActions();
-	const navigate = useNavigate();
-	const user = useQuery(api.users.getCurrentUser);
+	const _navigate = useNavigate();
+	const _user = useQuery(api.users.getCurrentUser);
 	const [error, setError] = useState<string | null>(null);
 	const [isSigningIn, setIsSigningIn] = useState<string | null>(null);
 	const [showEmailForm, setShowEmailForm] = useState(false);

@@ -1,5 +1,3 @@
-import { api } from "@pulse/backend";
-
 /**
  * Test Utilities for Real Convex Integration
  *

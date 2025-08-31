@@ -44,7 +44,7 @@ export function Dashboard() {
 		}>
 	>([]);
 	const [isConversing, setIsConversing] = useState(false);
-	const [showWelcome, setShowWelcome] = useState(true);
+	const [_showWelcome, setShowWelcome] = useState(true);
 
 	// Refs
 	const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +102,7 @@ export function Dashboard() {
 				name: app.name,
 				icon: iconMap[app.icon] || Gauge, // Fallback to Gauge if icon not found
 				href: app.href,
-				badge: app.badge ? Number.parseInt(app.badge) : undefined,
+				badge: app.badge ? Number.parseInt(app.badge, 10) : undefined,
 			}));
 	}, [navigationPreferences]);
 
@@ -121,7 +121,7 @@ export function Dashboard() {
 	// Intent detection for navigation
 	const detectIntent = (message: string, aiResponse: string) => {
 		const lowerMessage = message.toLowerCase();
-		const lowerResponse = aiResponse.toLowerCase();
+		const _lowerResponse = aiResponse.toLowerCase();
 
 		// Navigation intents
 		if (
@@ -225,7 +225,7 @@ export function Dashboard() {
 			setIsTyping(false);
 
 			const errorMessage = {
-				id: messageId + "_error",
+				id: `${messageId}_error`,
 				type: "ai" as const,
 				message:
 					"Sorry, I encountered an error processing your request. Please try again.",
@@ -239,7 +239,7 @@ export function Dashboard() {
 	};
 
 	// Handle suggested prompt clicks
-	const handlePromptClick = (prompt: string) => {
+	const _handlePromptClick = (prompt: string) => {
 		setInput(prompt);
 	};
 

@@ -21,7 +21,7 @@ export class NotFoundError extends Error {
 export class ConflictError extends Error {
 	public statusCode = 409;
 
-	constructor(message: string, details?: Record<string, any>) {
+	constructor(message: string, _details?: Record<string, any>) {
 		super(message);
 		this.name = "ConflictError";
 	}
@@ -30,7 +30,7 @@ export class ConflictError extends Error {
 export class RateLimitError extends Error {
 	public statusCode = 429;
 
-	constructor(message = "Rate limit exceeded", retryAfter?: number) {
+	constructor(message = "Rate limit exceeded", _retryAfter?: number) {
 		super(message);
 		this.name = "RateLimitError";
 	}

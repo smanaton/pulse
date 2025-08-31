@@ -1,6 +1,5 @@
-import { createColumnHelper } from "@tanstack/react-table";
 import { Badge, Button } from "flowbite-react";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import type { Client } from "../../hooks/use-clients";
 
 // Helper for creating sortable header
