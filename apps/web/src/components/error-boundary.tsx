@@ -63,12 +63,14 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
 
 				<div className="flex gap-2">
 					<button
+						type="button"
 						onClick={resetError}
 						className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
 					>
 						Try Again
 					</button>
 					<button
+						type="button"
 						onClick={() => window.location.reload()}
 						className="rounded bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600"
 					>

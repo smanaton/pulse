@@ -41,9 +41,7 @@ const MessageBubble = ({
 		initial={{ opacity: 0, y: 20 }}
 		animate={{ opacity: 1, y: 0 }}
 		transition={{ duration: 0.2, ease: "easeOut" }}
-		className={`flex ${
-			type === "user" ? "justify-end" : "justify-start"
-		} mb-3`}
+		className={`flex ${type === "user" ? "justify-end" : "justify-start"} mb-3`}
 	>
 		<div
 			className={`max-w-[70%] rounded-xl px-3 py-2 ${
@@ -118,7 +116,7 @@ export function Dashboard() {
 	const createWorkspace = useMutation(api.workspaces.getOrCreatePersonal);
 	const processMessage = useAction(api.ai.processMessage);
 	const navigate = useNavigate();
-	
+
 	// Mutation for updating navigation preferences - moved here to fix hook order
 	const updateNavPreferences = useMutation(
 		api.navigationPreferences.updateNavigationPreferences,
@@ -143,16 +141,19 @@ export function Dashboard() {
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
 	// Icon mapping for dynamic icons - memoized to prevent recreation
-	const iconMap = React.useMemo(() => ({
-		Gauge,
-		Lightbulb,
-		FolderOpen,
-		CheckSquare,
-		Calendar,
-		Mail,
-		MessageCircle,
-		Plus,
-	}), []);
+	const iconMap = React.useMemo(
+		() => ({
+			Gauge,
+			Lightbulb,
+			FolderOpen,
+			CheckSquare,
+			Calendar,
+			Mail,
+			MessageCircle,
+			Plus,
+		}),
+		[],
+	);
 
 	// Get user navigation preferences from database
 	const navigationPreferences = useQuery(
@@ -336,7 +337,6 @@ export function Dashboard() {
 		setInput(prompt);
 	};
 
-
 	// Handle customize button click
 	const handleCustomizeClick = () => {
 		// TODO: Implement customization modal/drawer
@@ -365,7 +365,6 @@ export function Dashboard() {
 	// Weather data
 	const currentDate = new Date();
 	const temperature = 31;
-
 
 	return (
 		<>

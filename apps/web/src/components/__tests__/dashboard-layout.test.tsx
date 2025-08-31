@@ -231,7 +231,7 @@ describe("DashboardLayout", () => {
 		it("maintains focus management structure", () => {
 			render(
 				<DashboardLayout>
-					<button>Test Button</button>
+					<button type="button">Test Button</button>
 				</DashboardLayout>,
 			);
 

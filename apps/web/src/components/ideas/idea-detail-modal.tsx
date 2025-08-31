@@ -46,7 +46,9 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
 			const blocks = JSON.parse(idea.contentBlocks);
 			return (
 				<div className="space-y-3">
-					{(blocks as Block[]).map((block, index: number) => renderBlock(block, index))}
+					{(blocks as Block[]).map((block, index: number) =>
+						renderBlock(block, index),
+					)}
 				</div>
 			);
 		} catch (error) {

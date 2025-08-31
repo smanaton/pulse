@@ -1,10 +1,6 @@
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { useAction } from "convex/react";
-import { useState } from "react";
-import { toast } from "sonner";
-
-
 import {
 	Accordion,
 	AccordionContent,
@@ -29,6 +25,8 @@ import {
 	Stars,
 	Target,
 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AICommandCenterProps {
 	workspaceId: Id<"workspaces">;

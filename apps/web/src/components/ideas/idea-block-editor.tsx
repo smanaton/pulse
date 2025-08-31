@@ -1,5 +1,5 @@
-import { BlockNoteView } from "@blocknote/mantine";
 import type { Block, PartialBlock } from "@blocknote/core";
+import { BlockNoteView } from "@blocknote/mantine";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { useNavigate } from "@tanstack/react-router";
@@ -290,7 +290,9 @@ function blocksToMarkdown(blocks: Block[]): string {
 					return `${headingPrefix} ${text}`;
 				}
 				case "paragraph":
-					return (block.content as any)?.map((item: any) => item.text).join("") || "";
+					return (
+						(block.content as any)?.map((item: any) => item.text).join("") || ""
+					);
 				case "bulletListItem":
 					return `- ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
 				case "numberedListItem":
@@ -300,7 +302,9 @@ function blocksToMarkdown(blocks: Block[]): string {
 				case "quote":
 					return `> ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
 				default:
-					return (block.content as any)?.map((item: any) => item.text).join("") || "";
+					return (
+						(block.content as any)?.map((item: any) => item.text).join("") || ""
+					);
 			}
 		})
 		.join("\n\n");

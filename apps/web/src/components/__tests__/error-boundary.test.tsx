@@ -40,7 +40,9 @@ const CustomErrorFallback: React.FC<ErrorFallbackProps> = ({
 	<div>
 		<h2>Custom Error Fallback</h2>
 		<p>Error: {error.message}</p>
-		<button onClick={resetError}>Reset</button>
+		<button type="button" onClick={resetError}>
+			Reset
+		</button>
 	</div>
 );
 
@@ -356,7 +358,10 @@ describe("Edge Cases", () => {
 			const { handleError } = useErrorHandler();
 
 			return (
-				<button onClick={() => handleError(new Error("Event handler error"))}>
+				<button
+					type="button"
+					onClick={() => handleError(new Error("Event handler error"))}
+				>
 					Trigger Error
 				</button>
 			);
