@@ -171,8 +171,8 @@ describe("Shared Helpers", () => {
 
 			expect(grouped.a).toHaveLength(2);
 			expect(grouped.b).toHaveLength(1);
-			expect(grouped.a[0].value).toBe(1);
-			expect(grouped.a[1].value).toBe(3);
+			expect(grouped.a?.[0]?.value).toBe(1);
+			expect(grouped.a?.[1]?.value).toBe(3);
 		});
 
 		it("should sort by correctly", () => {
@@ -185,8 +185,8 @@ describe("Shared Helpers", () => {
 			const sortedByName = sortBy(items, (item) => item.name);
 			const sortedByAge = sortBy(items, (item) => item.age);
 
-			expect(sortedByName[0].name).toBe("Alice");
-			expect(sortedByAge[0].age).toBe(20);
+			expect(sortedByName[0]?.name).toBe("Alice");
+			expect(sortedByAge[0]?.age).toBe(20);
 		});
 	});
 

@@ -194,14 +194,16 @@ function generateHighlights(
 		const cleanTerm = term.replace("*", "");
 		const regex = new RegExp(`(${escapeRegex(cleanTerm)})`, "gi");
 
-		let match;
+		let match: RegExpExecArray | null;
 		while ((match = regex.exec(title)) !== null) {
-			highlights.push({
-				field: "title",
-				text: match[1],
-				startIndex: match.index,
-				endIndex: match.index + match[1].length,
-			});
+			if (match[1] && match.index !== undefined) {
+				highlights.push({
+					field: "title",
+					text: match[1],
+					startIndex: match.index,
+					endIndex: match.index + match[1].length,
+				});
+			}
 		}
 	}
 
@@ -211,15 +213,17 @@ function generateHighlights(
 		const regex = new RegExp(`(${escapeRegex(cleanTerm)})`, "gi");
 
 		let matchCount = 0;
-		let match;
+		let match: RegExpExecArray | null;
 		while ((match = regex.exec(content)) !== null && matchCount < 3) {
-			highlights.push({
-				field: "content",
-				text: match[1],
-				startIndex: match.index,
-				endIndex: match.index + match[1].length,
-			});
-			matchCount++;
+			if (match[1] && match.index !== undefined) {
+				highlights.push({
+					field: "content",
+					text: match[1],
+					startIndex: match.index,
+					endIndex: match.index + match[1].length,
+				});
+				matchCount++;
+			}
 		}
 	}
 

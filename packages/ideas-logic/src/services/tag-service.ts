@@ -385,7 +385,8 @@ export function processTagCleanup(
 
 			if (normalizedTags.has(normalized)) {
 				// Found duplicate - merge with existing
-				const existingTagId = normalizedTags.get(normalized)!;
+				const existingTagId = normalizedTags.get(normalized);
+				if (!existingTagId) continue;
 				mergedTags.push({
 					sourceId: tag._id,
 					targetId: existingTagId,
@@ -424,7 +425,10 @@ export async function processBatchTagCreation(
 	const createdNames = new Set<string>();
 
 	for (let i = 0; i < inputs.length; i++) {
-		const normalizedName = normalizeTagName(inputs[i].name);
+		const input = inputs[i];
+		if (!input) continue;
+		
+		const normalizedName = normalizeTagName(input.name);
 
 		// Check for duplicates within the batch
 		if (createdNames.has(normalizedName)) {
@@ -435,7 +439,7 @@ export async function processBatchTagCreation(
 			continue;
 		}
 
-		const result = await processTagCreation(inputs[i]);
+		const result = await processTagCreation(input);
 		if (result.success && result.data) {
 			processed.push(result.data);
 			createdNames.add(normalizedName);

@@ -159,7 +159,7 @@ function wouldCreateCircularDependency(
 	targetParentId: Id<"folders">,
 	hierarchy: Map<Id<"folders">, Id<"folders"> | undefined>,
 ): boolean {
-	let currentParent = targetParentId;
+	let currentParent: Id<"folders"> | undefined = targetParentId;
 	const visited = new Set<Id<"folders">>();
 
 	while (currentParent) {
@@ -279,7 +279,8 @@ export function processFolderDeletion(
 	const toProcess = [folderId];
 
 	while (toProcess.length > 0) {
-		const currentFolder = toProcess.shift()!;
+		const currentFolder = toProcess.shift();
+		if (!currentFolder) break;
 
 		// Find children of current folder
 		for (const [childId, parentId] of folderHierarchy.entries()) {
@@ -321,7 +322,9 @@ export async function processBatchFolderCreation(
 	const errors: Array<{ index: number; errors: string[] }> = [];
 
 	for (let i = 0; i < inputs.length; i++) {
-		const result = await processFolderCreation(inputs[i]);
+		const input = inputs[i];
+		if (!input) continue;
+		const result = await processFolderCreation(input);
 		if (result.success && result.data) {
 			processed.push(result.data);
 		} else {

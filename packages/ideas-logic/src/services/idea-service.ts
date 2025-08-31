@@ -297,7 +297,9 @@ export async function processBatchIdeaCreation(
 	const errors: Array<{ index: number; errors: string[] }> = [];
 
 	for (let i = 0; i < inputs.length; i++) {
-		const result = await processIdeaCreation(inputs[i]);
+		const input = inputs[i];
+		if (!input) continue;
+		const result = await processIdeaCreation(input);
 		if (result.success && result.data) {
 			processed.push(result.data);
 		} else {

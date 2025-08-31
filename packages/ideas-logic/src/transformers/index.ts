@@ -183,7 +183,8 @@ export function generateTagColor(name: string): string {
 		hash = name.charCodeAt(i) + ((hash << 5) - hash);
 	}
 
-	return colors[Math.abs(hash) % colors.length];
+	const color = colors[Math.abs(hash) % colors.length];
+	return color || colors[0] || "#666666"; // Fallback color
 }
 
 // ============================================================================
@@ -314,7 +315,7 @@ export function buildSearchTerms(query: string): string[] {
 	// Add partial matches for the last term (for autocomplete)
 	if (terms.length > 0) {
 		const lastTerm = terms[terms.length - 1];
-		if (lastTerm.length >= 3) {
+		if (lastTerm && lastTerm.length >= 3) {
 			terms.push(`${lastTerm}*`); // Wildcard for partial matching
 		}
 	}
