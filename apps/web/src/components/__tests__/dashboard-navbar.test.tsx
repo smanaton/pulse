@@ -20,7 +20,9 @@ describe("DashboardNavbar", () => {
 		mockAuthState(testData.user);
 
 		// Mock auth actions
-		const mockUseAuthActions = (global as any).__mockUseAuthActions;
+		const mockUseAuthActions = (global as typeof global & { 
+			__mockUseAuthActions?: { mockReturnValue: (value: { signOut: () => void }) => void } 
+		}).__mockUseAuthActions;
 		if (mockUseAuthActions) {
 			mockUseAuthActions.mockReturnValue({
 				signOut: mockSignOut,

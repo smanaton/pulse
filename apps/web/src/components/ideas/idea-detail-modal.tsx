@@ -9,6 +9,19 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// Block types for structured content
+interface BlockContent {
+	text: string;
+}
+
+interface Block {
+	type: string;
+	content?: BlockContent[];
+	props?: {
+		level?: number;
+	};
+}
+
 interface IdeaDetailModalProps {
 	idea: {
 		_id: Id<"ideas">;
@@ -33,7 +46,7 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
 			const blocks = JSON.parse(idea.contentBlocks);
 			return (
 				<div className="space-y-3">
-					{blocks.map((block: any, index: number) => renderBlock(block, index))}
+					{(blocks as Block[]).map((block, index: number) => renderBlock(block, index))}
 				</div>
 			);
 		} catch (error) {
@@ -56,8 +69,8 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
 /**
  * Render a single block in read-only mode
  */
-function renderBlock(block: any, index: number) {
-	const getTextContent = (content: any[]) => {
+function renderBlock(block: Block, index: number) {
+	const getTextContent = (content: BlockContent[]) => {
 		return content?.map((item) => item.text).join("") || "";
 	};
 
@@ -138,7 +151,7 @@ function renderBlock(block: any, index: number) {
 
 export function IdeaDetailModal({
 	idea,
-	workspaceId,
+	workspaceId: _workspaceId,
 	onClose,
 }: IdeaDetailModalProps) {
 	const [isEditing, setIsEditing] = useState(false);

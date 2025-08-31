@@ -4,11 +4,6 @@ import { useAction } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-// Local typed alias for backend action to avoid `any` and satisfy lint rules
-type ProcessCommandAction = (args: {
-	workspaceId: Id<"workspaces">;
-	command: string;
-}) => Promise<{ message: string }>;
 
 import {
 	Accordion,

@@ -24,12 +24,105 @@ import { useCurrentWorkspaceId } from "@/hooks/useWorkspace";
 import Loader from "./loader";
 import { NavigationCard } from "./primitives/NavigationCard";
 
+// Message interface for type safety
+interface MessageData {
+	message: string;
+}
+
+// Message Bubble Component - moved outside to avoid recreation on every render
+const MessageBubble = ({
+	message,
+	type,
+}: {
+	message: MessageData;
+	type: "user" | "ai";
+}) => (
+	<motion.div
+		initial={{ opacity: 0, y: 20 }}
+		animate={{ opacity: 1, y: 0 }}
+		transition={{ duration: 0.2, ease: "easeOut" }}
+		className={`flex ${
+			type === "user" ? "justify-end" : "justify-start"
+		} mb-3`}
+	>
+		<div
+			className={`max-w-[70%] rounded-xl px-3 py-2 ${
+				type === "user"
+					? "bg-blue-500 text-sm text-white"
+					: "border border-gray-300 bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+			}`}
+		>
+			{type === "ai" && (
+				<div className="mb-1 flex items-center gap-1">
+					<Sparkles className="h-3 w-3 text-blue-400" />
+					<span className="font-medium text-blue-400 text-xs">Pulse AI</span>
+				</div>
+			)}
+			<div className="whitespace-pre-wrap text-sm leading-relaxed">
+				{message.message}
+			</div>
+		</div>
+	</motion.div>
+);
+
+// Typing Indicator Component - moved outside to avoid recreation
+const TypingIndicator = () => (
+	<motion.div
+		initial={{ opacity: 0, y: 20 }}
+		animate={{ opacity: 1, y: 0 }}
+		exit={{ opacity: 0, y: -10 }}
+		transition={{ duration: 0.2 }}
+		className="mb-3 flex justify-start"
+	>
+		<div className="rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
+			<div className="mb-1 flex items-center gap-1">
+				<Sparkles className="h-3 w-3 text-blue-400" />
+				<span className="font-medium text-blue-400 text-xs">Pulse AI</span>
+			</div>
+			<div className="flex items-center gap-1">
+				<motion.div
+					animate={{ y: [0, -3, 0] }}
+					transition={{
+						duration: 0.6,
+						repeat: Number.POSITIVE_INFINITY,
+						delay: 0,
+					}}
+					className="h-1.5 w-1.5 rounded-full bg-gray-400"
+				/>
+				<motion.div
+					animate={{ y: [0, -3, 0] }}
+					transition={{
+						duration: 0.6,
+						repeat: Number.POSITIVE_INFINITY,
+						delay: 0.1,
+					}}
+					className="h-1.5 w-1.5 rounded-full bg-gray-400"
+				/>
+				<motion.div
+					animate={{ y: [0, -3, 0] }}
+					transition={{
+						duration: 0.6,
+						repeat: Number.POSITIVE_INFINITY,
+						delay: 0.2,
+					}}
+					className="h-1.5 w-1.5 rounded-full bg-gray-400"
+				/>
+			</div>
+		</div>
+	</motion.div>
+);
+
 export function Dashboard() {
 	const user = useQuery(api.users.getCurrentUser);
 	const workspaceId = useCurrentWorkspaceId();
 	const createWorkspace = useMutation(api.workspaces.getOrCreatePersonal);
 	const processMessage = useAction(api.ai.processMessage);
 	const navigate = useNavigate();
+	
+	// Mutation for updating navigation preferences - moved here to fix hook order
+	const updateNavPreferences = useMutation(
+		api.navigationPreferences.updateNavigationPreferences,
+	);
 
 	// Conversation State
 	const [input, setInput] = useState("");
@@ -49,8 +142,8 @@ export function Dashboard() {
 	// Refs
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
-	// Icon mapping for dynamic icons
-	const iconMap: Record<string, any> = {
+	// Icon mapping for dynamic icons - memoized to prevent recreation
+	const iconMap = React.useMemo(() => ({
 		Gauge,
 		Lightbulb,
 		FolderOpen,
@@ -59,7 +152,7 @@ export function Dashboard() {
 		Mail,
 		MessageCircle,
 		Plus,
-	};
+	}), []);
 
 	// Get user navigation preferences from database
 	const navigationPreferences = useQuery(
@@ -104,7 +197,7 @@ export function Dashboard() {
 				href: app.href,
 				badge: app.badge ? Number.parseInt(app.badge, 10) : undefined,
 			}));
-	}, [navigationPreferences]);
+	}, [navigationPreferences, iconMap]);
 
 	// Create personal workspace if user is authenticated but has no workspace
 	React.useEffect(() => {
@@ -243,10 +336,6 @@ export function Dashboard() {
 		setInput(prompt);
 	};
 
-	// Mutation for updating navigation preferences
-	const updateNavPreferences = useMutation(
-		api.navigationPreferences.updateNavigationPreferences,
-	);
 
 	// Handle customize button click
 	const handleCustomizeClick = () => {
@@ -277,86 +366,6 @@ export function Dashboard() {
 	const currentDate = new Date();
 	const temperature = 31;
 
-	// Message Bubble Component
-	const MessageBubble = ({
-		message,
-		type,
-	}: {
-		message: any;
-		type: "user" | "ai";
-	}) => (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.2, ease: "easeOut" }}
-			className={`flex ${type === "user" ? "justify-end" : "justify-start"} mb-3`}
-		>
-			<div
-				className={`max-w-[70%] rounded-xl px-3 py-2 ${
-					type === "user"
-						? "bg-blue-500 text-sm text-white"
-						: "border border-gray-300 bg-gray-100 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-				}`}
-			>
-				{type === "ai" && (
-					<div className="mb-1 flex items-center gap-1">
-						<Sparkles className="h-3 w-3 text-blue-400" />
-						<span className="font-medium text-blue-400 text-xs">Pulse AI</span>
-					</div>
-				)}
-				<div className="whitespace-pre-wrap text-sm leading-relaxed">
-					{message.message}
-				</div>
-			</div>
-		</motion.div>
-	);
-
-	// Typing Indicator Component
-	const TypingIndicator = () => (
-		<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -10 }}
-			transition={{ duration: 0.2 }}
-			className="mb-3 flex justify-start"
-		>
-			<div className="rounded-xl border border-gray-300 bg-gray-100 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
-				<div className="mb-1 flex items-center gap-1">
-					<Sparkles className="h-3 w-3 text-blue-400" />
-					<span className="font-medium text-blue-400 text-xs">Pulse AI</span>
-				</div>
-				<div className="flex items-center gap-1">
-					<motion.div
-						animate={{ y: [0, -3, 0] }}
-						transition={{
-							duration: 0.6,
-							repeat: Number.POSITIVE_INFINITY,
-							delay: 0,
-						}}
-						className="h-1.5 w-1.5 rounded-full bg-gray-400"
-					/>
-					<motion.div
-						animate={{ y: [0, -3, 0] }}
-						transition={{
-							duration: 0.6,
-							repeat: Number.POSITIVE_INFINITY,
-							delay: 0.1,
-						}}
-						className="h-1.5 w-1.5 rounded-full bg-gray-400"
-					/>
-					<motion.div
-						animate={{ y: [0, -3, 0] }}
-						transition={{
-							duration: 0.6,
-							repeat: Number.POSITIVE_INFINITY,
-							delay: 0.2,
-						}}
-						className="h-1.5 w-1.5 rounded-full bg-gray-400"
-					/>
-				</div>
-			</div>
-		</motion.div>
-	);
 
 	return (
 		<>

@@ -20,7 +20,7 @@ interface IdeaBlockEditorProps {
 
 export function IdeaBlockEditor({
 	ideaId,
-	workspaceId,
+	workspaceId: _workspaceId,
 	onBack,
 	fullScreen = true,
 }: IdeaBlockEditorProps) {
@@ -212,7 +212,7 @@ export function IdeaBlockEditor({
 											{
 												type: "paragraph",
 											},
-										] as any)
+										])
 									}
 								>
 									Create Document
@@ -275,10 +275,25 @@ export function IdeaBlockEditor({
 	);
 }
 
+// BlockNote types for better type safety
+interface BlockContent {
+	text: string;
+}
+
+interface BlockProps {
+	level?: number;
+}
+
+interface Block {
+	type: string;
+	content?: BlockContent[];
+	props?: BlockProps;
+}
+
 /**
  * Convert BlockNote blocks to markdown (same as in the hook)
  */
-function blocksToMarkdown(blocks: any[]): string {
+function blocksToMarkdown(blocks: Block[]): string {
 	return blocks
 		.map((block) => {
 			switch (block.type) {
@@ -288,17 +303,17 @@ function blocksToMarkdown(blocks: any[]): string {
 					return `${headingPrefix} ${block.content?.[0]?.text || ""}`;
 				}
 				case "paragraph":
-					return block.content?.map((item: any) => item.text).join("") || "";
+					return block.content?.map((item) => item.text).join("") || "";
 				case "bulletListItem":
-					return `- ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `- ${block.content?.map((item) => item.text).join("") || ""}`;
 				case "numberedListItem":
-					return `1. ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `1. ${block.content?.map((item) => item.text).join("") || ""}`;
 				case "codeBlock":
-					return `\`\`\`\n${block.content?.map((item: any) => item.text).join("") || ""}\n\`\`\``;
+					return `\`\`\`\n${block.content?.map((item) => item.text).join("") || ""}\n\`\`\``;
 				case "quote":
-					return `> ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `> ${block.content?.map((item) => item.text).join("") || ""}`;
 				default:
-					return block.content?.map((item: any) => item.text).join("") || "";
+					return block.content?.map((item) => item.text).join("") || "";
 			}
 		})
 		.join("\n\n");
