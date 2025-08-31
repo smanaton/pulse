@@ -212,8 +212,8 @@ export function IdeaBlockEditor({
 										create([
 											{
 												type: "paragraph",
-											} as PartialBlock,
-										])
+											},
+										] as any)
 									}
 								>
 									Create Document

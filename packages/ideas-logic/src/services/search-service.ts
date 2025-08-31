@@ -4,7 +4,7 @@
  * Business logic for search operations, filtering, and content discovery.
  */
 
-import type { Id } from "../core/types";
+import type { Id } from "@pulse/core/types";
 import { buildSearchTerms, transformSearchQuery } from "../transformers";
 import type { IdeaSearchInput } from "../types";
 

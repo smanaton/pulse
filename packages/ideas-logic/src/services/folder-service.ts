@@ -4,7 +4,7 @@
  * Business logic for folder management and hierarchy operations.
  */
 
-import type { Id } from "../core/types";
+import type { Id } from "@pulse/core/types";
 import {
 	calculateFolderSortKey,
 	transformCreateFolderInput,

@@ -4,7 +4,7 @@
  * Business logic for tag management and tagging operations.
  */
 
-import type { Id } from "../core/types";
+import type { Id } from "@pulse/core/types";
 import {
 	generateTagColor,
 	normalizeTagName,

@@ -4,7 +4,7 @@
  * Core business logic for idea management.
  */
 
-import type { Id } from "../core/types";
+import type { Id } from "@pulse/core/types";
 import {
 	extractKeywordsFromContent,
 	transformCreateIdeaInput,

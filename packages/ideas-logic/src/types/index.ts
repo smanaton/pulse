@@ -2,7 +2,7 @@
  * Ideas Logic Types
  */
 
-import type { Id } from "../core/types";
+import type { Id } from "@pulse/core/types";
 
 // ============================================================================
 // Idea Input Types
