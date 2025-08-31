@@ -427,7 +427,7 @@ export async function processBatchTagCreation(
 	for (let i = 0; i < inputs.length; i++) {
 		const input = inputs[i];
 		if (!input) continue;
-		
+
 		const normalizedName = normalizeTagName(input.name);
 
 		// Check for duplicates within the batch

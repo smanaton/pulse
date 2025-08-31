@@ -1,6 +1,6 @@
+import { execSync } from "node:child_process";
 import { readFileSync, rmSync } from "node:fs";
 import { promisify } from "node:util";
-import { execSync } from "node:child_process";
 import kill from "tree-kill";
 
 // The original script used platform-specific commands to kill the process tree.
