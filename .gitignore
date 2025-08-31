@@ -11,6 +11,7 @@ packages/backend/convex/lib/
 
 # START Ruler Generated Files
 *.bak
+.code
 .aider.conf.yml
 .aider.conf.yml.bak
 .augment/rules/ruler_augment_instructions.md

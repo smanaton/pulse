@@ -40,6 +40,12 @@ export const ideasValidator = {
 	title: v.string(),
 	contentMD: v.string(), // Markdown content (kept for backward compatibility)
 	contentBlocks: v.optional(v.any()), // BlockNote structured content
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()), // What problem does this solve?
+	hypothesis: v.optional(v.string()), // What's our hypothesis/approach?
+	value: v.optional(v.string()), // What value will this create?
+	risks: v.optional(v.string()), // What are the potential risks/challenges?
+	aiSummary: v.optional(v.string()), // Cached AI-generated summary
 	status: v.union(
 		v.literal("draft"),
 		v.literal("active"),
@@ -296,6 +302,15 @@ export default defineSchema({
 		assignedTo: v.optional(v.array(v.id("users"))), // Multiple assignees
 		reporterId: v.id("users"), // Task creator
 		parentTaskId: v.optional(v.id("tasks")), // For subtasks
+		ideaId: v.optional(v.id("ideas")), // Link to idea for research tasks
+		taskType: v.optional(
+			v.union(
+				v.literal("general"),
+				v.literal("research"),
+				v.literal("bug"),
+				v.literal("feature"),
+			),
+		), // Type of task
 		dueDate: v.optional(v.number()),
 		startDate: v.optional(v.number()),
 		completedAt: v.optional(v.number()),
@@ -318,7 +333,8 @@ export default defineSchema({
 		.index("by_project_assignee", ["projectId", "assignedTo", "updatedAt"])
 		.index("by_workspace_assignee", ["workspaceId", "assignedTo", "dueDate"])
 		.index("by_project_board", ["projectId", "boardId", "position"])
-		.index("by_parent", ["parentTaskId", "sortKey"]),
+		.index("by_parent", ["parentTaskId", "sortKey"])
+		.index("by_idea", ["ideaId", "createdAt"]), // For research tasks linked to ideas
 
 	// Task Comments: Discussion and updates on tasks
 	taskComments: defineTable({
@@ -403,6 +419,27 @@ export default defineSchema({
 	})
 		.index("by_idea", ["ideaId"])
 		.index("by_tag", ["tagId"]),
+
+	// Idea Discussions: AI assistant interactions and conversations
+	ideaDiscussions: defineTable({
+		ideaId: v.id("ideas"),
+		workspaceId: v.id("workspaces"),
+		userId: v.optional(v.id("users")), // null for AI messages
+		role: v.union(v.literal("user"), v.literal("assistant")),
+		message: v.string(),
+		messageType: v.optional(
+			v.union(
+				v.literal("chat"),
+				v.literal("summary"),
+				v.literal("qualify"),
+				v.literal("contrarian"),
+			),
+		), // Type of AI interaction
+		metadata: v.optional(v.any()), // Additional context (tokens used, model, etc.)
+		createdAt: v.number(),
+	})
+		.index("by_idea", ["ideaId", "createdAt"])
+		.index("by_workspace", ["workspaceId", "createdAt"]),
 
 	// Files: Attachments for ideas
 	files: defineTable({

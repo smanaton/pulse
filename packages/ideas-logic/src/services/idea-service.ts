@@ -46,14 +46,17 @@ export async function processIdeaCreation(
 		};
 	}
 
-	// Additional content validation
-	const contentValidation = validateContent(input.contentMD);
-	if (!contentValidation.valid) {
-		return {
-			success: false,
-			validation: contentValidation,
-			errors: contentValidation.errors.map((e) => e.message),
-		};
+	// Additional content validation - only if content exists
+	const trimmedContentMD = input.contentMD?.trim();
+	if (trimmedContentMD) {
+		const contentValidation = validateContent(trimmedContentMD);
+		if (!contentValidation.valid) {
+			return {
+				success: false,
+				validation: contentValidation,
+				errors: contentValidation.errors.map((e) => e.message),
+			};
+		}
 	}
 
 	// Transform input to database format
@@ -81,7 +84,7 @@ export async function processIdeaUpdate(
 	existingIdea: {
 		title: string;
 		contentMD: string;
-		contentBlocks?: any;
+		contentBlocks?: unknown;
 		status: "draft" | "active" | "archived";
 		projectId?: Id<"projects">;
 		folderId?: Id<"folders">;
@@ -96,10 +99,10 @@ export async function processIdeaUpdate(
 			errors: validation.errors.map((e) => e.message),
 		};
 	}
-
-	// Validate content if being updated
-	if (input.contentMD !== undefined) {
-		const contentValidation = validateContent(input.contentMD);
+	// Validate content if being updated and not empty
+	const trimmedContentMD = input.contentMD?.trim();
+	if (trimmedContentMD) {
+		const contentValidation = validateContent(trimmedContentMD);
 		if (!contentValidation.valid) {
 			return {
 				success: false,
@@ -241,7 +244,7 @@ export function processDuplicateIdea(
 	originalIdea: {
 		title: string;
 		contentMD: string;
-		contentBlocks?: any;
+		contentBlocks?: unknown;
 		workspaceId: Id<"workspaces">;
 		projectId?: Id<"projects">;
 		folderId?: Id<"folders">;

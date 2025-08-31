@@ -8,7 +8,13 @@
 import type { IBusinessContext } from "@pulse/core/ideas/interfaces";
 import { createServices, IdeaDomainError } from "@pulse/core/ideas/services";
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import {
+	type MutationCtx,
+	mutation,
+	type QueryCtx,
+	query,
+} from "./_generated/server";
 import { createRepositories } from "./adapters/repositories";
 import { assertMember } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
@@ -24,6 +30,11 @@ const ideaCreateArgs = {
 	title: v.string(),
 	contentMD: v.string(),
 	contentBlocks: v.optional(v.any()),
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()),
+	hypothesis: v.optional(v.string()),
+	value: v.optional(v.string()),
+	risks: v.optional(v.string()),
 };
 
 const ideaUpdateArgs = {
@@ -33,6 +44,12 @@ const ideaUpdateArgs = {
 	contentBlocks: v.optional(v.any()),
 	projectId: v.optional(v.id("projects")),
 	folderId: v.optional(v.id("folders")),
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()),
+	hypothesis: v.optional(v.string()),
+	value: v.optional(v.string()),
+	risks: v.optional(v.string()),
+	aiSummary: v.optional(v.string()),
 	status: v.optional(
 		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
 	),
@@ -63,8 +80,8 @@ const folderCreateArgs = {
  * Create business context from Convex context
  */
 async function createBusinessContext(
-	ctx: any,
-	workspaceId?: string,
+	ctx: QueryCtx | MutationCtx,
+	workspaceId?: Id<"workspaces">,
 ): Promise<IBusinessContext> {
 	const userId = await requireUserId(ctx);
 
@@ -73,7 +90,7 @@ async function createBusinessContext(
 	if (workspaceId) {
 		const membership = await ctx.db
 			.query("workspaceMembers")
-			.withIndex("by_workspace_user", (q: any) =>
+			.withIndex("by_workspace_user", (q) =>
 				q.eq("workspaceId", workspaceId).eq("userId", userId),
 			)
 			.first();
@@ -82,7 +99,7 @@ async function createBusinessContext(
 
 	return {
 		userId,
-		workspaceId: workspaceId as any,
+		workspaceId,
 		userRole,
 	};
 }
@@ -143,7 +160,7 @@ export const update = mutation({
 			const { ideaId, ...updateData } = args;
 
 			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(ideaId);
+			const idea: Doc<"ideas"> | null = await ctx.db.get(ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
@@ -175,7 +192,7 @@ export const remove = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(args.ideaId);
+			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
@@ -305,7 +322,7 @@ export const deleteIdea = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(args.ideaId);
+			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
@@ -341,7 +358,7 @@ export const move = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(args.ideaId);
+			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
@@ -480,7 +497,7 @@ export const appendWebClip = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(args.ideaId);
+			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}

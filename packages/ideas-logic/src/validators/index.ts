@@ -39,14 +39,8 @@ export function validateCreateIdeaInput(
 		});
 	}
 
-	// Content validation
-	if (!input.contentMD) {
-		errors.push({
-			field: "contentMD",
-			message: "Content is required",
-			code: "CONTENT_REQUIRED",
-		});
-	} else if (input.contentMD.length > 50000) {
+	// Content validation - allow empty for frictionless capture
+	if (input.contentMD && input.contentMD.length > 50000) {
 		errors.push({
 			field: "contentMD",
 			message: "Content must be less than 50,000 characters",

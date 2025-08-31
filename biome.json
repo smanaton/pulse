@@ -13,7 +13,7 @@
 			"!**/node_modules",
 			"!**/dist",
 			"!**/.turbo",
-			"!**/convex/_generated",
+			"!**/_generated",
 			"!**/routeTree.gen.ts",
 			"!**/.astro",
 			"!**/build",
