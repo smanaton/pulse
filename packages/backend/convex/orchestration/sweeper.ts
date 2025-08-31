@@ -1,6 +1,7 @@
 import { cronJobs } from "convex/server";
 import { v } from "convex/values";
 import { internalAction, internalMutation } from "../_generated/server";
+import { internal } from "../_generated/api"; // Used in cron configuration comments
 import { updateRunStatus } from "./core";
 import { ERROR_CODES, type ErrorCode, isRetryableError } from "./stateMachine";
 
