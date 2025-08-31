@@ -3,7 +3,6 @@
 	"files": {
 		"includes": [
 			"apps/web/src/**/*.{ts,tsx,js,jsx}",
-			"apps/chrome-extension/src/**/*.{ts,tsx,js,jsx}",
 			"packages/*/src/**/*.{ts,tsx,js,jsx}",
 			"packages/backend/convex/**/*.ts",
 			"scripts/**/*.{ts,js,cjs,mjs}",
@@ -20,6 +19,7 @@
 			"!**/build",
 			"!theme",
 			"!apps/storybook",
+			"!apps/chrome-extension",
 			"!.*",
 			"!nul"
 		]
