@@ -1,0 +1,68 @@
+# Git attributes for consistent line endings and formatting
+
+# Set default behavior to auto-normalize line endings
+* text=auto eol=lf
+
+# Explicitly declare text files that should always use LF
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.md text eol=lf
+*.mdx text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.env text eol=lf
+*.env.* text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+
+# Configuration files
+*.config.* text eol=lf
+package.json text eol=lf
+package-lock.json text eol=lf
+tsconfig.json text eol=lf
+turbo.json text eol=lf
+biome.json text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.mjs text eol=lf
+
+# Declare files that should always use CRLF on checkout (Windows-specific)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Declare files that are binary and should never be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.rar binary
+
+# Declare files that should not have line ending conversion
+*.pdf binary
+*.xlsx binary
+*.docx binary
+
+# Husky hooks should use LF
+.husky/* text eol=lf
+
+# Generated files - maintain consistency but allow line ending normalization
+*/_generated/* text
+*.d.ts text eol=lf
