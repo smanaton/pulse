@@ -20,7 +20,7 @@ const colors = {
 if (process.argv[2] === "stop") {
 	if (existsSync(".dev.pid")) {
 		try {
-			const pid = Number.parseInt(readFileSync(".dev.pid", "utf8").trim());
+			const pid = Number.parseInt(readFileSync(".dev.pid", "utf8").trim(), 10);
 			console.log(
 				`${colors.yellow}🛑 Stopping development environment (PID: ${pid})...${colors.reset}`,
 			);

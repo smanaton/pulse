@@ -23,7 +23,7 @@ function getPidsOnPort(port) {
 			const pids = new Set();
 			out
 				.split(/\r?\n/)
-				.filter((l) => l && l.includes(`:${port}`) && /LISTENING/i.test(l))
+				.filter((l) => l?.includes(`:${port}`) && /LISTENING/i.test(l))
 				.forEach((line) => {
 					const parts = line.trim().split(/\s+/);
 					const pidStr = parts[parts.length - 1];
@@ -81,7 +81,7 @@ function killPort(port) {
 	return true;
 }
 
-function killLingeringPorts() {
+function _killLingeringPorts() {
 	for (const port of PORTS) {
 		try {
 			const killed = killPort(port);
