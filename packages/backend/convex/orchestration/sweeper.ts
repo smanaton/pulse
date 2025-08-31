@@ -3,7 +3,7 @@ import { internalMutation, internalAction } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
-import { ERROR_CODES, isRetryableError } from "./stateMachine";
+import { ERROR_CODES, isRetryableError, type ErrorCode } from "./stateMachine";
 import { updateRunStatus } from "./core";
 
 /**
@@ -11,7 +11,7 @@ import { updateRunStatus } from "./core";
  */
 export const timeoutStalledRuns = internalMutation({
 	args: {
-		workspaceId: v.optional(v.id("workspaces")), // Optional - process all workspaces if not provided
+		workspaceId: v.id("workspaces"), // Required - always process within workspace scope
 	},
 	returns: v.object({
 		processed: v.number(),
@@ -23,34 +23,20 @@ export const timeoutStalledRuns = internalMutation({
 		const cutoff = now - timeoutThreshold;
 
 		// Find runs that are active but haven't had activity recently
-		const stalledRuns = args.workspaceId
-			? await ctx.db
-					.query("orchestrationRuns")
-					.withIndex("by_workspace_lastEvent", (q) => q.eq("workspaceId", args.workspaceId))
-					.filter((q) =>
-						q.and(
-							q.or(
-								q.eq(q.field("status"), "started"),
-								q.eq(q.field("status"), "progress"),
-								q.eq(q.field("status"), "blocked"),
-							),
-							q.lt(q.field("lastEventAt"), cutoff),
-						),
-					)
-					.take(100)
-			: await ctx.db
-					.query("orchestrationRuns")
-					.filter((q) =>
-						q.and(
-							q.or(
-								q.eq(q.field("status"), "started"),
-								q.eq(q.field("status"), "progress"),
-								q.eq(q.field("status"), "blocked"),
-							),
-							q.lt(q.field("lastEventAt"), cutoff),
-						),
-					)
-					.take(100);
+		const stalledRuns = await ctx.db
+			.query("orchestrationRuns")
+			.withIndex("by_workspace_lastEvent", (q) => q.eq("workspaceId", args.workspaceId))
+			.filter((q) =>
+				q.and(
+					q.or(
+						q.eq(q.field("status"), "started"),
+						q.eq(q.field("status"), "progress"),
+						q.eq(q.field("status"), "blocked"),
+					),
+					q.lt(q.field("lastEventAt"), cutoff),
+				),
+			)
+			.take(100);
 
 		let timedOut = 0;
 
@@ -111,7 +97,7 @@ export const timeoutStalledRuns = internalMutation({
  */
 export const processQueuedRuns = internalMutation({
 	args: {
-		workspaceId: v.optional(v.id("workspaces")),
+		workspaceId: v.id("workspaces"),
 	},
 	returns: v.object({
 		processed: v.number(),
@@ -119,16 +105,11 @@ export const processQueuedRuns = internalMutation({
 	}),
 	handler: async (ctx, args) => {
 		// Get queued runs ordered by creation time (FIFO)
-		const queuedRuns = args.workspaceId
-			? await ctx.db
-					.query("orchestrationRuns")
-					.withIndex("by_workspace_status", (q) => 
-						q.eq("workspaceId", args.workspaceId).eq("status", "queued"))
-					.take(50)
-			: await ctx.db
-					.query("orchestrationRuns")
-					.filter((q) => q.eq(q.field("status"), "queued"))
-					.take(50);
+		const queuedRuns = await ctx.db
+			.query("orchestrationRuns")
+			.withIndex("by_workspace_status", (q) => 
+				q.eq("workspaceId", args.workspaceId).eq("status", "queued"))
+			.take(50);
 
 		let assigned = 0;
 
@@ -213,7 +194,7 @@ export const processQueuedRuns = internalMutation({
  */
 export const retryTimedOutRuns = internalMutation({
 	args: {
-		workspaceId: v.optional(v.id("workspaces")),
+		workspaceId: v.id("workspaces"),
 	},
 	returns: v.object({
 		processed: v.number(),
@@ -221,16 +202,11 @@ export const retryTimedOutRuns = internalMutation({
 	}),
 	handler: async (ctx, args) => {
 		// Get timed out runs that haven't exceeded retry limit
-		const timedOutRuns = args.workspaceId
-			? await ctx.db
-					.query("orchestrationRuns")
-					.withIndex("by_workspace_status", (q) => 
-						q.eq("workspaceId", args.workspaceId).eq("status", "timed_out"))
-					.take(50)
-			: await ctx.db
-					.query("orchestrationRuns")
-					.filter((q) => q.eq(q.field("status"), "timed_out"))
-					.take(50);
+		const timedOutRuns = await ctx.db
+			.query("orchestrationRuns")
+			.withIndex("by_workspace_status", (q) => 
+				q.eq("workspaceId", args.workspaceId).eq("status", "timed_out"))
+			.take(50);
 
 		let retried = 0;
 
@@ -308,7 +284,7 @@ export const retryTimedOutRuns = internalMutation({
  */
 export const cleanupExpired = internalMutation({
 	args: {
-		workspaceId: v.optional(v.id("workspaces")),
+		workspaceId: v.id("workspaces"),
 	},
 	returns: v.object({
 		eventsDeleted: v.number(),
@@ -318,35 +294,25 @@ export const cleanupExpired = internalMutation({
 		const now = Date.now();
 
 		// Delete expired events (TTL based)
-		let eventQuery = ctx.db.query("orchestrationEvents");
-		if (args.workspaceId) {
-			eventQuery = eventQuery.filter((q) => 
+		const expiredEvents = await ctx.db
+			.query("orchestrationEvents")
+			.filter((q) => 
 				q.and(
 					q.eq(q.field("workspaceId"), args.workspaceId),
 					q.neq(q.field("ttl"), undefined), 
 					q.lt(q.field("ttl"), now)
-				));
-		} else {
-			eventQuery = eventQuery.filter((q) => 
-				q.and(q.neq(q.field("ttl"), undefined), q.lt(q.field("ttl"), now)));
-		}
-		
-		const expiredEvents = await eventQuery.take(100);
+				))
+			.take(100);
 
 		for (const event of expiredEvents) {
 			await ctx.db.delete(event._id);
 		}
 
 		// Mark expired artifacts for deletion
-		let artifactQuery = ctx.db.query("orchestrationArtifacts");
-		if (args.workspaceId) {
-			artifactQuery = artifactQuery.withIndex("by_workspace_expires", (q) => 
-				q.eq("workspaceId", args.workspaceId).lt("expiresAt", now));
-		} else {
-			artifactQuery = artifactQuery.filter((q) => q.lt(q.field("expiresAt"), now));
-		}
-		
-		const expiredArtifacts = await artifactQuery
+		const expiredArtifacts = await ctx.db
+			.query("orchestrationArtifacts")
+			.withIndex("by_workspace_expires", (q) => 
+				q.eq("workspaceId", args.workspaceId).lt("expiresAt", now))
 			.filter((q) => q.eq(q.field("deletedAt"), undefined))
 			.take(50);
 
