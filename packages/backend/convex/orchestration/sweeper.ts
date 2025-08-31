@@ -341,8 +341,7 @@ export const pingAgentHealth = internalAction({
 	handler: async (ctx) => {
 		// For now, skip agent health pings until we have the proper API generated
 		// Agent health ping function - currently a no-op until agents provide health endpoints
-		
-		console.log("Agent health ping scheduled function - implementation pending");
+		// Implementation will be added when agents provide health endpoints
 		
 		return {
 			agentsPinged: 0,
