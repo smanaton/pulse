@@ -7,7 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
+        with: { node-version: '22' }
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
       - run: pnpm dlx @intellectronica/ruler apply --no-gitignore
       - name: Fail if changes needed
         run: |
