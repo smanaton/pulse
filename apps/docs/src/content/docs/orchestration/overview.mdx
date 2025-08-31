@@ -1,0 +1,226 @@
+---
+title: Orchestration System Overview
+description: Complete guide to Pulse's job orchestration, agent management, and workflow automation system.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+# Orchestration System
+
+Pulse includes a comprehensive orchestration system for managing jobs, agents, and workflows. This system enables you to delegate work to external agents, track execution through state machines, and handle complex workflows with proper error handling and monitoring.
+
+## Architecture Overview
+
+The orchestration system is built around several core concepts:
+
+<CardGrid stagger>
+	<Card title="Jobs & Runs" icon="rocket">
+		Submit intents and track execution through strict state machines with full audit trails.
+	</Card>
+	<Card title="Agent Management" icon="setting">
+		Register agents with capabilities, monitor health, and balance workload distribution.
+	</Card>
+	<Card title="Event Streaming" icon="information">
+		Real-time event ingestion with HMAC verification and idempotent processing.
+	</Card>
+	<Card title="Artifact Storage" icon="document">
+		Handle large outputs with retention policies and external storage integration.
+	</Card>
+</CardGrid>
+
+## Key Features
+
+### ✅ Production Ready
+- **State Machine Enforcement**: Prevents illegal transitions and ensures data consistency
+- **Idempotent Event Processing**: Handles duplicate events gracefully with deduplication
+- **HMAC-SHA256 Authentication**: Secure webhook verification with replay protection
+- **Workspace Isolation**: Full multi-tenancy with proper access controls
+
+### ✅ Monitoring & Operations
+- **Real-time Dashboard**: Live updates via Convex subscriptions
+- **Agent Health Monitoring**: Heartbeat tracking with timeout detection
+- **Rate Limiting**: Backpressure management and concurrency controls
+- **Audit Trail**: Complete event history with correlation IDs
+
+### ✅ Workflow Management
+- **Command & Control**: Pause, resume, cancel, and retry operations
+- **Artifact Retention**: Configurable cleanup policies for large outputs
+- **Scheduled Tasks**: Background maintenance and timeout recovery
+- **Human-in-the-loop**: Support for workflows requiring user input
+
+## System Components
+
+### Core Tables
+
+```typescript
+// Job submission with intent and constraints
+orchestrationJobs: {
+  workspaceId: Id<"workspaces">,
+  jobId: string,
+  corrId: string,
+  intent: string,
+  inputs: any,
+  constraints?: {
+    deadline?: string,
+    maxRetries?: number,
+    timeout?: number,
+  }
+}
+
+// Execution tracking with state machine
+orchestrationRuns: {
+  workspaceId: Id<"workspaces">,
+  runId: string,
+  jobId: string,
+  assignedTo: string,
+  status: RunStatus,
+  retryCount: number,
+  // ... timing and error fields
+}
+```
+
+### State Machine
+
+The orchestration system enforces a strict state machine for run execution:
+
+```
+queued → assigned → started → progress → completed
+                        ↓         ↓
+                    blocked   failed
+                        ↓         ↓
+                   [resumed]  timed_out
+                              → [retry]
+```
+
+### Event Processing
+
+All state changes flow through the event system with:
+
+- **Idempotency**: Duplicate events are safely ignored
+- **Verification**: HMAC-SHA256 signature validation
+- **Audit Trail**: Complete event history with timestamps
+- **Real-time**: Immediate UI updates via Convex subscriptions
+
+## API Usage
+
+### Submit a Job
+
+```typescript
+import { api } from "@/convex/_generated/api";
+
+const result = await submitJob(ctx, {
+  workspaceId: "workspace_123",
+  intent: "analyze_document", 
+  inputs: { 
+    documentUrl: "https://example.com/doc.pdf",
+    analysisType: "sentiment"
+  },
+  constraints: {
+    timeout: 300000, // 5 minutes
+    maxRetries: 3
+  }
+});
+
+console.log(`Job ${result.jobId} submitted with correlation ${result.corrId}`);
+```
+
+### Watch Run Progress
+
+```typescript
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
+function RunMonitor({ runId }: { runId: string }) {
+  const events = useQuery(api.orchestration.realtime.watchRun, {
+    workspaceId: "workspace_123",
+    runId
+  });
+
+  return (
+    <div>
+      {events?.map(event => (
+        <div key={event.eventId}>
+          {event.type}: {event.timestamp}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Register an Agent
+
+```typescript
+const agent = await registerAgent(ctx, {
+  workspaceId: "workspace_123",
+  agentId: "document-analyzer-v1",
+  externalId: "agent-uuid-123",
+  capabilities: ["document_analysis", "sentiment_analysis"],
+  endpoints: {
+    webhook: "https://agent.example.com/webhook",
+    health: "https://agent.example.com/health"
+  }
+});
+```
+
+### Control Commands
+
+```typescript
+// Pause a running job
+await pauseRun(ctx, {
+  workspaceId: "workspace_123",
+  runId: "run_456"
+});
+
+// Resume with additional context
+await resumeRun(ctx, {
+  workspaceId: "workspace_123", 
+  runId: "run_456",
+  additionalInputs: { priority: "high" }
+});
+
+// Cancel with reason
+await cancelRun(ctx, {
+  workspaceId: "workspace_123",
+  runId: "run_456",
+  reason: "User requested cancellation"
+});
+```
+
+## Error Handling
+
+The system includes a comprehensive error taxonomy:
+
+```typescript
+export const ERROR_CODES = {
+  // Retryable errors
+  TIMEOUT: "TIMEOUT",
+  AGENT_UNAVAILABLE: "AGENT_UNAVAILABLE", 
+  RATE_LIMITED: "RATE_LIMITED",
+  
+  // Non-retryable errors
+  INVALID_INPUT: "INVALID_INPUT",
+  PERMISSION_DENIED: "PERMISSION_DENIED",
+  HMAC_VERIFICATION_FAILED: "HMAC_VERIFICATION_FAILED",
+} as const;
+```
+
+Failed runs are automatically retried based on error classification, with exponential backoff for transient failures.
+
+## Monitoring Dashboard
+
+The orchestration system provides real-time monitoring capabilities:
+
+- **Run Status Overview**: Active, queued, completed, and failed runs
+- **Agent Health**: Capacity utilization, response times, error rates  
+- **Event Timeline**: Real-time activity stream with filtering
+- **Performance Metrics**: Throughput, latency, and success rates
+
+All monitoring data updates in real-time via Convex's reactive queries, providing immediate visibility into system health and job progress.
+
+## Next Steps
+
+- [Agent Registration](/orchestration/agents) - How to register and manage agents
+- [Job Submission](/orchestration/jobs) - Detailed job submission patterns
+- [Workflow Patterns](/orchestration/workflows) - Common orchestration patterns
+- [Monitoring & Alerts](/orchestration/monitoring) - Dashboard and alerting setup
