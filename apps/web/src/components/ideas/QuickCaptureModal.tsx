@@ -12,7 +12,7 @@ import {
 	TextInput,
 } from "flowbite-react";
 import { Lightbulb, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 
 interface QuickCaptureModalProps {
@@ -31,6 +31,9 @@ export function QuickCaptureModal({
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
+
+	const titleId = useId();
+	const descriptionId = useId();
 
 	const createIdea = useMutation(api.ideas.create);
 
@@ -89,11 +92,11 @@ export function QuickCaptureModal({
 				<ModalBody>
 					<div className="space-y-4">
 						<div>
-							<Label htmlFor="idea-title" className="mb-2 block">
+							<Label htmlFor={titleId} className="mb-2 block">
 								Idea Title *
 							</Label>
 							<TextInput
-								id="idea-title"
+								id={titleId}
 								value={title}
 								onChange={(e) => setTitle(e.target.value)}
 								placeholder="What's your idea?"
@@ -103,11 +106,11 @@ export function QuickCaptureModal({
 						</div>
 
 						<div>
-							<Label htmlFor="idea-description" className="mb-2 block">
+							<Label htmlFor={descriptionId} className="mb-2 block">
 								Quick Description
 							</Label>
 							<Textarea
-								id="idea-description"
+								id={descriptionId}
 								value={description}
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Capture your initial thoughts... (you can expand later)"

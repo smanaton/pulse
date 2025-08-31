@@ -8,7 +8,12 @@
 import type { IBusinessContext } from "@pulse/core/ideas/interfaces";
 import { createServices, IdeaDomainError } from "@pulse/core/ideas/services";
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import {
+	type MutationCtx,
+	mutation,
+	type QueryCtx,
+	query,
+} from "./_generated/server";
 import { createRepositories } from "./adapters/repositories";
 import { assertMember } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
@@ -74,7 +79,7 @@ const folderCreateArgs = {
  * Create business context from Convex context
  */
 async function createBusinessContext(
-	ctx: any,
+	ctx: QueryCtx | MutationCtx,
 	workspaceId?: string,
 ): Promise<IBusinessContext> {
 	const userId = await requireUserId(ctx);

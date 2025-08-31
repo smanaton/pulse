@@ -47,7 +47,7 @@ export async function processIdeaCreation(
 	}
 
 	// Additional content validation - only if content exists
-	if (input.contentMD && input.contentMD.trim()) {
+	if (input.contentMD?.trim()) {
 		const contentValidation = validateContent(input.contentMD);
 		if (!contentValidation.valid) {
 			return {
@@ -83,7 +83,7 @@ export async function processIdeaUpdate(
 	existingIdea: {
 		title: string;
 		contentMD: string;
-		contentBlocks?: any;
+		contentBlocks?: unknown;
 		status: "draft" | "active" | "archived";
 		projectId?: Id<"projects">;
 		folderId?: Id<"folders">;
@@ -100,7 +100,7 @@ export async function processIdeaUpdate(
 	}
 
 	// Validate content if being updated and not empty
-	if (input.contentMD !== undefined && input.contentMD.trim()) {
+	if (input.contentMD?.trim()) {
 		const contentValidation = validateContent(input.contentMD);
 		if (!contentValidation.valid) {
 			return {
@@ -243,7 +243,7 @@ export function processDuplicateIdea(
 	originalIdea: {
 		title: string;
 		contentMD: string;
-		contentBlocks?: any;
+		contentBlocks?: unknown;
 		workspaceId: Id<"workspaces">;
 		projectId?: Id<"projects">;
 		folderId?: Id<"folders">;
