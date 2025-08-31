@@ -101,7 +101,9 @@ function scanConvexFiles() {
 
 	if (errors.length > 0) {
 		console.error("✗ Convex guard check failed:");
-		errors.forEach((err) => console.error(`  - ${err}`));
+		errors.forEach((err) => {
+			console.error(`  - ${err}`);
+		});
 		process.exit(1);
 	} else {
 		console.log("✓ All Convex functions have proper auth guards");
