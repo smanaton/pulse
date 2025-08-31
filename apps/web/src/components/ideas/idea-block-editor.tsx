@@ -1,4 +1,4 @@
-import type { Block, PartialBlock } from "@blocknote/core";
+import type { Block } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";

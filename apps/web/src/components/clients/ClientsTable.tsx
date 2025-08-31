@@ -22,7 +22,7 @@ export function ClientsTable({
 	onViewClient,
 }: ClientsTableProps) {
 	const { currentWorkspace } = useWorkspaceContext();
-	const { data, isLoading } = useClients(currentWorkspace!._id);
+	const { data, isLoading } = useClients(currentWorkspace?._id);
 
 	const columns = useMemo(() => {
 		const baseColumns = [
