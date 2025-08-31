@@ -193,7 +193,7 @@ export function Dashboard() {
 			.map((app) => ({
 				id: app.id,
 				name: app.name,
-				icon: iconMap[app.icon] || Gauge, // Fallback to Gauge if icon not found
+				icon: iconMap[app.icon as keyof typeof iconMap] || Gauge, // Fallback to Gauge if icon not found
 				href: app.href,
 				badge: app.badge ? Number.parseInt(app.badge, 10) : undefined,
 			}));

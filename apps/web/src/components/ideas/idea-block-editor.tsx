@@ -1,4 +1,5 @@
 import { BlockNoteView } from "@blocknote/mantine";
+import type { Block, PartialBlock } from "@blocknote/core";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { useNavigate } from "@tanstack/react-router";
@@ -211,7 +212,7 @@ export function IdeaBlockEditor({
 										create([
 											{
 												type: "paragraph",
-											},
+											} as PartialBlock,
 										])
 									}
 								>
@@ -275,21 +276,6 @@ export function IdeaBlockEditor({
 	);
 }
 
-// BlockNote types for better type safety
-interface BlockContent {
-	text: string;
-}
-
-interface BlockProps {
-	level?: number;
-}
-
-interface Block {
-	type: string;
-	content?: BlockContent[];
-	props?: BlockProps;
-}
-
 /**
  * Convert BlockNote blocks to markdown (same as in the hook)
  */
@@ -298,22 +284,23 @@ function blocksToMarkdown(blocks: Block[]): string {
 		.map((block) => {
 			switch (block.type) {
 				case "heading": {
-					const level = block.props?.level || 1;
+					const level = (block.props as any)?.level || 1;
 					const headingPrefix = "#".repeat(level);
-					return `${headingPrefix} ${block.content?.[0]?.text || ""}`;
+					const text = (block.content as any)?.[0]?.text || "";
+					return `${headingPrefix} ${text}`;
 				}
 				case "paragraph":
-					return block.content?.map((item) => item.text).join("") || "";
+					return (block.content as any)?.map((item: any) => item.text).join("") || "";
 				case "bulletListItem":
-					return `- ${block.content?.map((item) => item.text).join("") || ""}`;
+					return `- ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
 				case "numberedListItem":
-					return `1. ${block.content?.map((item) => item.text).join("") || ""}`;
+					return `1. ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
 				case "codeBlock":
-					return `\`\`\`\n${block.content?.map((item) => item.text).join("") || ""}\n\`\`\``;
+					return `\`\`\`\n${(block.content as any)?.map((item: any) => item.text).join("") || ""}\n\`\`\``;
 				case "quote":
-					return `> ${block.content?.map((item) => item.text).join("") || ""}`;
+					return `> ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
 				default:
-					return block.content?.map((item) => item.text).join("") || "";
+					return (block.content as any)?.map((item: any) => item.text).join("") || "";
 			}
 		})
 		.join("\n\n");

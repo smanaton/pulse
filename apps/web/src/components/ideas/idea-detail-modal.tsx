@@ -70,7 +70,7 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
  * Render a single block in read-only mode
  */
 function renderBlock(block: Block, index: number) {
-	const getTextContent = (content: BlockContent[]) => {
+	const getTextContent = (content: BlockContent[] | undefined) => {
 		return content?.map((item) => item.text).join("") || "";
 	};
 
