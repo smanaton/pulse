@@ -1,5 +1,5 @@
 import { execSync, spawn } from "node:child_process";
-import { rmSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const isWin = process.platform === "win32";
 const cmd = isWin ? "pnpm.cmd" : "pnpm";

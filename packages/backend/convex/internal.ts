@@ -191,3 +191,49 @@ export const tagsListInternal = internalQuery({
 			.collect();
 	},
 });
+
+// Idea Discussions internal functions
+export const addIdeaDiscussionInternal = internalMutation({
+	args: {
+		ideaId: v.id("ideas"),
+		workspaceId: v.id("workspaces"),
+		userId: v.optional(v.id("users")),
+		role: v.union(v.literal("user"), v.literal("assistant")),
+		message: v.string(),
+		messageType: v.optional(
+			v.union(
+				v.literal("chat"),
+				v.literal("summary"),
+				v.literal("qualify"),
+				v.literal("contrarian"),
+			),
+		),
+		metadata: v.optional(v.any()),
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db.insert("ideaDiscussions", {
+			ideaId: args.ideaId,
+			workspaceId: args.workspaceId,
+			userId: args.userId,
+			role: args.role,
+			message: args.message,
+			messageType: args.messageType,
+			metadata: args.metadata,
+			createdAt: Date.now(),
+		});
+	},
+});
+
+export const getIdeaDiscussionInternal = internalQuery({
+	args: {
+		ideaId: v.id("ideas"),
+		limit: v.optional(v.number()),
+	},
+	handler: async (ctx, { ideaId, limit = 20 }) => {
+		return await ctx.db
+			.query("ideaDiscussions")
+			.withIndex("by_idea", (q) => q.eq("ideaId", ideaId))
+			.order("asc")
+			.take(limit);
+	},
+});

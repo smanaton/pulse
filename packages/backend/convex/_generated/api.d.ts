@@ -30,6 +30,7 @@ import type * as healthCheck from "../healthCheck.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as ideas from "../ideas.js";
+import type * as ideasExtensions from "../ideasExtensions.js";
 import type * as internal_ from "../internal.js";
 import type * as moveWorkflow from "../moveWorkflow.js";
 import type * as navigationPreferences from "../navigationPreferences.js";
@@ -92,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   helpers: typeof helpers;
   http: typeof http;
   ideas: typeof ideas;
+  ideasExtensions: typeof ideasExtensions;
   internal: typeof internal_;
   moveWorkflow: typeof moveWorkflow;
   navigationPreferences: typeof navigationPreferences;

@@ -24,6 +24,11 @@ const ideaCreateArgs = {
 	title: v.string(),
 	contentMD: v.string(),
 	contentBlocks: v.optional(v.any()),
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()),
+	hypothesis: v.optional(v.string()),
+	value: v.optional(v.string()),
+	risks: v.optional(v.string()),
 };
 
 const ideaUpdateArgs = {
@@ -33,6 +38,12 @@ const ideaUpdateArgs = {
 	contentBlocks: v.optional(v.any()),
 	projectId: v.optional(v.id("projects")),
 	folderId: v.optional(v.id("folders")),
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()),
+	hypothesis: v.optional(v.string()),
+	value: v.optional(v.string()),
+	risks: v.optional(v.string()),
+	aiSummary: v.optional(v.string()),
 	status: v.optional(
 		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
 	),

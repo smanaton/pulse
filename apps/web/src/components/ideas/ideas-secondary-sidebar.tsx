@@ -23,6 +23,7 @@ import {
 	HiTrash,
 } from "react-icons/hi";
 import { toast } from "sonner";
+import { FolderDeleteConfirmDialog } from "./FolderDeleteConfirmDialog";
 
 interface IdeasSecondarySidebarProps {
 	workspaceId: Id<"workspaces">;
@@ -43,6 +44,10 @@ export function IdeasSecondarySidebar({
 	const [newFolderName, setNewFolderName] = useState("");
 	const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
 	const [renameFolderValue, setRenameFolderValue] = useState("");
+	const [folderToDelete, setFolderToDelete] = useState<{
+		id: Id<"folders">;
+		name: string;
+	} | null>(null);
 
 	// Get ideas and folders
 	const ideas = useQuery(api.ideas.list, { workspaceId, limit: 100 }) || [];
@@ -52,7 +57,7 @@ export function IdeasSecondarySidebar({
 	const createIdea = useMutation(api.ideas.create);
 	const createFolder = useMutation(api.folders.create);
 	const updateFolder = useMutation(api.folders.update);
-	const deleteFolder = useMutation(api.folders.remove);
+	// Note: deleteFolder mutation removed as we now use FolderDeleteConfirmDialog
 
 	// Filter ideas based on search
 	const filteredIdeas = ideas.filter((idea) =>
@@ -72,7 +77,7 @@ export function IdeasSecondarySidebar({
 				workspaceId,
 				folderId,
 				title: "Untitled Idea",
-				contentMD: "",
+				contentMD: "# Untitled Idea\n\n*Start writing your idea here...*",
 			});
 			onSelectIdea(newIdea);
 			toast.success("New idea created!");
@@ -134,26 +139,15 @@ export function IdeasSecondarySidebar({
 	};
 
 	// Handle folder delete
-	const handleDeleteFolder = async (folderId: string) => {
-		if (
-			confirm(
-				"Are you sure you want to delete this folder? All notes inside will be moved to the root.",
-			)
-		) {
-			try {
-				await deleteFolder({
-					folderId: folderId as Id<"folders">,
-				});
-				toast.success("Folder deleted!");
-			} catch (error) {
-				console.error("Failed to delete folder:", error);
-				toast.error("Failed to delete folder");
-			}
-		}
+	const handleDeleteFolder = (folder: { _id: Id<"folders">; name: string }) => {
+		setFolderToDelete({
+			id: folder._id,
+			name: folder.name,
+		});
 	};
 
 	// Start renaming a folder
-	const startRenameFolder = (folder: any) => {
+	const startRenameFolder = (folder: { _id: Id<"folders">; name: string }) => {
 		setRenamingFolder(folder._id);
 		setRenameFolderValue(folder.name);
 	};
@@ -296,7 +290,7 @@ export function IdeasSecondarySidebar({
 														Rename
 													</DropdownItem>
 													<DropdownItem
-														onClick={() => handleDeleteFolder(folder._id)}
+														onClick={() => handleDeleteFolder(folder)}
 														className="text-red-600 hover:text-red-700"
 													>
 														<HiTrash className="mr-2 h-4 w-4" />
@@ -415,6 +409,18 @@ export function IdeasSecondarySidebar({
 					</SidebarItems>
 				</div>
 			</div>
+
+			{/* Folder Delete Confirmation Dialog */}
+			<FolderDeleteConfirmDialog
+				folderId={folderToDelete?.id || null}
+				folderName={folderToDelete?.name}
+				isOpen={folderToDelete !== null}
+				onClose={() => setFolderToDelete(null)}
+				onSuccess={() => {
+					setFolderToDelete(null);
+					// Refresh will happen automatically via Convex reactivity
+				}}
+			/>
 		</Sidebar>
 	);
 }
