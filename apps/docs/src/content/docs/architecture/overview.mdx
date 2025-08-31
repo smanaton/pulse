@@ -1,0 +1,230 @@
+---
+title: Architecture Overview
+description: Understanding Pulse's clean OOP architecture with adapters, services, and repositories
+---
+
+# Architecture Overview
+
+Pulse implements **clean OOP architecture** with clear separation of concerns through three distinct layers. This design ensures maintainability, testability, and scalability while following SOLID principles.
+
+## 🏗️ Architecture Layers
+
+### 1. Domain Layer (`packages/core/`)
+**Pure business logic with no external dependencies**
+
+- **Services**: Contain business rules and domain logic
+- **Interfaces**: Define contracts for repositories and services  
+- **Types**: Domain-specific TypeScript types
+- **Validation**: Business rule validation
+
+```typescript
+// Example: IdeaService handles business logic
+export class IdeaService implements IIdeaService {
+  constructor(
+    private readonly repository: IIdeaRepository,
+    private readonly context: IBusinessContext
+  ) {}
+  
+  async create(input: IdeaCreateInput): Promise<Id<"ideas">> {
+    // Business logic here - validation, rules, etc.
+    return await this.repository.create({
+      ...input,
+      createdBy: this.context.userId
+    });
+  }
+}
+```
+
+### 2. Adapter Layer (`packages/backend/convex/`)
+**Thin Convex functions that handle infrastructure concerns**
+
+- **Authentication**: User authentication and authorization
+- **Context Creation**: Business context preparation
+- **Dependency Injection**: Service and repository instantiation
+- **Error Handling**: Domain error to Convex error conversion
+
+```typescript
+// Example: Thin adapter delegates to service
+export const create = mutation({
+  args: ideaCreateArgs,
+  handler: async (ctx, args) => {
+    // 1. Authentication & Authorization
+    const businessContext = await createBusinessContext(ctx, args.workspaceId);
+    await assertMember(ctx, args.workspaceId);
+    
+    // 2. Create dependencies
+    const repositories = createRepositories(ctx);
+    const services = createServices(repositories, businessContext);
+    
+    // 3. Delegate to business logic
+    return await services.ideaService.create(args);
+  }
+});
+```
+
+### 3. Presentation Layer (`apps/web/src/`)
+**React components and UI logic**
+
+- **Components**: UI components organized by domain
+- **Hooks**: Custom hooks for data fetching and state
+- **Routes**: Page components and navigation
+- **Context**: UI state management
+
+## 🎯 Design Patterns
+
+### Repository Pattern
+**Abstract data access behind interfaces**
+
+```typescript
+// Interface defines contract
+export interface IIdeaRepository {
+  create(data: IdeaCreateInput & { createdBy: Id<"users"> }): Promise<Id<"ideas">>;
+  findById(id: Id<"ideas">): Promise<any | null>;
+  search(criteria: IdeaSearchCriteria): Promise<any[]>;
+}
+
+// Convex implementation
+export class ConvexIdeaRepository implements IIdeaRepository {
+  constructor(private ctx: DatabaseAdapter) {}
+  
+  async create(data: IdeaCreateInput & { createdBy: Id<"users"> }) {
+    this.requireMutationContext();
+    return await this.ctx.db.insert("ideas", {
+      ...data,
+      status: "draft",
+      _creationTime: Date.now()
+    });
+  }
+}
+```
+
+### Service Pattern
+**Encapsulate business logic in services**
+
+```typescript
+export class IdeaService implements IIdeaService {
+  constructor(
+    private readonly repository: IIdeaRepository,
+    private readonly context: IBusinessContext
+  ) {}
+  
+  async create(input: IdeaCreateInput): Promise<Id<"ideas">> {
+    // Validation
+    if (!input.title?.trim()) {
+      throw new IdeaDomainError("VALIDATION_ERROR", "Title is required");
+    }
+    
+    // Business logic
+    const ideaData = {
+      ...input,
+      createdBy: this.context.userId,
+      workspaceId: this.context.workspaceId
+    };
+    
+    return await this.repository.create(ideaData);
+  }
+}
+```
+
+### Adapter Pattern
+**Convert between layers**
+
+Each Convex function follows the same 4-step pattern:
+
+1. **Authentication & Authorization**: Verify user and permissions
+2. **Dependency Creation**: Instantiate repositories and services
+3. **Business Logic Delegation**: Call the appropriate service method
+4. **Error Handling**: Convert domain errors to Convex errors
+
+## 🔄 Data Flow
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Convex        │    │   Domain        │
+│   Component     │───▶│   Adapter       │───▶│   Service       │
+│                 │    │                 │    │                 │
+│ useMutation(    │    │ 1. Auth         │    │ Business Logic  │
+│   api.ideas.    │    │ 2. Create Deps  │    │ Validation      │
+│   create        │    │ 3. Delegate     │    │ Rules           │
+│ )               │    │ 4. Handle Error │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        │
+                                │                        ▼
+                                │               ┌─────────────────┐
+                                │               │   Repository    │
+                                │               │                 │
+                                │               │ Data Access     │
+                                └──────────────▶│ Database Ops    │
+                                                │ Query Logic     │
+                                                └─────────────────┘
+```
+
+## 🧪 Testing Strategy
+
+### Unit Tests
+- **Services**: Test business logic in isolation with mocked repositories
+- **Repositories**: Test data access with convex-test framework  
+- **Components**: Test UI behavior with React Testing Library
+
+### Integration Tests
+- **Convex Functions**: Test complete adapter → service → repository flow
+- **API Contracts**: Verify frontend-backend integration
+
+### Example Service Test
+```typescript
+describe("IdeaService", () => {
+  it("should create idea with valid data", async () => {
+    // Arrange
+    const mockRepository = {
+      create: vi.fn().mockResolvedValue("idea123" as Id<"ideas">)
+    };
+    const context = { userId: "user123", workspaceId: "ws123" };
+    const service = new IdeaService(mockRepository, context);
+    
+    // Act
+    const result = await service.create({
+      title: "Test Idea",
+      contentMD: "Content"
+    });
+    
+    // Assert
+    expect(result).toBe("idea123");
+    expect(mockRepository.create).toHaveBeenCalledWith({
+      title: "Test Idea",
+      contentMD: "Content",
+      createdBy: "user123",
+      workspaceId: "ws123"
+    });
+  });
+});
+```
+
+## 🎨 Benefits
+
+### Maintainability
+- **Single Responsibility**: Each class has one reason to change
+- **Dependency Inversion**: High-level modules don't depend on low-level modules
+- **Interface Segregation**: Small, focused interfaces
+
+### Testability  
+- **Isolation**: Business logic can be tested without Convex
+- **Mocking**: Interfaces enable easy mocking
+- **Fast Tests**: Domain tests run without database
+
+### Scalability
+- **Separation**: Easy to modify one layer without affecting others
+- **Extensibility**: New features follow established patterns
+- **Team Development**: Different teams can work on different layers
+
+### Type Safety
+- **End-to-End**: Types flow from domain through adapters to frontend
+- **Contracts**: Interfaces ensure compatibility between layers
+- **Refactoring**: TypeScript catches breaking changes
+
+## 📚 Next Steps
+
+- [Implementation Guide](./implementation) - Step-by-step implementation details
+- [Testing Guide](../testing/overview) - Comprehensive testing strategies  
+- [API Reference](../reference/overview) - Complete API documentation
+
+This architecture enables Pulse to maintain high code quality while scaling features and team size.

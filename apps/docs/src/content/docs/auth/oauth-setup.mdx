@@ -1,0 +1,344 @@
+---
+title: OAuth Provider Setup (2025 Updated)
+description: Complete guide to setting up Google and GitHub OAuth providers for authentication with 2025 Google Auth Platform changes
+---
+
+# OAuth Provider Setup Guide (2025 Updated)
+
+This guide provides step-by-step instructions for setting up OAuth providers (Google and GitHub) for the Pulse authentication system, updated for the **major Google Auth Platform changes in April 2025**.
+
+## 🚨 **IMPORTANT: 2025 Google Auth Platform Changes**
+
+**As of April 28, 2025**, Google has made significant changes to OAuth configuration:
+
+### **Key Changes:**
+1. **New Navigation**: OAuth configuration moved from **"APIs & Services"** to dedicated **"Google Auth Platform"** section
+2. **Client Secret Security**: OAuth client secrets are now **masked after creation** and cannot be viewed again
+3. **Automatic Cleanup**: Unused OAuth clients are **automatically deleted after 6 months** of inactivity
+4. **Enhanced Security**: Improved onboarding wizard and simplified scope management
+
+## Prerequisites
+
+- Google Cloud Console account
+- GitHub account (for GitHub OAuth)
+- Convex project deployed and running
+- Access to your Convex environment variables
+
+## Google OAuth Setup
+
+### Step 1: Create Google Cloud Project
+
+1. **Go to Google Cloud Console**:
+   - Visit [Google Cloud Console](https://console.cloud.google.com/)
+   - Sign in with your Google account
+
+2. **Create or Select Project**:
+   - Click on the project dropdown at the top
+   - Click "New Project" or select an existing project
+   - Give your project a meaningful name (e.g., "Pulse Authentication")
+
+### Step 2: Enable Google+ API (if required)
+
+1. **Navigate to APIs & Services**:
+   - In the Google Cloud Console, go to **Menu** → **APIs & Services** → **Library**
+
+2. **Enable Required APIs**:
+   - Search for "Google+ API" (if needed for profile access)
+   - Click "Enable" if not already enabled
+
+### Step 3: Configure OAuth Consent Screen (NEW 2025 PROCESS)
+
+1. **Navigate to Google Auth Platform** (NEW LOCATION):
+   - Go to **Menu** → **Google Auth Platform** → **Branding**
+   - ⚠️ **No longer in "APIs & Services"** - this is the major 2025 change!
+
+2. **Initial Setup**:
+   - If you see "Google Auth platform not configured yet", click **Get Started**
+   - If already configured, you can modify settings in **Branding**, **Audience**, and **Data Access**
+
+3. **Configure App Information**:
+   ```
+   App name: Pulse
+   User support email: your-email@example.com
+   ```
+   - Click **Next**
+
+4. **Set Audience**:
+   - Select **External** for public applications
+   - Select **Internal** for Google Workspace organization only
+   - Click **Next**
+
+5. **Contact Information**:
+   ```
+   Email address: your-email@example.com (for project notifications)
+   ```
+   - Click **Next**
+
+6. **Review and Accept**:
+   - Review Google API Services User Data Policy
+   - Check "I agree to the Google API Services: User Data Policy"
+   - Click **Continue** → **Create**
+
+7. **Add Test Users** (for External apps):
+   - Click **Audience**
+   - Under **Test users**, click **Add users**
+   - Add email addresses of authorized test users
+   - Click **Save**
+
+### Step 4: Create OAuth 2.0 Credentials (UPDATED 2025 PROCESS)
+
+1. **Navigate to Credentials** (STILL in APIs & Services):
+   - Go to **APIs & Services** → **Credentials**
+   - ℹ️ Credential creation remains in the original location
+
+2. **Create OAuth Client ID**:
+   - Click **Create Credentials** → **OAuth client ID**
+
+3. **Configure Application Type**:
+   - Select **Web application**
+
+4. **Set Application Details**:
+   ```
+   Name: Pulse Web App
+
+   Authorized JavaScript origins:
+   - http://localhost:3003 (for development)
+   - https://yourdomain.com (for production)
+
+   Authorized redirect URIs:
+   - http://localhost:3210/api/auth/callback/google (for development)
+   - https://your-convex-url.convex.cloud/api/auth/callback/google (for production)
+   ```
+
+5. **⚠️ CRITICAL: Save Credentials Immediately (2025 Security Change)**:
+   - **Copy the Client ID and Client Secret IMMEDIATELY**
+   - **Download the JSON file if offered**
+   - ⚠️ **Client secrets are now MASKED after creation and cannot be viewed again**
+   - Store them securely in a password manager or secure vault
+   - You'll need to regenerate the secret if you lose it
+
+### Step 5: Set Convex Environment Variables
+
+```bash
+# Navigate to your backend directory
+cd packages/backend
+
+# Set Google OAuth credentials
+npx convex env set AUTH_GOOGLE_ID "your-google-client-id"
+npx convex env set AUTH_GOOGLE_SECRET "your-google-client-secret"
+```
+
+## GitHub OAuth Setup
+
+### Step 1: Create GitHub OAuth App
+
+1. **Go to GitHub Settings**:
+   - Visit [GitHub Developer Settings](https://github.com/settings/developers)
+   - Click **OAuth Apps** → **New OAuth App**
+
+2. **Fill Application Details**:
+   ```
+   Application name: Pulse
+   Homepage URL: http://localhost:3003 (or your domain)
+   Application description: Pulse authentication system
+   Authorization callback URL: http://localhost:3210/api/auth/callback/github
+   ```
+
+3. **Register Application**:
+   - Click **Register application**
+   - Copy the **Client ID** and **Client Secret**
+
+### Step 2: Set Convex Environment Variables
+
+```bash
+# Set GitHub OAuth credentials
+npx convex env set AUTH_GITHUB_ID "your-github-client-id"
+npx convex env set AUTH_GITHUB_SECRET "your-github-client-secret"
+```
+
+## Environment Configuration
+
+### Required Environment Variables
+
+Set these environment variables in your Convex deployment:
+
+```bash
+# Site URL for OAuth redirects
+npx convex env set SITE_URL "http://localhost:3003"
+
+# Google OAuth
+npx convex env set AUTH_GOOGLE_ID "your-google-client-id"
+npx convex env set AUTH_GOOGLE_SECRET "your-google-client-secret"
+
+# GitHub OAuth
+npx convex env set AUTH_GITHUB_ID "your-github-client-id"
+npx convex env set AUTH_GITHUB_SECRET "your-github-client-secret"
+```
+
+### Verify Environment Variables
+
+```bash
+# Check all environment variables
+npx convex env list
+
+# Check specific variables
+npx convex env get AUTH_GOOGLE_ID
+npx convex env get AUTH_GITHUB_ID
+npx convex env get SITE_URL
+```
+
+## Testing OAuth Setup
+
+### Step 1: Start Development Environment
+
+```bash
+# Start Convex backend
+cd packages/backend
+npx convex dev
+
+# Start frontend (in another terminal)
+cd apps/web
+pnpm dev
+```
+
+### Step 2: Test OAuth Endpoints
+
+1. **Check OAuth Configuration**:
+   - Visit: `http://localhost:3210/.well-known/openid-configuration`
+   - Should return JSON with OAuth configuration
+
+2. **Test Authentication Flow**:
+   - Go to: `http://localhost:3003/auth/sign-in`
+   - Try signing in with Google and GitHub
+   - Verify successful authentication and redirect
+
+### Step 3: Verify User Creation
+
+```bash
+# Check if users are being created
+npx convex run users:list
+```
+
+## Production Deployment
+
+### Update OAuth Settings for Production
+
+1. **Google Cloud Console**:
+   - Add production domain to **Authorized JavaScript origins**
+   - Add production callback URL to **Authorized redirect URIs**
+
+2. **GitHub OAuth App**:
+   - Update **Homepage URL** to production domain
+   - Update **Authorization callback URL** to production Convex URL
+
+3. **Convex Environment Variables**:
+   ```bash
+   npx convex env set SITE_URL "https://yourdomain.com" --prod
+   ```
+
+## Troubleshooting
+
+### Common Issues
+
+#### "redirect_uri_mismatch" Error
+
+**Problem**: OAuth provider rejects the redirect URI.
+
+**Solution**:
+1. Verify the redirect URI in your OAuth app settings matches exactly
+2. Check for trailing slashes or protocol mismatches
+3. Ensure the Convex URL is correct
+
+#### "invalid_client" Error
+
+**Problem**: Client ID or secret is incorrect.
+
+**Solution**:
+1. Verify environment variables are set correctly
+2. Check for extra spaces or characters in credentials
+3. Regenerate client secret if needed
+
+#### OAuth Consent Screen Issues
+
+**Problem**: Users see "This app isn't verified" warning.
+
+**Solution**:
+1. Complete OAuth consent screen configuration
+2. Add all required information and policies
+3. Submit for verification if needed for production
+
+### Verification Steps
+
+1. **Check Environment Variables**:
+   ```bash
+   npx convex env list
+   ```
+
+2. **Test OAuth Endpoints**:
+   ```bash
+   curl http://localhost:3210/.well-known/openid-configuration
+   ```
+
+3. **Check Convex Logs**:
+   ```bash
+   npx convex logs
+   ```
+
+## 🔒 **2025 Security Best Practices (UPDATED)**
+
+### **Critical 2025 Security Changes**
+
+1. **Client Secret Management** (NEW):
+   - ⚠️ **Secrets are masked after creation** - save immediately
+   - Use secure credential management tools (Google Cloud Secret Manager, AWS Secrets Manager, etc.)
+   - Never store secrets in version control or share publicly
+   - Rotate secrets immediately if compromised
+
+2. **Automatic Cleanup** (NEW):
+   - OAuth clients inactive for **6 months are automatically deleted**
+   - You'll receive notifications before deletion
+   - Can restore clients up to **30 days after deletion**
+   - Keep clients active by using them regularly
+
+3. **Enhanced Monitoring** (NEW):
+   - Review contact information settings to receive notifications
+   - Monitor OAuth client usage and activity
+   - Set up alerts for credential changes
+
+### **OAuth Security (Updated for 2025)**
+
+1. **Use HTTPS in Production**: Always use HTTPS for production OAuth flows
+2. **Validate Redirect URIs**: Only allow specific, known redirect URIs
+3. **Secure Client Secrets**:
+   - **NEW**: Download and store secrets immediately upon creation
+   - Never expose client secrets in frontend code
+   - Use environment variables or secure vaults
+4. **Regular Rotation**:
+   - **NEW**: Rotate OAuth credentials every 6 months minimum
+   - Monitor for unused credentials and clean them up
+
+### **Environment Variables (Enhanced)**
+
+1. **Separate Environments**: Use different OAuth apps for dev/staging/prod
+2. **Access Control**: Limit who can access environment variables
+3. **Audit Logs**: Monitor changes to OAuth credentials
+4. **Backup Strategy**:
+   - **NEW**: Maintain secure backups of OAuth credentials
+   - Document credential locations and access procedures
+   - Have a recovery plan for lost credentials
+
+## Next Steps
+
+After completing OAuth setup:
+
+1. **Test Authentication Flows**: Verify all providers work correctly
+2. **Implement User Management**: Add user profile management features
+3. **Add Security Enhancements**: Implement rate limiting and audit logging
+4. **Monitor Usage**: Set up analytics and monitoring for authentication
+
+## Resources
+
+- [Google OAuth 2.0 Documentation](https://developers.google.com/identity/protocols/oauth2)
+- [GitHub OAuth Apps Documentation](https://docs.github.com/en/developers/apps/building-oauth-apps)
+- [Convex Auth Documentation](https://docs.convex.dev/auth)
+- [OAuth 2.0 Security Best Practices](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics)

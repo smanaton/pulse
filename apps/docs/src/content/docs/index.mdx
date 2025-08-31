@@ -1,36 +1,98 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
+title: Pulse Documentation
+description: Complete documentation for the Pulse productivity application with OOP architecture, Convex backend, and React frontend.
 template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: Modern productivity application with clean architecture
   image:
     file: ../../assets/houston.webp
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: View Architecture Guide
+      link: /architecture/overview
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
-      icon: external
+    - text: View Project Structure
+      link: /getting-started/project-structure
+      icon: document
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Welcome to Pulse
+
+Pulse is a modern productivity application built with clean OOP architecture and the latest technologies. It features a complete **idea management system** with collaborative editing, project organization, real-time synchronization powered by **Convex**, and a comprehensive **orchestration system** for job delegation and workflow automation.
+
+## 🚀 Key Features
+
+- **Clean OOP Architecture**: Separation of concerns with adapters, services, and repositories
+- **Orchestration System**: Job delegation, agent management, and workflow automation
+- **Real-time Collaboration**: Multi-user editing with Convex and ProseMirror sync
+- **Type-Safe**: Full TypeScript support with strict typing throughout
+- **Modern UI**: Built with React, TanStack Router, Tailwind CSS, and Flowbite
+- **Scalable Backend**: Convex serverless functions with real-time database
+- **AI Integration**: OpenAI GPT integration for enhanced productivity
+
+## 📚 Documentation Sections
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Architecture" icon="puzzle">
+		Understanding the OOP adapter pattern, service layer, and repository implementations.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="Orchestration System" icon="setting">
+		Job delegation, agent management, workflows, and real-time monitoring.
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="Getting Started" icon="rocket">
+		Project structure, development setup, and deployment guides.
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="API Reference" icon="code">
+		Detailed API documentation for all backend services and frontend hooks.
+	</Card>
+	<Card title="Testing" icon="test-tube">
+		Testing strategies for backend services, frontend components, and integration tests.
 	</Card>
 </CardGrid>
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 19, TypeScript, TanStack Router, Vite
+- **Backend**: Convex (serverless functions with real-time database)
+- **Architecture**: OOP with Adapters, Services, and Repository patterns
+- **Collaboration**: ProseMirror sync for real-time collaborative editing
+- **AI**: OpenAI GPT integration via Convex AI agents
+- **Authentication**: Convex Auth with OAuth providers
+- **Styling**: Tailwind CSS, Flowbite React components
+- **Testing**: Vitest + convex-test + React Testing Library
+- **Documentation**: Starlight (Astro-based documentation)
+- **Development**: Turborepo monorepo with pnpm workspaces
+
+## 🎯 Quick Start
+
+**Get up and running in 3 minutes:**
+
+1. **Start the development servers**: `pnpm run dev`
+2. **Visit the app**: Open [http://localhost:3003](http://localhost:3003)
+3. **Create an account**: Sign in with OAuth or email
+4. **Create your first idea**: Start capturing and organizing thoughts
+5. **Explore features**: Real-time sync, project organization, AI assistance
+
+## ✅ What's Working Now
+
+- ✅ **Clean Architecture**: OOP design with separation of concerns
+- ✅ **Orchestration System**: Job delegation with state machines and agent management
+- ✅ **Real-time Collaboration**: Multi-user editing with conflict resolution
+- ✅ **Idea Management**: Create, organize, and search ideas efficiently
+- ✅ **Project Organization**: Folders and projects for structured content
+- ✅ **AI Integration**: Intelligent content assistance and generation
+- ✅ **Type Safety**: End-to-end TypeScript with strict checking
+- ✅ **Comprehensive Testing**: Backend services and frontend components
+- ✅ **Production Ready**: Scalable architecture with error handling
+
+## 🤝 Contributing
+
+This documentation helps developers understand and contribute to the Pulse productivity application. Whether you're implementing new features, refactoring services, or maintaining the OOP architecture, you'll find comprehensive guides and examples here.
+
+Key areas for contribution:
+- **Service Layer**: Business logic in `packages/core/src/`
+- **Adapter Layer**: Convex integration in `packages/backend/convex/`
+- **Frontend Components**: React UI in `apps/web/src/components/`
+- **Testing**: Backend services and frontend component tests

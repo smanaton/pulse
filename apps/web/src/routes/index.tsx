@@ -1,50 +1,33 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { api } from "@pulse/backend";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
-import { api } from "@pulse/backend/convex/_generated/api";
+import { Dashboard } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layouts/dashboard/layout";
 
 export const Route = createFileRoute("/")({
-	component: HomeComponent,
+	component: IndexPage,
 });
 
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
+function IndexPage() {
+	const user = useQuery(api.users.getCurrentUser);
 
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+	// Show loading while checking auth status
+	if (user === undefined) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<div className="h-32 w-32 animate-spin rounded-full border-blue-600 border-b-2" />
+			</div>
+		);
+	}
 
-function HomeComponent() {
-	const healthCheck = useQuery(api.healthCheck.get);
+	// If not authenticated, redirect to sign-in
+	if (!user) {
+		return <Navigate to="/auth/sign-in" replace />;
+	}
 
 	return (
-		<div className="container mx-auto max-w-3xl px-4 py-2">
-			<pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-			<div className="grid gap-6">
-				<section className="rounded-lg border p-4">
-					<h2 className="mb-2 font-medium">API Status</h2>
-					<div className="flex items-center gap-2">
-						<div
-							className={`h-2 w-2 rounded-full ${healthCheck === "OK" ? "bg-green-500" : healthCheck === undefined ? "bg-orange-400" : "bg-red-500"}`}
-						/>
-						<span className="text-sm text-muted-foreground">
-							{healthCheck === undefined
-								? "Checking..."
-								: healthCheck === "OK"
-									? "Connected"
-									: "Error"}
-						</span>
-					</div>
-				</section>
-			</div>
-		</div>
+		<DashboardLayout>
+			<Dashboard />
+		</DashboardLayout>
 	);
 }

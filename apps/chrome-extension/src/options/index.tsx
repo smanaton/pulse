@@ -1,0 +1,8 @@
+import ReactDOM from "react-dom/client";
+import Options from "./Options";
+import "./index.css";
+
+const root = ReactDOM.createRoot(
+	document.getElementById("root") as HTMLElement,
+);
+root.render(<Options />);

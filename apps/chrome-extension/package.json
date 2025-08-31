@@ -1,0 +1,55 @@
+{
+	"name": "pulse-web-clipper",
+	"version": "0.1.0",
+	"description": "Web clipper extension for Pulse - capture web content directly to your Pulse workspace",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"build:firefox": "cross-env TARGET=firefox vite build",
+		"build:chrome": "cross-env TARGET=chrome vite build",
+		"type-check": "tsc --noEmit",
+		"lint": "eslint . --ext ts,tsx",
+		"test": "vitest"
+	},
+	"dependencies": {
+		"@pulse/backend": "workspace:*",
+		"clsx": "^2.1.1",
+		"convex": "1.26.2",
+		"lucide-react": "^0.473.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"tailwind-merge": "^3.3.1",
+		"webextension-polyfill": "^0.12.0"
+	},
+	"devDependencies": {
+		"@types/chrome": "^0.0.268",
+		"@types/node": "^22.13.13",
+		"@types/react": "^19.0.12",
+		"@types/react-dom": "^19.0.4",
+		"@types/webextension-polyfill": "^0.10.7",
+		"@vitejs/plugin-react": "^4.3.4",
+		"autoprefixer": "^10.4.20",
+		"cross-env": "^7.0.3",
+		"eslint": "^9.20.0",
+		"postcss": "^8.5.3",
+		"tailwindcss": "^4.0.15",
+		"typescript": "^5.8.3",
+		"vite": "^6.2.2",
+		"vite-plugin-web-extension": "^4.1.6",
+		"vitest": "^3.2.4"
+	},
+	"browserslist": {
+		"production": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	}
+}

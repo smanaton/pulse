@@ -1,0 +1,41 @@
+# Test files - exclude all test-related files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+*test*.ts
+*test*.js
+test.setup.ts
+setup.ts
+vitest.config.ts
+
+# Test directories - exclude test directories at any depth
+__tests__/
+test/
+tests/
+**/test/
+**/tests/
+**/__tests__/
+
+# Symlinked test files
+lib/*/test/
+lib/**/*test*.ts
+lib/**/*test*.js
+lib/**/*.test.ts
+lib/**/*.test.js
+lib/**/*.spec.ts
+lib/**/*.spec.js
+
+# Development files
+*.bak
+*.tmp
+*.swp
+tsconfig.json
+
+# Documentation
+*.md
+README*
+
+# IDE files
+.vscode/
+.idea/

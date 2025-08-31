@@ -1,0 +1,4 @@
+/**
+ * Ideas Logic Types
+ */
+export {};

@@ -1,10 +1,11 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-	const { theme = "system" } = useTheme();
+	// Flowbite uses 'dark' class on html element for theme detection
+	const isDark = document.documentElement.classList.contains("dark");
+	const theme = isDark ? "dark" : "light";
 
 	return (
 		<Sonner
