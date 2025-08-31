@@ -10,7 +10,7 @@
 		"declaration": true,
 		"declarationMap": true,
 		"outDir": "./dist",
-		"rootDir": ".",
+		"rootDir": "../",
 		"strict": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,
