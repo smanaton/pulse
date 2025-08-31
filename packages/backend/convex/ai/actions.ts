@@ -407,17 +407,22 @@ Please provide:
 
 Keep it concise but insightful.`;
 
-		const qualification = await contentService.summarizeIdea(
-			"Idea Qualification",
-			prompt,
-		);
+		const qualificationResult = await modelService.callModel(ctx, {
+			workspaceId: args.workspaceId,
+			message: prompt,
+			userId,
+			model: "enhanced",
+		});
+
+		const qualificationText = qualificationResult.text;
+		const qualificationTokens = qualificationResult.tokensUsed;
 
 		// Store discussion entry
 		await ctx.runMutation(internal.internal.addIdeaDiscussionInternal, {
 			ideaId: args.ideaId,
 			workspaceId: args.workspaceId,
 			role: "assistant",
-			message: qualification,
+			message: qualificationText,
 			messageType: "qualify",
 		});
 
@@ -439,8 +444,8 @@ Keep it concise but insightful.`;
 		});
 
 		return {
-			qualification,
-			tokensUsed: qualification.length,
+			qualification: qualificationText,
+			tokensUsed: qualificationTokens ?? qualificationText.length,
 		};
 	},
 });
@@ -520,17 +525,22 @@ Challenge this idea by identifying:
 
 Be constructively critical but not discouraging. Help strengthen the idea by exposing its weaknesses.`;
 
-		const analysis = await contentService.summarizeIdea(
-			"Contrarian Analysis",
-			prompt,
-		);
+		const analysisResult = await modelService.callModel(ctx, {
+			workspaceId: args.workspaceId,
+			message: prompt,
+			userId,
+			model: "creative",
+		});
+
+		const analysisText = analysisResult.text;
+		const analysisTokens = analysisResult.tokensUsed;
 
 		// Store discussion entry
 		await ctx.runMutation(internal.internal.addIdeaDiscussionInternal, {
 			ideaId: args.ideaId,
 			workspaceId: args.workspaceId,
 			role: "assistant",
-			message: analysis,
+			message: analysisText,
 			messageType: "contrarian",
 		});
 
@@ -552,8 +562,8 @@ Be constructively critical but not discouraging. Help strengthen the idea by exp
 		});
 
 		return {
-			analysis,
-			tokensUsed: analysis.length,
+			analysis: analysisText,
+			tokensUsed: analysisTokens ?? analysisText.length,
 		};
 	},
 });
@@ -629,21 +639,24 @@ Content: ${idea.contentMD}
 ${idea.problem ? `Problem: ${idea.problem}` : ""}
 ${idea.hypothesis ? `Hypothesis: ${idea.hypothesis}` : ""}
 ${idea.value ? `Value: ${idea.value}` : ""}
-${idea.risks ? `Risks: ${idea.risks}` : ""}
 
 Recent discussion:
-${discussionHistory
-	.slice(-5)
-	.map((d) => `${d.role}: ${d.message}`)
-	.join("\n")}
+${discussionHistory.map((d) => `${d.role}: ${d.message}`).join("\n")}
 
-Human's question: ${args.message}`;
+User's message:
+${args.message}
+`;
 
 		// Generate AI response
-		const response = await contentService.summarizeIdea(
-			"Chat Response",
-			contextPrompt,
-		);
+		const aiResult = await modelService.callModel(ctx, {
+			workspaceId: args.workspaceId,
+			message: contextPrompt,
+			userId,
+			model: "main",
+		});
+
+		const response = aiResult.text;
+		const tokensUsed = aiResult.tokensUsed;
 
 		// Store user message first
 		await ctx.runMutation(internal.internal.addIdeaDiscussionInternal, {
@@ -683,7 +696,7 @@ Human's question: ${args.message}`;
 
 		return {
 			response,
-			tokensUsed: response.length,
+			tokensUsed: tokensUsed || 0,
 		};
 	},
 });

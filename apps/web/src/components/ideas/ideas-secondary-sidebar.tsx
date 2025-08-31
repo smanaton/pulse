@@ -25,6 +25,10 @@ import {
 import { toast } from "sonner";
 import { FolderDeleteConfirmDialog } from "./FolderDeleteConfirmDialog";
 
+// Default content template for new ideas
+const DEFAULT_IDEA_CONTENT_MD =
+	"# Untitled Idea\n\n*Start writing your idea here...*";
+
 interface IdeasSecondarySidebarProps {
 	workspaceId: Id<"workspaces">;
 	selectedIdeaId: Id<"ideas"> | null;
@@ -77,7 +81,7 @@ export function IdeasSecondarySidebar({
 				workspaceId,
 				folderId,
 				title: "Untitled Idea",
-				contentMD: "# Untitled Idea\n\n*Start writing your idea here...*",
+				contentMD: DEFAULT_IDEA_CONTENT_MD,
 			});
 			onSelectIdea(newIdea);
 			toast.success("New idea created!");

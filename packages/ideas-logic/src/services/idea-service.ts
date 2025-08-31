@@ -47,8 +47,9 @@ export async function processIdeaCreation(
 	}
 
 	// Additional content validation - only if content exists
-	if (input.contentMD?.trim()) {
-		const contentValidation = validateContent(input.contentMD);
+	const trimmedContentMD = input.contentMD?.trim();
+	if (trimmedContentMD) {
+		const contentValidation = validateContent(trimmedContentMD);
 		if (!contentValidation.valid) {
 			return {
 				success: false,
@@ -98,10 +99,10 @@ export async function processIdeaUpdate(
 			errors: validation.errors.map((e) => e.message),
 		};
 	}
-
 	// Validate content if being updated and not empty
-	if (input.contentMD?.trim()) {
-		const contentValidation = validateContent(input.contentMD);
+	const trimmedContentMD = input.contentMD?.trim();
+	if (trimmedContentMD) {
+		const contentValidation = validateContent(trimmedContentMD);
 		if (!contentValidation.valid) {
 			return {
 				success: false,

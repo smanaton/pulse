@@ -15,7 +15,11 @@ import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 
 /**
- * Create a research task linked to an idea
+ * Create a research task linked to an idea.
+ *
+ * This mutation creates a new research task and explicitly links it to the specified idea.
+ * The idea and project must both exist in the given workspace, and the user must have permission to create tasks in the project.
+ * The created task will reference the idea via its `ideaId` field.
  */
 export const createResearchTask = mutation({
 	args: {
@@ -477,10 +481,15 @@ export const getIdeaDiscussion = query({
  * Helper function to build project description from idea
  */
 function buildProjectDescription(idea: Doc<"ideas">): string {
-	let description = idea.contentMD;
+	let description =
+		idea.contentMD && idea.contentMD.trim() ? idea.contentMD.trim() : "";
 
 	if (idea.aiSummary) {
 		description = `${idea.aiSummary}\n\n---\n\n${description}`;
+	}
+
+	if (!description) {
+		description = `Project created from idea: ${idea.title}`;
 	}
 
 	return description;

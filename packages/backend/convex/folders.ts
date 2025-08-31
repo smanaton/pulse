@@ -87,7 +87,7 @@ export const update = mutation({
 
 		await assertMember(ctx, folder.workspaceId);
 
-		const updates: Partial<{ name: string; updatedAt: number }> = {
+		const updates: Partial<Pick<Doc<"folders">, "name" | "updatedAt">> = {
 			updatedAt: Date.now(),
 		};
 
