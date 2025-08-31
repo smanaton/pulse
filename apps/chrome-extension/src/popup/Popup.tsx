@@ -73,7 +73,6 @@ const Popup: React.FC = () => {
 		// Listen for storage changes (when user authenticates in options page)
 		const handleStorageChange = (changes: any, areaName: string) => {
 			if (areaName === "local" && changes.pulseAuth) {
-				console.log("Auth storage changed, rechecking auth status");
 				checkAuthStatus();
 			}
 		};
@@ -98,16 +97,13 @@ const Popup: React.FC = () => {
 
 	const checkAuthStatus = async () => {
 		try {
-			console.log("Checking auth status...");
 			const result = await browser.storage.local.get(["pulseAuth"]);
-			console.log("Storage result:", result);
 
 			// Check for web app authentication
 			if (result.pulseAuth?.fromWebApp) {
 				// Check if session is still valid
 				const sessionValidUntil = result.pulseAuth.sessionValidUntil || 0;
 				if (Date.now() < sessionValidUntil) {
-					console.log("Valid web app session found");
 					setAuth({
 						isAuthenticated: true,
 						user: result.pulseAuth.user,
@@ -115,7 +111,6 @@ const Popup: React.FC = () => {
 					});
 					return;
 				}
-				console.log("Web app session expired, clearing auth");
 				await browser.storage.local.remove(["pulseAuth"]);
 				setAuth({ isAuthenticated: false });
 				return;
@@ -123,7 +118,6 @@ const Popup: React.FC = () => {
 
 			// Check for API key auth
 			if (result.pulseAuth?.token) {
-				console.log("API key found, using stored auth data");
 				setAuth({
 					isAuthenticated: true,
 					user: result.pulseAuth.user,
@@ -134,7 +128,6 @@ const Popup: React.FC = () => {
 
 			// If no stored auth, user needs to authenticate via options page
 
-			console.log("No authentication found");
 			setAuth({ isAuthenticated: false });
 		} catch (error) {
 			console.error("Auth check failed:", error);
@@ -146,7 +139,6 @@ const Popup: React.FC = () => {
 
 	const handleLogin = async () => {
 		try {
-			console.log("Starting authentication flow...");
 			const response = await browser.runtime.sendMessage({
 				action: "auth",
 				data: {
@@ -155,7 +147,6 @@ const Popup: React.FC = () => {
 				},
 			});
 
-			console.log("Background script response:", response);
 
 			if (response && response.success && response.result.type === "redirect") {
 				setAwaitingConfirmation(true);
@@ -203,7 +194,6 @@ const Popup: React.FC = () => {
 		setCapture((prev) => ({ ...prev, isProcessing: true }));
 
 		try {
-			console.log("Starting capture with data:", {
 				url: currentTab.url,
 				title: currentTab.title,
 				type: capture.type,
@@ -227,10 +217,8 @@ const Popup: React.FC = () => {
 				},
 			});
 
-			console.log("Capture response:", response);
 
 			if (response && response.success) {
-				console.log("Capture successful, idea ID:", response.result?.ideaId);
 				// Close popup after successful capture
 				window.close();
 			} else {

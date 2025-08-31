@@ -419,9 +419,9 @@ export function ProjectFilesTable({
 												</li>
 												<li>
 													<button
-														onClick={() =>
-															console.log("Preview file:", file._id)
-														}
+														onClick={() => {
+															// Preview file functionality
+														}}
 														className="flex w-full items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 													>
 														<Eye className="mr-2 h-4 w-4" />

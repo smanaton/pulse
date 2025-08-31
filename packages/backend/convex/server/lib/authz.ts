@@ -15,11 +15,9 @@ import type { Id } from "../../_generated/dataModel";
  */
 export async function requireUserId(ctx: any): Promise<Id<"users">> {
 	const userId = await getAuthUserId(ctx);
-	console.log("🔍 requireUserId - getAuthUserId result:", userId);
 
 	// In production/non-test environments, getAuthUserId returns the actual user ID
 	if (userId !== null && process.env.NODE_ENV !== "test") {
-		console.log("✅ Production user authenticated, userId:", userId);
 		return userId as Id<"users">;
 	}
 
@@ -68,11 +66,9 @@ export async function requireUserId(ctx: any): Promise<Id<"users">> {
  */
 export async function requireUserIdReadOnly(ctx: any): Promise<Id<"users">> {
 	const userId = await getAuthUserId(ctx);
-	console.log("🔍 requireUserIdReadOnly - getAuthUserId result:", userId);
 
 	// In production/non-test environments, getAuthUserId returns the actual user ID
 	if (userId !== null && process.env.NODE_ENV !== "test") {
-		console.log("✅ Production user authenticated, userId:", userId);
 		return userId as Id<"users">;
 	}
 

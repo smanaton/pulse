@@ -10,11 +10,6 @@ import {
 export const getCurrentUser = query({
 	args: {},
 	handler: async (ctx) => {
-		// Debug: Log what we get from auth context
-		console.log("🔍 getCurrentUser debug:", {
-			hasAuth: !!ctx.auth,
-			authKeys: ctx.auth ? Object.keys(ctx.auth) : null,
-		});
 
 		const userId = await getUserIdReadOnly(ctx);
 		if (!userId) {

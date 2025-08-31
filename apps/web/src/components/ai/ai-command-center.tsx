@@ -66,7 +66,7 @@ export function AICommandCenter({
 					workspaceId,
 					command: command.trim(),
 				});
-				setLastResult(result.message);
+				setLastResult(result.message || result.text);
 			} else {
 				setLastResult(generateMockResponse(command.trim()));
 			}

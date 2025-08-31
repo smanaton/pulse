@@ -65,7 +65,6 @@ const Options: React.FC = () => {
 
 		try {
 			// Send auth message to background script to open web app
-			console.log("Sending auth message to background script...");
 			const response = await browser.runtime.sendMessage({
 				action: "auth",
 				data: {
@@ -75,7 +74,6 @@ const Options: React.FC = () => {
 				},
 			});
 
-			console.log("Background script response:", response);
 
 			if (response && response.success) {
 				if (response.result.type === "redirect") {
@@ -385,7 +383,6 @@ const Options: React.FC = () => {
 								<button
 									onClick={async () => {
 										try {
-											console.log("Testing API endpoint...");
 											const response = await fetch(
 												`${customApiUrl}/api/clipper/auth`,
 												{
@@ -396,9 +393,7 @@ const Options: React.FC = () => {
 													},
 												},
 											);
-											console.log("Test response status:", response.status);
 											const text = await response.text();
-											console.log("Test response body:", text);
 											setLastError(
 												`Direct fetch test: Status ${response.status}, Body: ${text}`,
 											);

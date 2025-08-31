@@ -28,17 +28,14 @@ function ClientsPage() {
 	}
 
 	const handleCreateClient = () => {
-		console.log("Create client clicked");
 		// TODO: Open create client modal
 	};
 
 	const handleEditClient = (client: any) => {
-		console.log("Edit client:", client);
 		// TODO: Open edit client modal
 	};
 
 	const handleViewClient = (client: any) => {
-		console.log("View client:", client);
 		// TODO: Navigate to client detail page or open modal
 	};
 

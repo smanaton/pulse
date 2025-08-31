@@ -56,7 +56,7 @@ function AssistantPanel({ ideaId, workspaceId }: AssistantPanelProps) {
 	// Actions (AI functions)
 	const processMessage = useAction(api.ai.processMessage);
 	const suggestTags = useAction(api.ai.suggestTags);
-	const summariseIdea = useAction(api.ai.summariseIdea);
+	const summarizeIdea = useAction(api.ai.summarizeIdea);
 
 	const handleAiPrompt = async () => {
 		if (!aiPrompt.trim() || !workspaceId) return;
@@ -72,7 +72,6 @@ function AssistantPanel({ ideaId, workspaceId }: AssistantPanelProps) {
 
 			if (result.text) {
 				toast.success("AI response generated!");
-				console.log("AI Response:", result.text);
 			} else if (result.error) {
 				toast.error("AI processing failed");
 			}
@@ -110,7 +109,7 @@ function AssistantPanel({ ideaId, workspaceId }: AssistantPanelProps) {
 
 		setIsProcessing(true);
 		try {
-			await summariseIdea({
+			await summarizeIdea({
 				workspaceId,
 				ideaId: idea._id,
 			});

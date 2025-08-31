@@ -1,7 +1,6 @@
 import browser from "webextension-polyfill";
 
 // Content script for Pulse Web Clipper
-console.log("Pulse Web Clipper content script loaded");
 
 // Listen for messages from popup/background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

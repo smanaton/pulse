@@ -3,7 +3,6 @@ import { createConvexClient, formatContentAsMarkdown } from "../lib/convex";
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
-	console.log("Pulse Web Clipper installed");
 
 	// Create context menu
 	chrome.contextMenus.create({
@@ -80,7 +79,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 async function handleCapture(data: any) {
 	try {
-		console.log("Handling capture:", data);
 
 		// Check authentication
 		const authResult = await browser.storage.local.get(["pulseAuth"]);
@@ -238,7 +236,6 @@ async function handleCapture(data: any) {
 			message: `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} saved to Pulse: ${data.title || "Untitled"}`,
 		});
 
-		console.log("Capture successful, idea ID:", ideaId);
 		return { success: true, ideaId };
 	} catch (error) {
 		console.error("Capture failed:", error);
@@ -257,7 +254,6 @@ async function handleCapture(data: any) {
 
 async function handleAuth(data: any) {
 	try {
-		console.log("Handling auth:", data);
 
 		if (data.type === "logout") {
 			await browser.storage.local.remove(["pulseAuth"]);
@@ -268,7 +264,6 @@ async function handleAuth(data: any) {
 		if (data.type === "pat") {
 			// Open the web app for authentication instead of direct API call
 			const webAppUrl = "http://localhost:3003";
-			console.log("Redirecting to web app for authentication:", webAppUrl);
 
 			// Open the web app in a new tab for user to authenticate
 			chrome.tabs.create({
@@ -321,7 +316,6 @@ async function handleAuth(data: any) {
 					pulseAuth: authData,
 				});
 
-				console.log("API key validated and stored successfully");
 				return { type: "api_key", success: true, authData };
 			} catch (error) {
 				console.error("API key validation failed:", error);

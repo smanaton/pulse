@@ -3,14 +3,12 @@ export function createConvexClient(apiKey: string) {
 	// Use Vite's import.meta.env which works in the browser
 	// Falls back to local dev server if not configured
 	const convexUrl = import.meta.env?.VITE_CONVEX_URL || "http://127.0.0.1:3210";
-	console.log("Creating Convex client with URL:", convexUrl);
 
 	const baseHeaders = {
 		Authorization: `Bearer ${apiKey}`,
 		"Content-Type": "application/json",
 	};
 
-	console.log("Convex client created with API key");
 
 	return {
 		// Helper methods for common operations using HTTP endpoints
@@ -23,7 +21,6 @@ export function createConvexClient(apiKey: string) {
 			tags?: string[];
 		}) {
 			try {
-				console.log("Calling saveWebClip via HTTP endpoint with data:", data);
 
 				const response = await fetch(`${convexUrl}/api/clipper/capture`, {
 					method: "POST",
@@ -45,7 +42,6 @@ export function createConvexClient(apiKey: string) {
 				}
 
 				const result = await response.json();
-				console.log("saveWebClip result:", result);
 				return result.taskId || result.ideaId; // Return task ID or idea ID
 			} catch (error) {
 				console.error("saveWebClip failed:", error);
@@ -59,7 +55,6 @@ export function createConvexClient(apiKey: string) {
 			metadata?: any;
 		}) {
 			try {
-				console.log("Calling appendToIdea via HTTP endpoint with data:", data);
 
 				const response = await fetch(`${convexUrl}/api/clipper/capture`, {
 					method: "POST",
@@ -80,7 +75,6 @@ export function createConvexClient(apiKey: string) {
 				}
 
 				const result = await response.json();
-				console.log("appendToIdea result:", result);
 				return result.taskId || data.ideaId;
 			} catch (error) {
 				console.error("appendToIdea failed:", error);
@@ -90,7 +84,6 @@ export function createConvexClient(apiKey: string) {
 
 		async getUserWorkspaces() {
 			try {
-				console.log("Calling getUserWorkspaces via auth endpoint");
 
 				const response = await fetch(`${convexUrl}/api/clipper/auth`, {
 					method: "POST",
@@ -103,7 +96,6 @@ export function createConvexClient(apiKey: string) {
 				}
 
 				const authInfo = await response.json();
-				console.log("getUserWorkspaces result:", authInfo);
 
 				// Return workspaces array with the authenticated workspace
 				return [
@@ -136,7 +128,6 @@ export function createConvexClient(apiKey: string) {
 
 		async validateApiKey() {
 			try {
-				console.log("Validating API key via auth endpoint");
 
 				const response = await fetch(`${convexUrl}/api/clipper/auth`, {
 					method: "POST",
@@ -144,7 +135,6 @@ export function createConvexClient(apiKey: string) {
 				});
 
 				const isValid = response.ok;
-				console.log("API key validation result:", isValid);
 				return isValid;
 			} catch (error) {
 				console.error("API key validation failed:", error);

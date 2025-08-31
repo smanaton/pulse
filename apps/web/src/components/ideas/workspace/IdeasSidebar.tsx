@@ -37,7 +37,6 @@ export function IdeasSidebar({
 	const ideas = useQuery(api.ideas.list, { workspaceId, limit: 100 }) ?? [] as Doc<"ideas">[];
 
 	// TODO: Implement createFolder mutation when folders API is ready
-	const createFolder = async () => console.log("Create folder placeholder");
 	const createIdea = useMutation(api.ideas.create);
 
 	// Filter ideas based on search
@@ -73,7 +72,6 @@ export function IdeasSidebar({
 
 		try {
 			// TODO: Implement when folders API is ready
-			console.log("Create folder:", newFolderName.trim());
 			setNewFolderName("");
 			setIsCreatingFolder(false);
 		} catch (error) {

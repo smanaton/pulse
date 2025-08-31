@@ -8,27 +8,8 @@ interface ThemeToggleProps {
 export function ThemeToggle({ hideSearch = false }: ThemeToggleProps) {
 	const { mode, computedMode, setMode } = useThemeMode();
 
-	// Debug wrapper to see what localStorage keys are being used
 	const handleSetMode = (newMode: "light" | "dark" | "auto") => {
-		console.log("Before setMode:", {
-			mode,
-			computedMode,
-			newMode,
-			"flowbite-theme-mode": localStorage.getItem("flowbite-theme-mode"),
-			"flowbite-react-theme": localStorage.getItem("flowbite-react-theme"),
-			theme: localStorage.getItem("theme"),
-		});
-
 		setMode(newMode);
-
-		// Check what changed after a brief delay
-		setTimeout(() => {
-			console.log("After setMode:", {
-				"flowbite-theme-mode": localStorage.getItem("flowbite-theme-mode"),
-				"flowbite-react-theme": localStorage.getItem("flowbite-react-theme"),
-				theme: localStorage.getItem("theme"),
-			});
-		}, 100);
 	};
 
 	const getIcon = () => {

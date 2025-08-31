@@ -13,7 +13,6 @@ function IndexPage() {
 
 	// Show loading while checking auth status
 	if (user === undefined) {
-		console.log("🏠 IndexPage - showing loading spinner (user undefined)");
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<div className="h-32 w-32 animate-spin rounded-full border-blue-600 border-b-2" />
@@ -23,7 +22,6 @@ function IndexPage() {
 
 	// If not authenticated, redirect to sign-in
 	if (!user) {
-		console.log("🏠 IndexPage - user is null, redirecting to sign-in");
 		return <Navigate to="/auth/sign-in" replace />;
 	}
 

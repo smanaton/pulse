@@ -56,7 +56,7 @@ export function IdeasActions({
 	// Actions (AI functions)
 	const processMessage = useAction(api.ai.processMessage);
 	const suggestTags = useAction(api.ai.suggestTags);
-	const summariseIdea = useAction(api.ai.summariseIdea);
+	const summarizeIdea = useAction(api.ai.summarizeIdea);
 
 	const handleGenerateTags = async () => {
 		if (!idea) return;
@@ -77,7 +77,6 @@ export function IdeasActions({
 					});
 				} catch (error) {
 					// Tag might already exist, continue with others
-					console.log(`Tag "${tagName}" already exists or failed to add`);
 				}
 			}
 
@@ -132,12 +131,10 @@ export function IdeasActions({
 			if (result.text) {
 				toast.success("AI response generated!");
 				// TODO: Display the AI response in a modal or in the interface
-				console.log("AI Response:", result.text);
 
 				// If AI created an idea or wants to navigate somewhere, handle it
 				if (result.action === "navigate" && result.target) {
 					// TODO: Implement navigation
-					console.log("Navigate to:", result.target);
 				}
 			} else if (result.error) {
 				toast.error("AI processing failed");
@@ -157,7 +154,7 @@ export function IdeasActions({
 
 		setIsProcessing(true);
 		try {
-			const result = await summariseIdea({
+			const result = await summarizeIdea({
 				workspaceId,
 				ideaId: idea._id,
 			});
@@ -260,7 +257,6 @@ export function IdeasActions({
 															toast.success(
 																"AI improvement suggestions generated!",
 															);
-															console.log("AI Response:", result.text);
 														}
 													} catch (error) {
 														console.error("AI processing error:", error);
@@ -306,7 +302,6 @@ export function IdeasActions({
 															toast.success(
 																"AI expansion suggestions generated!",
 															);
-															console.log("AI Response:", result.text);
 														}
 													} catch (error) {
 														console.error("AI processing error:", error);

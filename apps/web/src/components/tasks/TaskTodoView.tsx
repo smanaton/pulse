@@ -196,7 +196,6 @@ function TaskItem({
 								size="xs"
 								color="light"
 								className="text-gray-500 hover:text-gray-700"
-								onClick={() => console.log("Edit task:", task._id)}
 							>
 								Edit
 							</Button>
@@ -305,7 +304,6 @@ export function TaskTodoView({ projectId }: TaskTodoViewProps) {
 
 	const handleAddTask = (priority: string) => {
 		// TODO: Open task creation modal or form
-		console.log("Add task with priority:", priority);
 	};
 
 	if (!tasks) {
