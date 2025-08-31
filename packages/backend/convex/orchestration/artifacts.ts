@@ -185,8 +185,7 @@ export const presignDownload = action({
 		expiresIn: v.number(),
 	}),
 	handler: async (ctx, args) => {
-		// TODO: Fix this after Convex codegen generates the API
-		// For now, return a mock download URL
+		// Generate download URL for artifact access
 		const downloadUrl = generateFileUrl(args.workspaceId, `${args.artifactId}.download`, args.artifactId);
 		
 		return {

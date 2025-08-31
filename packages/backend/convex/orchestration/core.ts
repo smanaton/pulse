@@ -231,7 +231,7 @@ export const assignRun = mutation({
 			createdAt: Date.now(),
 		});
 
-		// TODO: Notify agent via webhook or polling
+		// Agent notification will be handled by polling or webhooks
 
 		return { runId };
 	},

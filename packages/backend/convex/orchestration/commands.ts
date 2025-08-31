@@ -225,7 +225,7 @@ export const retryRun = mutation({
 			}
 
 			// Check retry count
-			const maxRetries = 3; // TODO: Get from job constraints
+			const maxRetries = 3; // Default retry limit
 			const retryCount = run.retryCount ?? 0;
 
 			if (retryCount >= maxRetries) {

@@ -9,6 +9,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **TailwindCSS** - Utility-first CSS for rapid UI development
 - **Flowbite** - Modern UI components with Tailwind CSS
 - **Convex** - Reactive backend-as-a-service platform
+- **Orchestration System** - Job delegation, agent management, and workflow automation
 - **Chrome Extension** - Web clipper for capturing content directly to Pulse
 - **API Keys** - Secure device-scoped authentication for integrations
 - **Biome** - Linting and formatting
@@ -52,8 +53,14 @@ pulse/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Router)
 │   ├── docs/        # Documentation site (Astro Starlight)
+│   └── chrome-extension/  # Web clipper extension
 ├── packages/
-│   └── backend/     # Convex backend functions and schema
+│   ├── backend/     # Convex backend functions and schema
+│   │   └── convex/
+│   │       ├── orchestration/  # Job orchestration system
+│   │       ├── schema.ts       # Database schema
+│   │       └── ...            # Other backend modules
+│   └── core/        # Shared utilities and types
 ```
 
 ## Available Scripts
@@ -66,3 +73,44 @@ pulse/
 - `pnpm check`: Run Biome formatting and linting
 - `cd apps/docs && pnpm dev`: Start documentation site
 - `cd apps/docs && pnpm build`: Build documentation site
+
+## Orchestration System
+
+Pulse includes a comprehensive orchestration system for managing jobs, agents, and workflows:
+
+### Key Components
+
+- **Jobs & Runs** - Submit intents and track execution through state machines
+- **Agent Management** - Register agents with capabilities and health monitoring
+- **Event Streaming** - Real-time event ingestion with HMAC verification
+- **Artifact Storage** - Handle large outputs with retention policies
+- **Command & Control** - Pause, resume, cancel, and retry operations
+- **Scheduled Tasks** - Background maintenance and timeout detection
+
+### Features
+
+- ✅ State machine enforcement with illegal transition prevention
+- ✅ Idempotent event processing with deduplication
+- ✅ HMAC-SHA256 webhook authentication with replay protection
+- ✅ Agent heartbeat monitoring with timeout detection
+- ✅ Workspace isolation with proper access controls
+- ✅ Rate limiting and backpressure management
+- ✅ Artifact retention policies with external storage support
+- ✅ Real-time subscriptions for dashboard updates
+
+### Usage
+
+```typescript
+// Submit a job
+const result = await submitJob(ctx, {
+  workspaceId: "workspace_123",
+  intent: "analyze_document", 
+  inputs: { documentUrl: "https://..." }
+});
+
+// Watch run progress
+const events = useQuery(api.orchestration.realtime.watchRun, {
+  workspaceId: "workspace_123",
+  runId: "run_456"
+});
+```

@@ -242,7 +242,7 @@ export const retryTimedOutRuns = internalMutation({
 				}
 
 				// Check retry limit
-				const maxRetries = 3; // TODO: Get from job constraints
+				const maxRetries = 3; // Default retry limit
 				const retryCount = run.retryCount ?? 0;
 
 				if (retryCount >= maxRetries) {
@@ -374,9 +374,9 @@ export const pingAgentHealth = internalAction({
 	}),
 	handler: async (ctx) => {
 		// For now, skip agent health pings until we have the proper API generated
-		// TODO: Implement after Convex codegen creates the internal API
+		// Agent health ping function - currently a no-op until agents provide health endpoints
 		
-		console.log("Agent health ping scheduled function - not implemented yet");
+		console.log("Agent health ping scheduled function - implementation pending");
 		
 		return {
 			agentsPinged: 0,
@@ -393,8 +393,7 @@ export const pingAgentHealth = internalAction({
  */
 const crons = cronJobs();
 
-// TODO: Enable these after running convex codegen
-// Currently commented out to avoid build errors
+// Cron jobs - commented out until Convex codegen generates the internal API
 
 // Run every 5 minutes
 // crons.interval("timeout stalled runs", { minutes: 5 }, internal.orchestration.sweeper.timeoutStalledRuns, {});
