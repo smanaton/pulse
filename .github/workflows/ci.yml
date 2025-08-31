@@ -143,5 +143,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Build all packages
-        run: pnpm build
+      - name: Build backend (CI mode)
+        run: pnpm -F @pulse/backend run build:ci
+        
+      - name: Build web app
+        run: pnpm -F web build
+        
+      - name: Build other packages
+        run: pnpm -F @pulse/core build && pnpm -F @pulse/ideas-logic build

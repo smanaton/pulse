@@ -12,7 +12,9 @@
 		"test:coverage": "vitest --coverage",
 		"test:all": "npm run test:unit && npm run test:integration",
 		"lint": "npx convex dev --once --typecheck enable",
-		"build": "npx convex codegen --typecheck=disable && tsc --noEmit"
+		"build": "npx convex codegen --typecheck=disable && tsc --noEmit",
+		"build:ci": "tsc --noEmit",
+		"check-types": "tsc --noEmit"
 	},
 	"author": "",
 	"license": "ISC",
