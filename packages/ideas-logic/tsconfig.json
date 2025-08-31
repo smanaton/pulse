@@ -29,6 +29,6 @@
 			"@pulse/core/*": ["../core/src/*"]
 		}
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "../core/src/**/*"],
 	"exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }
