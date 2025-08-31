@@ -12,6 +12,21 @@ import { useBlockNoteSync } from "@/hooks/useBlockNoteSync";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 
+// BlockNote TypeScript interfaces
+interface BlockContent {
+	text: string;
+	type?: string;
+}
+
+interface HeadingBlockProps {
+	level: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+interface BlockNoteBlock extends Omit<Block, "props" | "content"> {
+	props?: HeadingBlockProps | Record<string, unknown>;
+	content?: BlockContent[];
+}
+
 interface IdeaBlockEditorProps {
 	ideaId: Id<"ideas">;
 	workspaceId: Id<"workspaces">;
@@ -212,8 +227,8 @@ export function IdeaBlockEditor({
 										create([
 											{
 												type: "paragraph",
-											},
-										] as any)
+											} as Block,
+										])
 									}
 								>
 									Create Document
@@ -282,29 +297,27 @@ export function IdeaBlockEditor({
 function blocksToMarkdown(blocks: Block[]): string {
 	return blocks
 		.map((block) => {
-			switch (block.type) {
+			const typedBlock = block as BlockNoteBlock;
+			switch (typedBlock.type) {
 				case "heading": {
-					const level = (block.props as any)?.level || 1;
+					const props = typedBlock.props as HeadingBlockProps | undefined;
+					const level = props?.level || 1;
 					const headingPrefix = "#".repeat(level);
-					const text = (block.content as any)?.[0]?.text || "";
+					const text = typedBlock.content?.[0]?.text || "";
 					return `${headingPrefix} ${text}`;
 				}
 				case "paragraph":
-					return (
-						(block.content as any)?.map((item: any) => item.text).join("") || ""
-					);
+					return typedBlock.content?.map((item) => item.text).join("") || "";
 				case "bulletListItem":
-					return `- ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
+					return `- ${typedBlock.content?.map((item) => item.text).join("") || ""}`;
 				case "numberedListItem":
-					return `1. ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
+					return `1. ${typedBlock.content?.map((item) => item.text).join("") || ""}`;
 				case "codeBlock":
-					return `\`\`\`\n${(block.content as any)?.map((item: any) => item.text).join("") || ""}\n\`\`\``;
+					return `\`\`\`\n${typedBlock.content?.map((item) => item.text).join("") || ""}\n\`\`\``;
 				case "quote":
-					return `> ${(block.content as any)?.map((item: any) => item.text).join("") || ""}`;
+					return `> ${typedBlock.content?.map((item) => item.text).join("") || ""}`;
 				default:
-					return (
-						(block.content as any)?.map((item: any) => item.text).join("") || ""
-					);
+					return typedBlock.content?.map((item) => item.text).join("") || "";
 			}
 		})
 		.join("\n\n");

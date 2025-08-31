@@ -1,5 +1,6 @@
 import { readFileSync, rmSync } from "node:fs";
 import { promisify } from "node:util";
+import { execSync } from "node:child_process";
 import kill from "tree-kill";
 
 // The original script used platform-specific commands to kill the process tree.
@@ -9,6 +10,125 @@ import kill from "tree-kill";
 // `tree-kill` is callback-based, so we promisify it for use with async/await.
 const killAsync = promisify(kill);
 const pidFile = ".dev.pid";
+const isWin = process.platform === "win32";
+const PORTS = [3003, 3210];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function getPidsOnPort(port) {
+	try {
+		if (isWin) {
+			const out = execSync(`netstat -ano -p tcp | findstr :${port}`, {
+				stdio: "pipe",
+			}).toString();
+			const pids = new Set();
+			out
+				.split(/\r?\n/)
+				.filter((l) => l && l.includes(`:${port}`) && /LISTENING/i.test(l))
+				.forEach((line) => {
+					const parts = line.trim().split(/\s+/);
+					const pidStr = parts[parts.length - 1];
+					if (/^\d+$/.test(pidStr)) pids.add(Number(pidStr));
+				});
+			return Array.from(pids);
+		}
+		// POSIX
+		try {
+			const out = execSync(`lsof -ti tcp:${port}`, {
+				stdio: "pipe",
+			}).toString();
+			return out
+				.split(/\r?\n/)
+				.map((s) => s.trim())
+				.filter(Boolean)
+				.map((n) => Number(n))
+				.filter((n) => !Number.isNaN(n));
+		} catch {
+			try {
+				const out = execSync(`fuser -n tcp ${port} 2>/dev/null`, {
+					stdio: "pipe",
+				}).toString();
+				return out
+					.split(/\s+/)
+					.map((s) => s.trim())
+					.filter((s) => /^\d+$/.test(s))
+					.map((s) => Number(s));
+			} catch {
+				return [];
+			}
+		}
+	} catch {
+		return [];
+	}
+}
+
+function killPort(port) {
+	const pids = getPidsOnPort(port);
+	if (pids.length === 0) return false;
+	for (const pid of pids) {
+		try {
+			if (isWin) {
+				execSync(`taskkill /PID ${pid} /F /T`, { stdio: "pipe" });
+			} else {
+				try {
+					process.kill(pid, "SIGTERM");
+				} catch {}
+				try {
+					process.kill(pid, "SIGKILL");
+				} catch {}
+			}
+		} catch {}
+	}
+	return true;
+}
+
+function killLingeringPorts() {
+	for (const port of PORTS) {
+		try {
+			const killed = killPort(port);
+			if (killed) {
+				console.log(`Freed port ${port}.`);
+			}
+		} catch {}
+	}
+}
+
+async function ensurePortsFreed() {
+	console.log(`Ports check — known dev ports: ${PORTS.join(", ")}`);
+	let anyBusyBefore = false;
+	let anyBusyAfter = false;
+	const busyAfterPorts = [];
+	for (const port of PORTS) {
+		const before = getPidsOnPort(port);
+		if (before.length === 0) {
+			console.log(`• Port ${port} is already free.`);
+			continue;
+		}
+		anyBusyBefore = true;
+		console.log(
+			`• Port ${port} is in use by PID(s): ${before.join(", ")} — attempting to kill...`,
+		);
+		killPort(port);
+		await sleep(400);
+		const after = getPidsOnPort(port);
+		if (after.length === 0) {
+			console.log(`  Port ${port} is now free.`);
+		} else {
+			anyBusyAfter = true;
+			busyAfterPorts.push(port);
+			console.log(
+				`  Port ${port} is still in use by PID(s): ${after.join(", ")}.`,
+			);
+		}
+	}
+	if (!anyBusyBefore) {
+		console.log("All known dev ports were already free.");
+	} else if (!anyBusyAfter) {
+		console.log("All known dev ports are now free.");
+	} else {
+		console.log("Some dev ports are still busy.");
+	}
+	return { ok: !anyBusyAfter, busyAfterPorts };
+}
 
 async function stopDevServer() {
 	let pid;
@@ -28,6 +148,16 @@ async function stopDevServer() {
 		try {
 			rmSync(pidFile);
 		} catch {}
+		const result = await ensurePortsFreed();
+		if (result.ok) {
+			console.log(
+				"✅ Dev environment cleanup complete. All known ports are free.",
+			);
+		} else {
+			console.log(
+				"⚠️ Dev environment cleanup finished with lingering ports. See above for details.",
+			);
+		}
 		process.exit(0);
 	}
 
@@ -55,6 +185,8 @@ async function stopDevServer() {
 		} catch {
 			// If it's already gone, that's fine.
 		}
+		// Ensure ports are freed after the main PID is stopped with detailed reporting
+		await ensurePortsFreed();
 	}
 }
 

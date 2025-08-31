@@ -45,15 +45,26 @@ vi.mock("@tanstack/react-router", () => ({
 	useNavigate: vi.fn(() => vi.fn()),
 	useLocation: vi.fn(() => ({ pathname: "/" })),
 	useRouterState: vi.fn(() => ({ isLoading: false })),
-	Link: vi.fn(({ children, to, ...props }: any) =>
-		React.createElement("a", { href: to, ...props }, children),
+	Link: vi.fn(
+		({
+			children,
+			to,
+			...props
+		}: {
+			children: React.ReactNode;
+			to: string;
+			[key: string]: unknown;
+		}) => React.createElement("a", { href: to, ...props }, children),
 	),
 	createFileRoute: vi.fn((_path: string) => ({
 		component: vi.fn(),
 		useSearch: () => ({}),
 	})),
 	createRootRouteWithContext: vi.fn(() => ({})),
-	Outlet: vi.fn(({ children }: any) => children || React.createElement("div")),
+	Outlet: vi.fn(
+		({ children }: { children?: React.ReactNode }) =>
+			children || React.createElement("div"),
+	),
 	HeadContent: vi.fn(() => null),
 	TanStackRouterDevtools: vi.fn(() => null),
 }));
@@ -81,10 +92,16 @@ vi.mock("convex/react", () => ({
 			Promise.resolve({ type: "success", message: "Action completed" }),
 		),
 	),
-	Authenticated: vi.fn(({ children }: any) => children),
-	Unauthenticated: vi.fn(({ children }: any) => children),
+	Authenticated: vi.fn(
+		({ children }: { children: React.ReactNode }) => children,
+	),
+	Unauthenticated: vi.fn(
+		({ children }: { children: React.ReactNode }) => children,
+	),
 	ConvexReactClient: vi.fn(),
-	ConvexProvider: vi.fn(({ children }: any) => children),
+	ConvexProvider: vi.fn(
+		({ children }: { children: React.ReactNode }) => children,
+	),
 }));
 
 // Mock Convex Auth
@@ -93,7 +110,9 @@ vi.mock("@convex-dev/auth/react", () => ({
 		signIn: vi.fn(),
 		signOut: vi.fn(),
 	})),
-	ConvexAuthProvider: vi.fn(({ children }: any) => children),
+	ConvexAuthProvider: vi.fn(
+		({ children }: { children: React.ReactNode }) => children,
+	),
 }));
 
 // Mock backend API with comprehensive coverage

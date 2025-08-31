@@ -14,6 +14,7 @@
 		"preinstall": "node ./scripts/verify-toolchain.mjs",
 		"prepare": "husky",
 		"check": "biome check .",
+		"biome:fix": "biome format --write . && biome lint --write .",
 		"build": "turbo build",
 		"build:schema": "node scripts/merge-schemas.mjs",
 		"setup:symlinks": "node scripts/setup-symlinks.js",
@@ -31,8 +32,7 @@
 		"dev:web": "turbo -F web dev",
 		"dev:server": "turbo -F @pulse/backend dev",
 		"dev:setup": "turbo -F @pulse/backend dev:setup",
-		"dev:storybook": "turbo -F storybook dev",
-		"dev:server-web": "pnpm run dev:server && pnpm run dev:web"
+		"dev:storybook": "turbo -F storybook dev"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.0",

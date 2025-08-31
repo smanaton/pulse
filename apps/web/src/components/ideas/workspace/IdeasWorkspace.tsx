@@ -62,6 +62,7 @@ function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
 					Choose a note from the sidebar or create a new one to get started.
 				</p>
 				<button
+					type="button"
 					onClick={onCreateNew}
 					className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 font-medium text-sm text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 				>

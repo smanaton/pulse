@@ -1,6 +1,18 @@
+import type { Block } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
+
+// BlockNote TypeScript interfaces
+interface BlockContent {
+	text: string;
+	type?: string;
+}
+
+interface HeadingBlockProps {
+	level: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
 import { useMutation, useQuery } from "convex/react";
 import {
 	Breadcrumb,
@@ -25,7 +37,7 @@ interface IdeasEditorProps {
 
 export function IdeasEditor({
 	ideaId,
-	workspaceId,
+	workspaceId: _workspaceId,
 	onClose,
 }: IdeasEditorProps) {
 	const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">(
@@ -171,6 +183,7 @@ export function IdeasEditor({
 							/>
 						) : (
 							<button
+								type="button"
 								onClick={() => setIsEditingTitle(true)}
 								className="group flex w-full items-center text-left font-semibold text-2xl text-gray-900 hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
 							>
@@ -244,8 +257,8 @@ export function IdeasEditor({
 									create([
 										{
 											type: "paragraph",
-										},
-									] as any)
+										} as Block,
+									])
 								}
 							>
 								Create Document
@@ -266,29 +279,41 @@ export function IdeasEditor({
 }
 
 /**
+ * Safely extract text content from BlockNote content array
+ */
+function extractTextFromContent(content: BlockContent[]): string {
+	if (!content || !Array.isArray(content)) return "";
+	return content.map((item) => item.text || "").join("");
+}
+
+/**
  * Convert BlockNote blocks to markdown (same as in the hook)
  */
-function blocksToMarkdown(blocks: any[]): string {
+function blocksToMarkdown(blocks: Block[]): string {
 	return blocks
 		.map((block) => {
+			const typedBlock = block as Block & {
+				content?: BlockContent[];
+				props?: HeadingBlockProps;
+			};
 			switch (block.type) {
 				case "heading": {
-					const level = block.props?.level || 1;
+					const level = (typedBlock.props as HeadingBlockProps)?.level || 1;
 					const headingPrefix = "#".repeat(level);
-					return `${headingPrefix} ${block.content?.[0]?.text || ""}`;
+					return `${headingPrefix} ${extractTextFromContent(typedBlock.content || [])}`;
 				}
 				case "paragraph":
-					return block.content?.map((item: any) => item.text).join("") || "";
+					return extractTextFromContent(typedBlock.content || []);
 				case "bulletListItem":
-					return `- ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `- ${extractTextFromContent(typedBlock.content || [])}`;
 				case "numberedListItem":
-					return `1. ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `1. ${extractTextFromContent(typedBlock.content || [])}`;
 				case "codeBlock":
-					return `\`\`\`\n${block.content?.map((item: any) => item.text).join("") || ""}\n\`\`\``;
+					return `\`\`\`\n${extractTextFromContent(typedBlock.content || [])}\n\`\`\``;
 				case "quote":
-					return `> ${block.content?.map((item: any) => item.text).join("") || ""}`;
+					return `> ${extractTextFromContent(typedBlock.content || [])}`;
 				default:
-					return block.content?.map((item: any) => item.text).join("") || "";
+					return extractTextFromContent(typedBlock.content || []);
 			}
 		})
 		.join("\n\n");

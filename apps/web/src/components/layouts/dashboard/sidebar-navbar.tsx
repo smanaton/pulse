@@ -59,6 +59,7 @@ export function SidebarNavbar() {
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
 						<button
+							type="button"
 							onClick={handleToggleSidebar}
 							className="mr-3 cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
 						>
@@ -98,7 +99,10 @@ export function SidebarNavbar() {
 					</div>
 					<div className="flex items-center lg:gap-3">
 						<div className="flex items-center">
-							<button className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 lg:hidden dark:text-gray-400 dark:focus:bg-gray-700 dark:focus:ring-gray-700 dark:hover:bg-gray-700 dark:hover:text-white">
+							<button
+								type="button"
+								className="cursor-pointer rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 lg:hidden dark:text-gray-400 dark:focus:bg-gray-700 dark:focus:ring-gray-700 dark:hover:bg-gray-700 dark:hover:text-white"
+							>
 								<span className="sr-only">Search</span>
 								<HiSearch className="h-6 w-6" />
 							</button>

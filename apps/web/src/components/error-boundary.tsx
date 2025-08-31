@@ -1,3 +1,4 @@
+import { Button } from "flowbite-react";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -62,20 +63,16 @@ const DefaultErrorFallback: React.FC<ErrorFallbackProps> = ({
 				)}
 
 				<div className="flex gap-2">
-					<button
-						type="button"
-						onClick={resetError}
-						className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
-					>
+					<Button type="button" onClick={resetError} color="blue">
 						Try Again
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={() => window.location.reload()}
-						className="rounded bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600"
+						color="gray"
 					>
 						Reload Page
-					</button>
+					</Button>
 				</div>
 			</CardContent>
 		</Card>

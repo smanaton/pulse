@@ -174,6 +174,7 @@ export function IdeasSidebar({
 						</div>
 					) : (
 						<button
+							type="button"
 							onClick={() => setIsCreatingFolder(true)}
 							className="ml-2 flex items-center px-2 py-1 text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 						>
@@ -186,7 +187,10 @@ export function IdeasSidebar({
 
 			{/* Footer - Trash */}
 			<div className="border-gray-200 border-t p-4 dark:border-gray-700">
-				<button className="flex items-center text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+				<button
+					type="button"
+					className="flex items-center text-gray-500 text-sm hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+				>
 					<Trash2 className="mr-2 h-4 w-4" />
 					Trash
 				</button>
@@ -205,6 +209,7 @@ interface IdeaItemProps {
 function IdeaItem({ idea, isSelected, onSelect, depth }: IdeaItemProps) {
 	return (
 		<button
+			type="button"
 			onClick={() => onSelect(idea._id)}
 			className={`flex w-full items-center rounded px-2 py-1 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
 				isSelected
@@ -252,6 +257,7 @@ function FolderItem({
 				onMouseLeave={() => setShowActions(false)}
 			>
 				<button
+					type="button"
 					onClick={onToggle}
 					className="flex flex-1 items-center text-left"
 				>
@@ -268,6 +274,7 @@ function FolderItem({
 				{showActions && (
 					<div className="flex items-center gap-1">
 						<button
+							type="button"
 							onClick={onCreateIdea}
 							className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-600"
 							title="New page"
@@ -275,6 +282,7 @@ function FolderItem({
 							<Plus className="h-3 w-3 text-gray-500" />
 						</button>
 						<button
+							type="button"
 							className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-600"
 							title="More options"
 						>
