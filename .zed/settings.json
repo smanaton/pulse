@@ -1,5 +1,5 @@
 {
-  "mcpServers": {
+  "context_servers": {
     "Context7": {
       "command": "docker",
       "args": [
