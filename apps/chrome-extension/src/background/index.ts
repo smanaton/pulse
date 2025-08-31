@@ -1,9 +1,38 @@
 import browser from "webextension-polyfill";
 import { createConvexClient, formatContentAsMarkdown } from "../lib/convex";
 
+interface CaptureData {
+	url: string;
+	title?: string;
+	type: string;
+	selection?: string;
+	selectedWorkspace?: string;
+	destination?: string;
+	selectedNote?: string;
+	tags?: string[];
+}
+
+interface AuthData {
+	type: string;
+	token?: string;
+}
+
+interface Workspace {
+	_id: string;
+	name: string;
+	type: string;
+	isDefault: boolean;
+}
+
+interface GetRecentIdeasData {
+	workspaceId: string;
+	limit?: number;
+}
+
+// Note: ContentData interface removed as it was unused
+
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
-
 	// Create context menu
 	chrome.contextMenus.create({
 		id: "pulse-clip",
@@ -13,7 +42,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Handle messages from popup and content scripts
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 	switch (message.action) {
 		case "capture":
 			handleCapture(message.data)
@@ -77,9 +106,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 	}
 });
 
-async function handleCapture(data: any) {
+async function handleCapture(data: CaptureData) {
 	try {
-
 		// Check authentication
 		const authResult = await browser.storage.local.get(["pulseAuth"]);
 		if (!authResult.pulseAuth?.token) {
@@ -90,13 +118,13 @@ async function handleCapture(data: any) {
 		const convex = createConvexClient(authResult.pulseAuth.token);
 
 		// Determine target workspace
-		let targetWorkspace;
+		let targetWorkspace: Workspace | undefined;
 
 		if (data.selectedWorkspace) {
 			// Use specifically selected workspace
 			const workspaces = await convex.getUserWorkspaces();
 			targetWorkspace = workspaces.find(
-				(w: any) => w._id === data.selectedWorkspace,
+				(w: Workspace) => w._id === data.selectedWorkspace,
 			);
 
 			if (!targetWorkspace) {
@@ -106,7 +134,7 @@ async function handleCapture(data: any) {
 			// Fallback to default workspace
 			const workspaces = await convex.getUserWorkspaces();
 			targetWorkspace =
-				workspaces.find((w: any) => w.isDefault) || workspaces[0];
+				workspaces.find((w: Workspace) => w.isDefault) || workspaces[0];
 
 			if (!targetWorkspace) {
 				throw new Error("No workspace found");
@@ -150,7 +178,7 @@ async function handleCapture(data: any) {
 						contentData.content =
 							contentData.selection ||
 							`Selection from ${contentData.metadata.domain}`;
-					} catch (error) {
+					} catch (_error) {
 						contentData.content = `Selection from ${contentData.metadata.domain}`;
 					}
 				}
@@ -252,9 +280,8 @@ async function handleCapture(data: any) {
 	}
 }
 
-async function handleAuth(data: any) {
+async function handleAuth(data: AuthData) {
 	try {
-
 		if (data.type === "logout") {
 			await browser.storage.local.remove(["pulseAuth"]);
 			return { type: "logout", success: true };
@@ -291,19 +318,16 @@ async function handleAuth(data: any) {
 				}
 
 				// Get user info and workspaces
-				const [user, workspaces] = await Promise.all([
-					convex.client.query("users:getCurrentUser" as any),
-					convex.getUserWorkspaces(),
-				]);
+				const workspaces = await convex.getUserWorkspaces();
 
 				const defaultWorkspace =
-					workspaces.find((w: any) => w.isDefault) || workspaces[0];
+					workspaces.find((w: Workspace) => w.isDefault) || workspaces[0];
 
 				const authData = {
 					token: data.token,
 					user: {
-						name: user?.name || "Pulse User",
-						email: user?.email || "user@pulse.app",
+						name: "Pulse User",
+						email: "user@pulse.app",
 					},
 					workspace: {
 						id: defaultWorkspace?._id || "default",
@@ -372,10 +396,7 @@ async function handleGetWorkspaces() {
 }
 
 // Handle getting recent ideas
-async function handleGetRecentIdeas(data: {
-	workspaceId: string;
-	limit?: number;
-}) {
+async function handleGetRecentIdeas(data: GetRecentIdeasData) {
 	const authResult = await browser.storage.local.get(["pulseAuth"]);
 	if (!authResult.pulseAuth?.token) {
 		throw new Error("Not authenticated");
@@ -385,7 +406,7 @@ async function handleGetRecentIdeas(data: {
 	return await convex.getRecentIdeas(data.workspaceId, data.limit || 10);
 }
 
-async function getPulseApiUrl(): Promise<string> {
+async function _getPulseApiUrl(): Promise<string> {
 	// Get saved API URL from storage
 	const result = await browser.storage.local.get(["pulseApiUrl"]);
 	return result.pulseApiUrl || "http://127.0.0.1:3210";

@@ -1,16 +1,16 @@
-import { v, ConvexError } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember } from "../helpers";
+import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query } from "../_generated/server";
+import { assertMember } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
+import { getRun, updateRunStatus } from "./core";
 import {
 	canTransition,
+	ERROR_CODES,
 	eventTypeToStatus,
 	isTerminal,
-	ERROR_CODES,
 	type RunStatus,
 } from "./stateMachine";
-import { getRun, updateRunStatus } from "./core";
 
 // HMAC verification for webhook security
 async function verifyHmacSignature(
@@ -30,7 +30,7 @@ async function verifyHmacSignature(
 
 		// Check clock skew (reject if > 5 minutes)
 		const now = Math.floor(Date.now() / 1000);
-		const timestampInt = parseInt(timestamp, 10);
+		const timestampInt = Number.parseInt(timestamp, 10);
 		const clockSkew = Math.abs(now - timestampInt);
 
 		if (clockSkew > 300) {
@@ -41,26 +41,26 @@ async function verifyHmacSignature(
 		// Create the payload to verify
 		const payloadToVerify = `${timestamp}.${payload}`;
 		const encoder = new TextEncoder();
-		
+
 		// Import the secret key
 		const key = await crypto.subtle.importKey(
 			"raw",
 			encoder.encode(secret),
 			{ name: "HMAC", hash: "SHA-256" },
 			false,
-			["sign"]
+			["sign"],
 		);
 
 		// Generate expected signature
 		const expectedSigBuffer = await crypto.subtle.sign(
 			"HMAC",
 			key,
-			encoder.encode(payloadToVerify)
+			encoder.encode(payloadToVerify),
 		);
-		
+
 		// Convert to hex string
 		const expectedSig = Array.from(new Uint8Array(expectedSigBuffer))
-			.map(b => b.toString(16).padStart(2, "0"))
+			.map((b) => b.toString(16).padStart(2, "0"))
 			.join("");
 
 		// Compare signatures (constant time comparison)
@@ -107,7 +107,13 @@ export const ingestEvent = mutation({
 					data: args.data,
 				});
 
-				if (!(await verifyHmacSignature(payload, args.hmacSignature, webhookSecret))) {
+				if (
+					!(await verifyHmacSignature(
+						payload,
+						args.hmacSignature,
+						webhookSecret,
+					))
+				) {
 					return {
 						ok: false,
 						error: ERROR_CODES.HMAC_VERIFICATION_FAILED,
@@ -207,8 +213,11 @@ export const ingestEvent = mutation({
 					)
 					.order("desc")
 					.take(1);
-					
-				if (recentHeartbeats.length === 0 || Date.now() - recentHeartbeats[0].at > 60000) {
+
+				if (
+					recentHeartbeats.length === 0 ||
+					Date.now() - recentHeartbeats[0].at > 60000
+				) {
 					// Insert new heartbeat if none exists or last one is > 1 min old
 					await ctx.db.insert("agentHeartbeats", {
 						workspaceId: args.workspaceId,
@@ -279,7 +288,8 @@ export const listEvents = query({
 
 		return {
 			events,
-			nextCursor: events.length > 0 ? events[events.length - 1].timestamp : null,
+			nextCursor:
+				events.length > 0 ? events[events.length - 1].timestamp : null,
 			hasMore: events.length === (args.limit ?? 100),
 		};
 	},

@@ -1,10 +1,10 @@
 import { cronJobs } from "convex/server";
-import { internalMutation, internalAction } from "../_generated/server";
-import { internal } from "../_generated/api";
 import { v } from "convex/values";
+import { internal } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import { ERROR_CODES, isRetryableError, type ErrorCode } from "./stateMachine";
+import { internalAction, internalMutation } from "../_generated/server";
 import { updateRunStatus } from "./core";
+import { ERROR_CODES, type ErrorCode, isRetryableError } from "./stateMachine";
 
 /**
  * Timeout stalled runs that haven't had activity for too long
@@ -25,7 +25,9 @@ export const timeoutStalledRuns = internalMutation({
 		// Find runs that are active but haven't had activity recently
 		const stalledRuns = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_lastEvent", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_lastEvent", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.filter((q) =>
 				q.and(
 					q.or(
@@ -107,8 +109,9 @@ export const processQueuedRuns = internalMutation({
 		// Get queued runs ordered by creation time (FIFO)
 		const queuedRuns = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => 
-				q.eq("workspaceId", args.workspaceId).eq("status", "queued"))
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId).eq("status", "queued"),
+			)
 			.take(50);
 
 		let assigned = 0;
@@ -138,7 +141,9 @@ export const processQueuedRuns = internalMutation({
 				// Count active runs for this agent
 				const activeRuns = await ctx.db
 					.query("orchestrationRuns")
-					.withIndex("by_workspace_status", (q) => q.eq("workspaceId", run.workspaceId))
+					.withIndex("by_workspace_status", (q) =>
+						q.eq("workspaceId", run.workspaceId),
+					)
 					.filter((q) =>
 						q.and(
 							q.eq(q.field("assignedTo"), run.assignedTo),
@@ -204,8 +209,9 @@ export const retryTimedOutRuns = internalMutation({
 		// Get timed out runs that haven't exceeded retry limit
 		const timedOutRuns = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => 
-				q.eq("workspaceId", args.workspaceId).eq("status", "timed_out"))
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId).eq("status", "timed_out"),
+			)
 			.take(50);
 
 		let retried = 0;
@@ -234,7 +240,7 @@ export const retryTimedOutRuns = internalMutation({
 				}
 
 				// Add exponential backoff delay
-				const backoffDelay = Math.pow(2, retryCount) * 60 * 1000; // 1min, 2min, 4min, etc.
+				const backoffDelay = 2 ** retryCount * 60 * 1000; // 1min, 2min, 4min, etc.
 				const eligibleAt = (run.endedAt ?? Date.now()) + backoffDelay;
 
 				if (Date.now() < eligibleAt) {
@@ -296,12 +302,13 @@ export const cleanupExpired = internalMutation({
 		// Delete expired events (TTL based)
 		const expiredEvents = await ctx.db
 			.query("orchestrationEvents")
-			.filter((q) => 
+			.filter((q) =>
 				q.and(
 					q.eq(q.field("workspaceId"), args.workspaceId),
-					q.neq(q.field("ttl"), undefined), 
-					q.lt(q.field("ttl"), now)
-				))
+					q.neq(q.field("ttl"), undefined),
+					q.lt(q.field("ttl"), now),
+				),
+			)
 			.take(100);
 
 		for (const event of expiredEvents) {
@@ -311,8 +318,9 @@ export const cleanupExpired = internalMutation({
 		// Mark expired artifacts for deletion
 		const expiredArtifacts = await ctx.db
 			.query("orchestrationArtifacts")
-			.withIndex("by_workspace_expires", (q) => 
-				q.eq("workspaceId", args.workspaceId).lt("expiresAt", now))
+			.withIndex("by_workspace_expires", (q) =>
+				q.eq("workspaceId", args.workspaceId).lt("expiresAt", now),
+			)
 			.filter((q) => q.eq(q.field("deletedAt"), undefined))
 			.take(50);
 
@@ -342,7 +350,7 @@ export const pingAgentHealth = internalAction({
 		// For now, skip agent health pings until we have the proper API generated
 		// Agent health ping function - currently a no-op until agents provide health endpoints
 		// Implementation will be added when agents provide health endpoints
-		
+
 		return {
 			agentsPinged: 0,
 			healthyAgents: 0,
@@ -352,7 +360,7 @@ export const pingAgentHealth = internalAction({
 
 /**
  * Scheduled jobs configuration
- * 
+ *
  * Note: These schedules reference internal functions that will be available
  * after Convex codegen runs and generates the internal API.
  */
@@ -363,7 +371,7 @@ const crons = cronJobs();
 // Run every 5 minutes
 // crons.interval("timeout stalled runs", { minutes: 5 }, internal.orchestration.sweeper.timeoutStalledRuns, {});
 
-// Run every minute  
+// Run every minute
 // crons.interval("process queued runs", { minutes: 1 }, internal.orchestration.sweeper.processQueuedRuns, {});
 
 // Run every 10 minutes

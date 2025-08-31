@@ -1,8 +1,8 @@
 import { v } from "convex/values";
-import { query } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember } from "../helpers";
 import type { Doc, Id } from "../_generated/dataModel";
+import { query } from "../_generated/server";
+import { assertMember } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
 
 /**
  * Real-time subscription for run board/dashboard
@@ -33,7 +33,9 @@ export const watchRunBoard = query({
 
 		let query = ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId));
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			);
 
 		if (args.status) {
 			query = query.filter((q) => q.eq(q.field("status"), args.status));
@@ -153,7 +155,9 @@ export const watchOrchestrationDashboard = query({
 		// Get run counts by status
 		const runs = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.collect();
 
 		const runStats = {
@@ -175,7 +179,9 @@ export const watchOrchestrationDashboard = query({
 		// Get recent jobs
 		const recentJobs = await ctx.db
 			.query("orchestrationJobs")
-			.withIndex("by_workspace_created", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_created", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.order("desc")
 			.take(10);
 
@@ -194,7 +200,9 @@ export const watchOrchestrationDashboard = query({
 		// Get recent events (activity feed)
 		const recentEvents = await ctx.db
 			.query("orchestrationEvents")
-			.withIndex("by_workspace_run_time", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_run_time", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.order("desc")
 			.take(20);
 
@@ -224,7 +232,9 @@ export const watchStalledRuns = query({
 
 		const stalledRuns = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_lastEvent", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_lastEvent", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.filter((q) =>
 				q.and(
 					q.or(
@@ -304,7 +314,9 @@ export const watchAgentHealth = query({
 				// Count active runs
 				const activeRunCount = await ctx.db
 					.query("orchestrationRuns")
-					.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId))
+					.withIndex("by_workspace_status", (q) =>
+						q.eq("workspaceId", args.workspaceId),
+					)
 					.filter((q) =>
 						q.and(
 							q.eq(q.field("assignedTo"), agent.agentId!),

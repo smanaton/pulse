@@ -1,4 +1,36 @@
 // Convex client for Chrome extension using HTTP endpoints for API key auth
+
+interface WebClipMetadata {
+	description?: string;
+	domain?: string;
+	timestamp?: string;
+	[key: string]: unknown;
+}
+
+interface SaveWebClipData {
+	workspaceId: string;
+	url: string;
+	title: string;
+	content: string;
+	metadata?: WebClipMetadata;
+	tags?: string[];
+}
+
+interface AppendToIdeaData {
+	ideaId: string;
+	content: string;
+	metadata?: WebClipMetadata;
+}
+
+// Note: Workspace interface removed as it was unused - types are inferred from API responses
+
+interface FormatContentData {
+	url: string;
+	title: string;
+	content: string;
+	selection?: string;
+	metadata?: WebClipMetadata;
+}
 export function createConvexClient(apiKey: string) {
 	// Use Vite's import.meta.env which works in the browser
 	// Falls back to local dev server if not configured
@@ -9,19 +41,10 @@ export function createConvexClient(apiKey: string) {
 		"Content-Type": "application/json",
 	};
 
-
 	return {
 		// Helper methods for common operations using HTTP endpoints
-		async saveWebClip(data: {
-			workspaceId: string;
-			url: string;
-			title: string;
-			content: string;
-			metadata?: any;
-			tags?: string[];
-		}) {
+		async saveWebClip(data: SaveWebClipData) {
 			try {
-
 				const response = await fetch(`${convexUrl}/api/clipper/capture`, {
 					method: "POST",
 					headers: baseHeaders,
@@ -49,13 +72,8 @@ export function createConvexClient(apiKey: string) {
 			}
 		},
 
-		async appendToIdea(data: {
-			ideaId: string;
-			content: string;
-			metadata?: any;
-		}) {
+		async appendToIdea(data: AppendToIdeaData) {
 			try {
-
 				const response = await fetch(`${convexUrl}/api/clipper/capture`, {
 					method: "POST",
 					headers: baseHeaders,
@@ -84,7 +102,6 @@ export function createConvexClient(apiKey: string) {
 
 		async getUserWorkspaces() {
 			try {
-
 				const response = await fetch(`${convexUrl}/api/clipper/auth`, {
 					method: "POST",
 					headers: baseHeaders,
@@ -112,7 +129,7 @@ export function createConvexClient(apiKey: string) {
 			}
 		},
 
-		async getRecentIdeas(workspaceId: string, limit = 10) {
+		async getRecentIdeas(_workspaceId: string, _limit = 10) {
 			// For now, return empty array as this would need a separate HTTP endpoint
 			// This is used for the "existing note" dropdown
 			try {
@@ -128,7 +145,6 @@ export function createConvexClient(apiKey: string) {
 
 		async validateApiKey() {
 			try {
-
 				const response = await fetch(`${convexUrl}/api/clipper/auth`, {
 					method: "POST",
 					headers: baseHeaders,
@@ -175,13 +191,7 @@ export function extractPageContent() {
 	};
 }
 
-export function formatContentAsMarkdown(data: {
-	url: string;
-	title: string;
-	content: string;
-	selection?: string;
-	metadata?: any;
-}): string {
+export function formatContentAsMarkdown(data: FormatContentData): string {
 	let markdown = `# ${data.title}\n\n`;
 
 	// Add source URL

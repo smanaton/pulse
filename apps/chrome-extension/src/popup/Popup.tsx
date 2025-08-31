@@ -147,7 +147,6 @@ const Popup: React.FC = () => {
 				},
 			});
 
-
 			if (response && response.success && response.result.type === "redirect") {
 				setAwaitingConfirmation(true);
 			}
@@ -194,15 +193,6 @@ const Popup: React.FC = () => {
 		setCapture((prev) => ({ ...prev, isProcessing: true }));
 
 		try {
-				url: currentTab.url,
-				title: currentTab.title,
-				type: capture.type,
-				destination: capture.destination,
-				selectedNote: capture.selectedNote,
-				selectedWorkspace: capture.selectedWorkspace,
-				tags: capture.tags,
-			});
-
 			// Send message to background script to handle capture
 			const response = await browser.runtime.sendMessage({
 				action: "capture",
@@ -216,7 +206,6 @@ const Popup: React.FC = () => {
 					tags: capture.tags,
 				},
 			});
-
 
 			if (response && response.success) {
 				// Close popup after successful capture

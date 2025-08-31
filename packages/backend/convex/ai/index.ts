@@ -1,31 +1,28 @@
 /**
  * AI Module Index
- * 
+ *
  * Clean exports for the refactored AI system
  */
 
 // Export all actions (these are the public API)
-export { 
-  processMessage, 
-  summarizeIdea, 
-  suggestTags, 
-  processCommand 
+export {
+	processCommand,
+	processMessage,
+	suggestTags,
+	summarizeIdea,
 } from "./actions";
-
-// Export types for use in other modules
-export type { 
-  AIModel, 
-  AIRequest, 
-  AIResponse, 
-  AIPolicyLimits 
-} from "./types";
-
+// Export configuration utilities
+export {
+	getAIPolicyLimits,
+	getModelConfig,
+} from "./config";
+export { AIContentServiceImpl } from "./contentService";
 // Export services for testing or advanced usage
 export { AIModelService } from "./modelService";
-export { AIContentServiceImpl } from "./contentService";
-
-// Export configuration utilities
-export { 
-  getAIPolicyLimits, 
-  getModelConfig 
-} from "./config";
+// Export types for use in other modules
+export type {
+	AIModel,
+	AIPolicyLimits,
+	AIRequest,
+	AIResponse,
+} from "./types";

@@ -1,8 +1,8 @@
 // vitest.workspace.ts
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import path from "path";
-import { fileURLToPath } from "url";
 import { defineWorkspace } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

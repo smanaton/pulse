@@ -1,17 +1,17 @@
 /**
  * Ideas API - Thin Convex Adapters
- * 
+ *
  * These are thin adapter functions that handle Convex-specific concerns
  * (auth, database context) and delegate to business logic services.
  */
 
+import type { IBusinessContext } from "@pulse/core/ideas/interfaces";
+import { createServices, IdeaDomainError } from "@pulse/core/ideas/services";
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requireUserId } from "./server/lib/authz";
-import { assertMember } from "./helpers";
 import { createRepositories } from "./adapters/repositories";
-import { createServices, IdeaDomainError } from "@pulse/core/ideas/services";
-import type { IBusinessContext } from "@pulse/core/ideas/interfaces";
+import { assertMember } from "./helpers";
+import { requireUserId } from "./server/lib/authz";
 
 // ============================================================================
 // Input Validation Schemas
@@ -33,7 +33,9 @@ const ideaUpdateArgs = {
 	contentBlocks: v.optional(v.any()),
 	projectId: v.optional(v.id("projects")),
 	folderId: v.optional(v.id("folders")),
-	status: v.optional(v.union(v.literal("draft"), v.literal("active"), v.literal("archived"))),
+	status: v.optional(
+		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
+	),
 };
 
 const ideaSearchArgs = {
@@ -41,7 +43,9 @@ const ideaSearchArgs = {
 	query: v.optional(v.string()),
 	projectId: v.optional(v.id("projects")),
 	folderId: v.optional(v.id("folders")),
-	status: v.optional(v.union(v.literal("draft"), v.literal("active"), v.literal("archived"))),
+	status: v.optional(
+		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
+	),
 	limit: v.optional(v.number()),
 };
 
@@ -60,22 +64,22 @@ const folderCreateArgs = {
  */
 async function createBusinessContext(
 	ctx: any,
-	workspaceId?: string
+	workspaceId?: string,
 ): Promise<IBusinessContext> {
 	const userId = await requireUserId(ctx);
-	
+
 	// Get user's role in the workspace if provided
 	let userRole: string | undefined;
 	if (workspaceId) {
 		const membership = await ctx.db
 			.query("workspaceMembers")
-			.withIndex("by_workspace_user", (q: any) => 
-				q.eq("workspaceId", workspaceId).eq("userId", userId)
+			.withIndex("by_workspace_user", (q: any) =>
+				q.eq("workspaceId", workspaceId).eq("userId", userId),
 			)
 			.first();
 		userRole = membership?.role;
 	}
-	
+
 	return {
 		userId,
 		workspaceId: workspaceId as any,
@@ -93,7 +97,7 @@ function handleDomainError(error: unknown): never {
 			message: error.message,
 		});
 	}
-	
+
 	// Re-throw unexpected errors
 	throw error;
 }
@@ -110,16 +114,18 @@ export const create = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization (Adapter responsibility)
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Delegate to business logic
 			return await services.ideaService.create(args);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -135,24 +141,26 @@ export const update = mutation({
 		try {
 			// Extract ideaId for cleaner service call
 			const { ideaId, ...updateData } = args;
-			
+
 			// 1. Get idea to determine workspace for auth
 			const idea = await ctx.db.get(ideaId);
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			await services.ideaService.update(ideaId, updateData);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -171,18 +179,20 @@ export const remove = mutation({
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			await services.ideaService.delete(args.ideaId);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -201,18 +211,20 @@ export const get = query({
 			if (!idea) {
 				return null;
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			return await services.ideaService.get(args.ideaId);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -227,16 +239,18 @@ export const search = query({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Delegate to business logic
 			return await services.ideaService.search(args);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -247,23 +261,28 @@ export const search = query({
  * List ideas for workspace
  */
 export const list = query({
-	args: { 
-		workspaceId: v.id("workspaces"), 
+	args: {
+		workspaceId: v.id("workspaces"),
 		limit: v.optional(v.number()),
 		projectId: v.optional(v.id("projects")),
 		folderId: v.optional(v.id("folders")),
-		status: v.optional(v.union(v.literal("draft"), v.literal("active"), v.literal("archived")))
+		status: v.optional(
+			v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
+		),
 	},
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Delegate to business logic - use search with no filters
 			return await services.ideaService.search({
 				workspaceId: args.workspaceId,
@@ -272,7 +291,6 @@ export const list = query({
 				folderId: args.folderId,
 				status: args.status,
 			});
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -291,18 +309,20 @@ export const deleteIdea = mutation({
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			await services.ideaService.delete(args.ideaId);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -325,22 +345,24 @@ export const move = mutation({
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			await services.ideaService.move(
 				args.ideaId,
 				args.targetFolderId,
-				args.targetProjectId
+				args.targetProjectId,
 			);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -359,20 +381,22 @@ export const createFolder = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Delegate to business logic
 			return await services.folderService.create(
 				args.workspaceId,
 				args.name,
-				args.parentId
+				args.parentId,
 			);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -389,20 +413,25 @@ export const deleteFolder = mutation({
 			// 1. Get folder to determine workspace for auth
 			const folder = await ctx.db.get(args.folderId);
 			if (!folder) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Folder not found" });
+				throw new ConvexError({
+					code: "NOT_FOUND",
+					message: "Folder not found",
+				});
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, folder.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				folder.workspaceId,
+			);
 			await assertMember(ctx, folder.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Delegate to business logic
 			await services.folderService.delete(args.folderId);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -417,16 +446,18 @@ export const getFolderHierarchy = query({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Delegate to business logic
 			return await services.folderService.getHierarchy(args.workspaceId);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -434,7 +465,7 @@ export const getFolderHierarchy = query({
 });
 
 // ============================================================================
-// Web Clipper Functions (Thin Adapters)  
+// Web Clipper Functions (Thin Adapters)
 // ============================================================================
 
 /**
@@ -453,23 +484,25 @@ export const appendWebClip = mutation({
 			if (!idea) {
 				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
 			}
-			
+
 			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, idea.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				idea.workspaceId,
+			);
 			await assertMember(ctx, idea.workspaceId);
-			
+
 			// 3. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 4. Append content to existing idea
 			const updatedContent = idea.contentMD + "\n\n---\n\n" + args.content;
 			await services.ideaService.update(args.ideaId, {
 				contentMD: updatedContent,
 			});
-			
+
 			return args.ideaId;
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
@@ -493,13 +526,16 @@ export const createFromWebClip = mutation({
 	handler: async (ctx, args) => {
 		try {
 			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(ctx, args.workspaceId);
+			const businessContext = await createBusinessContext(
+				ctx,
+				args.workspaceId,
+			);
 			await assertMember(ctx, args.workspaceId);
-			
+
 			// 2. Create dependencies
 			const repositories = createRepositories(ctx);
 			const services = createServices(repositories, businessContext);
-			
+
 			// 3. Create idea with web clip content
 			const ideaData = {
 				workspaceId: args.workspaceId,
@@ -508,12 +544,10 @@ export const createFromWebClip = mutation({
 				folderId: args.folderId,
 				projectId: args.projectId,
 			};
-			
+
 			return await services.ideaService.create(ideaData);
-			
 		} catch (error) {
 			handleDomainError(error);
 		}
 	},
 });
-

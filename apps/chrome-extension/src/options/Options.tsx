@@ -74,7 +74,6 @@ const Options: React.FC = () => {
 				},
 			});
 
-
 			if (response && response.success) {
 				if (response.result.type === "redirect") {
 					setMessage({

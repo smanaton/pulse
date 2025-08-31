@@ -5,8 +5,8 @@
  * These functions handle sanitization, normalization, and data preparation.
  */
 
-import type { Id } from "../core/types";
 import { sanitizeContent, sanitizeTitle } from "../core/shared";
+import type { Id } from "../core/types";
 import type {
 	CreateFolderInput,
 	CreateIdeaInput,

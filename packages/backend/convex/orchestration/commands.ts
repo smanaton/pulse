@@ -1,15 +1,15 @@
 import { v } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember } from "../helpers";
 import type { Doc, Id } from "../_generated/dataModel";
+import { mutation, query } from "../_generated/server";
+import { assertMember } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
+import { getRun, updateRunStatus } from "./core";
 import {
+	type ControlCommand,
 	canTransition,
 	ERROR_CODES,
 	type RunStatus,
-	type ControlCommand,
 } from "./stateMachine";
-import { getRun, updateRunStatus } from "./core";
 
 /**
  * Emit a control event to an agent
@@ -344,7 +344,9 @@ export const listPendingCommands = query({
 
 		const runs = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.filter((q) =>
 				q.and(
 					q.eq(q.field("assignedTo"), args.agentId),

@@ -1,9 +1,9 @@
-import { v, ConvexError } from "convex/values";
-import { mutation, query, action } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember, generateFileUrl } from "../helpers";
+import { ConvexError, v } from "convex/values";
 import { api, internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
+import { action, mutation, query } from "../_generated/server";
+import { assertMember, generateFileUrl } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
 
 /**
  * Register an artifact produced by a run
@@ -32,7 +32,9 @@ export const registerArtifact = mutation({
 			const existing = await ctx.db
 				.query("orchestrationArtifacts")
 				.withIndex("by_workspace_artifactId", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("artifactId", args.artifactId),
+					q
+						.eq("workspaceId", args.workspaceId)
+						.eq("artifactId", args.artifactId),
 				)
 				.first();
 
@@ -158,8 +160,12 @@ export const presignUpload = action({
 
 		// Generate workspace-isolated storage URLs
 		const fileName = `${args.artifactId}.${args.type}`;
-		const artifactUri = generateFileUrl(args.workspaceId, fileName, args.artifactId);
-		
+		const artifactUri = generateFileUrl(
+			args.workspaceId,
+			fileName,
+			args.artifactId,
+		);
+
 		// In a real implementation with S3/R2, you'd generate actual presigned URLs
 		// For now, we use the same URL pattern with a presigned query param
 		const uploadUrl = `${artifactUri}?upload=true&expires=${Date.now() + 3600000}`;
@@ -186,8 +192,12 @@ export const presignDownload = action({
 	}),
 	handler: async (ctx, args) => {
 		// Generate download URL for artifact access
-		const downloadUrl = generateFileUrl(args.workspaceId, `${args.artifactId}.download`, args.artifactId);
-		
+		const downloadUrl = generateFileUrl(
+			args.workspaceId,
+			`${args.artifactId}.download`,
+			args.artifactId,
+		);
+
 		return {
 			downloadUrl,
 			expiresIn: 3600, // 1 hour
@@ -215,7 +225,9 @@ export const deleteArtifact = mutation({
 			const artifact = await ctx.db
 				.query("orchestrationArtifacts")
 				.withIndex("by_workspace_artifactId", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("artifactId", args.artifactId),
+					q
+						.eq("workspaceId", args.workspaceId)
+						.eq("artifactId", args.artifactId),
 				)
 				.first();
 
@@ -262,7 +274,9 @@ export const updateRetention = mutation({
 			const artifact = await ctx.db
 				.query("orchestrationArtifacts")
 				.withIndex("by_workspace_artifactId", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("artifactId", args.artifactId),
+					q
+						.eq("workspaceId", args.workspaceId)
+						.eq("artifactId", args.artifactId),
 				)
 				.first();
 
@@ -274,7 +288,8 @@ export const updateRetention = mutation({
 			}
 
 			// Calculate new expiration
-			const expiresAt = artifact.createdAt + args.retentionDays * 24 * 60 * 60 * 1000;
+			const expiresAt =
+				artifact.createdAt + args.retentionDays * 24 * 60 * 60 * 1000;
 
 			await ctx.db.patch(artifact._id, {
 				retentionDays: args.retentionDays,
@@ -304,7 +319,9 @@ export const getWorkspaceArtifactStats = query({
 
 		const artifacts = await ctx.db
 			.query("orchestrationArtifacts")
-			.withIndex("by_workspace_created", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_created", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.collect();
 
 		const now = Date.now();
@@ -354,8 +371,15 @@ export const listCleanupCandidates = query({
 		// Find expired but not yet deleted artifacts
 		const candidates = await ctx.db
 			.query("orchestrationArtifacts")
-			.withIndex("by_workspace_expires", (q) => q.eq("workspaceId", args.workspaceId))
-			.filter((q) => q.and(q.lt(q.field("expiresAt"), now), q.eq(q.field("deletedAt"), undefined)))
+			.withIndex("by_workspace_expires", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
+			.filter((q) =>
+				q.and(
+					q.lt(q.field("expiresAt"), now),
+					q.eq(q.field("deletedAt"), undefined),
+				),
+			)
 			.take(args.limit ?? 50);
 
 		return candidates;

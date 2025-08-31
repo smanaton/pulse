@@ -24,7 +24,14 @@ export type ControlCommand =
 const edges: Record<RunStatus, RunStatus[]> = {
 	assigned: ["started", "queued", "failed"],
 	started: ["progress", "blocked", "paused", "failed", "completed"],
-	progress: ["progress", "blocked", "paused", "failed", "completed", "timed_out"],
+	progress: [
+		"progress",
+		"blocked",
+		"paused",
+		"failed",
+		"completed",
+		"timed_out",
+	],
 	blocked: ["started", "failed", "timed_out"],
 	paused: ["started", "failed"],
 	queued: ["assigned", "failed"],

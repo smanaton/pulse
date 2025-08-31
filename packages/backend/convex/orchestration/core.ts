@@ -1,17 +1,16 @@
-import { v, ConvexError } from "convex/values";
-import { mutation, query } from "../_generated/server";
-import type { MutationCtx, QueryCtx } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember } from "../helpers";
-import { checkRateLimit, incrementRateLimit } from "../helpers";
+import { ConvexError, v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { mutation, query } from "../_generated/server";
+import { assertMember, checkRateLimit, incrementRateLimit } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
 import {
 	canTransition,
-	isTerminal,
 	ERROR_CODES,
-	type RunStatus,
 	type ErrorCode,
+	isTerminal,
+	type RunStatus,
 } from "./stateMachine";
 
 /**
@@ -40,7 +39,14 @@ export const submitJob = mutation({
 		await assertMember(ctx, args.workspaceId);
 
 		// Rate limiting
-		const withinLimit = await checkRateLimit(ctx, userId, "orchestration_job", args.workspaceId, 10, 60);
+		const withinLimit = await checkRateLimit(
+			ctx,
+			userId,
+			"orchestration_job",
+			args.workspaceId,
+			10,
+			60,
+		);
 		if (!withinLimit) {
 			throw new ConvexError("Rate limit exceeded for orchestration jobs");
 		}
@@ -73,7 +79,13 @@ export const submitJob = mutation({
 		});
 
 		// Increment rate limit counter
-		await incrementRateLimit(ctx, userId, "orchestration_job", args.workspaceId, 60);
+		await incrementRateLimit(
+			ctx,
+			userId,
+			"orchestration_job",
+			args.workspaceId,
+			60,
+		);
 
 		return { jobId, corrId };
 	},
@@ -301,7 +313,9 @@ export const listJobs = query({
 
 		const jobs = await ctx.db
 			.query("orchestrationJobs")
-			.withIndex("by_workspace_created", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_created", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.order("desc")
 			.take(args.limit ?? 50);
 

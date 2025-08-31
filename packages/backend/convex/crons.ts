@@ -1,6 +1,6 @@
 /**
  * Pulse Scheduled Jobs
- * 
+ *
  * This file exports all cron jobs for the Pulse application,
  * including orchestration sweepers and other maintenance tasks.
  */

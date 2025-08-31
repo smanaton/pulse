@@ -1,8 +1,13 @@
 import { v } from "convex/values";
-import { mutation, query, internalQuery, internalMutation } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
-import { assertMember } from "../helpers";
 import type { Doc, Id } from "../_generated/dataModel";
+import {
+	internalMutation,
+	internalQuery,
+	mutation,
+	query,
+} from "../_generated/server";
+import { assertMember } from "../helpers";
+import { requireUserId } from "../server/lib/authz";
 
 /**
  * Upsert an agent (register or update)
@@ -46,7 +51,9 @@ export const upsertAgent = mutation({
 			const existing = await ctx.db
 				.query("agents")
 				.withIndex("by_workspace_agentId", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("agentId", args.agent.agentId),
+					q
+						.eq("workspaceId", args.workspaceId)
+						.eq("agentId", args.agent.agentId),
 				)
 				.first();
 
@@ -131,7 +138,9 @@ export const listAgents = query({
 		const userId = await requireUserId(ctx);
 		await assertMember(ctx, args.workspaceId);
 
-		let query = ctx.db.query("agents").withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId));
+		let query = ctx.db
+			.query("agents")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId));
 
 		if (args.type) {
 			query = query.filter((q) => q.eq(q.field("type"), args.type));
@@ -145,7 +154,9 @@ export const listAgents = query({
 
 		// Filter by capability if specified
 		if (args.capability) {
-			agents = agents.filter((agent) => agent.capabilities.includes(args.capability!));
+			agents = agents.filter((agent) =>
+				agent.capabilities.includes(args.capability!),
+			);
 		}
 
 		return agents;
@@ -202,7 +213,8 @@ export const matchCapability = query({
 		agents = agents.filter(
 			(agent) =>
 				agent.capabilities.includes(args.capability) &&
-				(!args.excludeAgentIds || !args.excludeAgentIds.includes(agent.agentId!)),
+				(!args.excludeAgentIds ||
+					!args.excludeAgentIds.includes(agent.agentId!)),
 		);
 
 		// Sort by health and load
@@ -322,7 +334,9 @@ export const deactivateAgent = mutation({
 			// Cancel any active runs assigned to this agent
 			const activeRuns = await ctx.db
 				.query("orchestrationRuns")
-				.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId))
+				.withIndex("by_workspace_status", (q) =>
+					q.eq("workspaceId", args.workspaceId),
+				)
 				.filter((q) =>
 					q.and(
 						q.eq(q.field("assignedTo"), args.agentId),
@@ -387,9 +401,14 @@ export const getAgentStats = query({
 		// Get runs for this agent in time range
 		const runs = await ctx.db
 			.query("orchestrationRuns")
-			.withIndex("by_workspace_status", (q) => q.eq("workspaceId", args.workspaceId))
+			.withIndex("by_workspace_status", (q) =>
+				q.eq("workspaceId", args.workspaceId),
+			)
 			.filter((q) =>
-				q.and(q.eq(q.field("assignedTo"), args.agentId), q.gt(q.field("createdAt"), since)),
+				q.and(
+					q.eq(q.field("assignedTo"), args.agentId),
+					q.gt(q.field("createdAt"), since),
+				),
 			)
 			.collect();
 
@@ -408,7 +427,9 @@ export const getAgentStats = query({
 			} else if (run.status === "failed") {
 				failedRuns++;
 			} else if (
-				["assigned", "started", "progress", "blocked", "paused"].includes(run.status)
+				["assigned", "started", "progress", "blocked", "paused"].includes(
+					run.status,
+				)
 			) {
 				activeRuns++;
 			}

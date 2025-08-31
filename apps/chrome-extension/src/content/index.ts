@@ -1,9 +1,17 @@
-import browser from "webextension-polyfill";
-
 // Content script for Pulse Web Clipper
 
+interface PageMetadata {
+	url: string;
+	title: string;
+	description: string;
+	image: string;
+	author: string;
+	publishedTime: string;
+	canonical: string;
+}
+
 // Listen for messages from popup/background
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 	switch (message.action) {
 		case "getSelection":
 			sendResponse({
@@ -92,7 +100,7 @@ function highlightSelection() {
 
 // Function to get page metadata
 function getPageMetadata() {
-	const metadata: any = {
+	const metadata: PageMetadata = {
 		url: window.location.href,
 		title: document.title,
 		description: "",
@@ -198,7 +206,9 @@ function cleanContent(element: HTMLElement): string {
 
 	unwantedSelectors.forEach((selector) => {
 		const elements = clone.querySelectorAll(selector);
-		elements.forEach((el) => el.remove());
+		for (const el of elements) {
+			el.remove();
+		}
 	});
 
 	// Convert to markdown-like format
@@ -207,7 +217,7 @@ function cleanContent(element: HTMLElement): string {
 	// Process headings
 	const headings = clone.querySelectorAll("h1, h2, h3, h4, h5, h6");
 	headings.forEach((heading) => {
-		const level = Number.parseInt(heading.tagName.slice(1));
+		const level = Number.parseInt(heading.tagName.slice(1), 10);
 		const hashes = "#".repeat(level);
 		heading.textContent = `${hashes} ${heading.textContent}`;
 	});
@@ -250,7 +260,18 @@ function cleanContent(element: HTMLElement): string {
 }
 
 // Make functions available globally for background script access
-(window as any).pulseClipper = {
+declare global {
+	interface Window {
+		pulseClipper: {
+			getPageMetadata: () => PageMetadata;
+			extractMainContent: () => string;
+			getSelection: () => string;
+			highlightSelection: () => void;
+		};
+	}
+}
+
+window.pulseClipper = {
 	getPageMetadata,
 	extractMainContent,
 	getSelection: () => window.getSelection()?.toString() || "",

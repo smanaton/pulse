@@ -1,5 +1,5 @@
 import { api } from "@pulse/backend";
-import type { Id, Doc } from "@pulse/backend/dataModel";
+import type { Doc, Id } from "@pulse/backend/dataModel";
 import { useMutation, useQuery } from "convex/react";
 import { Button } from "flowbite-react";
 import {
@@ -34,7 +34,9 @@ export function IdeasSidebar({
 
 	// Get folders and ideas
 	const folders = [] as Doc<"folders">[]; // TODO: Implement folders.list query
-	const ideas = useQuery(api.ideas.list, { workspaceId, limit: 100 }) ?? [] as Doc<"ideas">[];
+	const ideas =
+		useQuery(api.ideas.list, { workspaceId, limit: 100 }) ??
+		([] as Doc<"ideas">[]);
 
 	// TODO: Implement createFolder mutation when folders API is ready
 	const createIdea = useMutation(api.ideas.create);

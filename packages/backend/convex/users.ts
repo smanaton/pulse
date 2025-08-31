@@ -10,7 +10,6 @@ import {
 export const getCurrentUser = query({
 	args: {},
 	handler: async (ctx) => {
-
 		const userId = await getUserIdReadOnly(ctx);
 		if (!userId) {
 			return null;
