@@ -29,6 +29,7 @@
 		"typescript": "^5.9.2",
 		"@types/node": "^22.18.0",
 		"vitest": "^3.2.4",
+		"vite": "^6.2.2",
 		"convex-test": "0.0.38",
 		"@biomejs/biome": "^2.2.0"
 	},

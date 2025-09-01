@@ -11,6 +11,17 @@ export default defineConfig({
 		css: true,
 		clearMocks: true,
 		restoreMocks: true,
+		// Include only unit tests in this config
+		include: [
+			"tests/unit/**/*.spec.ts",
+			"tests/unit/**/*.spec.tsx",
+			"src/**/*.test.ts",
+			"src/**/*.test.tsx",
+		],
+		exclude: [
+			"tests/integration/**/*",
+			"tests/e2e/**/*",
+		],
 		deps: {
 			inline: ["@convex-dev/auth", "convex"],
 		},

@@ -21,7 +21,7 @@ export interface IdeaUpdateResult {
 export declare function processIdeaUpdate(input: UpdateIdeaInput, existingIdea: {
     title: string;
     contentMD: string;
-    contentBlocks?: any;
+    contentBlocks?: unknown;
     status: "draft" | "active" | "archived";
     projectId?: Id<"projects">;
     folderId?: Id<"folders">;
@@ -51,7 +51,7 @@ export interface IdeaDuplicationResult {
 export declare function processDuplicateIdea(originalIdea: {
     title: string;
     contentMD: string;
-    contentBlocks?: any;
+    contentBlocks?: unknown;
     workspaceId: Id<"workspaces">;
     projectId?: Id<"projects">;
     folderId?: Id<"folders">;

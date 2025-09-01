@@ -1,533 +1,697 @@
 /**
- * Ideas API - Thin Convex Adapters
+ * Ideas Management Functions
  *
- * These are thin adapter functions that handle Convex-specific concerns
- * (auth, database context) and delegate to business logic services.
+ * Ideas are creative concepts and lightbulb moments that can be organized
+ * in folders and linked to projects. All functions enforce workspace isolation.
  */
 
-import type { IBusinessContext } from "@pulse/core/ideas/interfaces";
-import { createServices, IdeaDomainError } from "@pulse/core/ideas/services";
 import { ConvexError, v } from "convex/values";
-import type { Doc, Id } from "./_generated/dataModel";
-import {
-	type MutationCtx,
-	mutation,
-	type QueryCtx,
-	query,
-} from "./_generated/server";
-import { createRepositories } from "./adapters/repositories";
-import { assertMember } from "./helpers";
+import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
+import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
-
-// ============================================================================
-// Input Validation Schemas
-// ============================================================================
-
-const ideaCreateArgs = {
-	workspaceId: v.id("workspaces"),
-	projectId: v.optional(v.id("projects")),
-	folderId: v.optional(v.id("folders")),
-	title: v.string(),
-	contentMD: v.string(),
-	contentBlocks: v.optional(v.any()),
-	// Structured idea fields for qualifying lightbulb moments
-	problem: v.optional(v.string()),
-	hypothesis: v.optional(v.string()),
-	value: v.optional(v.string()),
-	risks: v.optional(v.string()),
-};
-
-const ideaUpdateArgs = {
-	ideaId: v.id("ideas"),
-	title: v.optional(v.string()),
-	contentMD: v.optional(v.string()),
-	contentBlocks: v.optional(v.any()),
-	projectId: v.optional(v.id("projects")),
-	folderId: v.optional(v.id("folders")),
-	// Structured idea fields for qualifying lightbulb moments
-	problem: v.optional(v.string()),
-	hypothesis: v.optional(v.string()),
-	value: v.optional(v.string()),
-	risks: v.optional(v.string()),
-	aiSummary: v.optional(v.string()),
-	status: v.optional(
-		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
-	),
-};
-
-const ideaSearchArgs = {
-	workspaceId: v.id("workspaces"),
-	query: v.optional(v.string()),
-	projectId: v.optional(v.id("projects")),
-	folderId: v.optional(v.id("folders")),
-	status: v.optional(
-		v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
-	),
-	limit: v.optional(v.number()),
-};
-
-const folderCreateArgs = {
-	workspaceId: v.id("workspaces"),
-	name: v.string(),
-	parentId: v.optional(v.id("folders")),
-};
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
+import {
+	ideaCreateArgs,
+	ideaDeleteArgs,
+	ideaId,
+	ideaListArgs,
+	ideaMoveArgs,
+	ideaSearchArgs,
+	ideaUpdateArgs,
+	folderCreateArgs,
+	folderDeleteArgs,
+	folderId,
+	workspaceId,
+} from "./validators";
 
 /**
- * Create business context from Convex context
- */
-async function createBusinessContext(
-	ctx: QueryCtx | MutationCtx,
-	workspaceId?: Id<"workspaces">,
-): Promise<IBusinessContext> {
-	const userId = await requireUserId(ctx);
-
-	// Get user's role in the workspace if provided
-	let userRole: string | undefined;
-	if (workspaceId) {
-		const membership = await ctx.db
-			.query("workspaceMembers")
-			.withIndex("by_workspace_user", (q) =>
-				q.eq("workspaceId", workspaceId).eq("userId", userId),
-			)
-			.first();
-		userRole = membership?.role;
-	}
-
-	return {
-		userId,
-		workspaceId,
-		userRole,
-	};
-}
-
-/**
- * Handle domain errors and convert to Convex errors
- */
-function handleDomainError(error: unknown): never {
-	if (error instanceof IdeaDomainError) {
-		throw new ConvexError({
-			code: error.code,
-			message: error.message,
-		});
-	}
-
-	// Re-throw unexpected errors
-	throw error;
-}
-
-// ============================================================================
-// Idea Management Functions (Thin Adapters)
-// ============================================================================
-
-/**
- * Create a new idea
+ * Create a new idea.
  */
 export const create = mutation({
 	args: ideaCreateArgs,
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization (Adapter responsibility)
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const userId = await requireUserId(ctx);
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
+		// Check permissions (editor required)
+		await assertWriteEnabled(ctx, args.workspaceId, "editor");
 
-			// 3. Delegate to business logic
-			return await services.ideaService.create(args);
-		} catch (error) {
-			handleDomainError(error);
-		}
-	},
-});
-
-/**
- * Update an existing idea
- */
-export const update = mutation({
-	args: ideaUpdateArgs,
-	handler: async (ctx, args) => {
-		try {
-			// Extract ideaId for cleaner service call
-			const { ideaId, ...updateData } = args;
-
-			// 1. Get idea to determine workspace for auth
-			const idea: Doc<"ideas"> | null = await ctx.db.get(ideaId);
-			if (!idea) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
+		// Validate project if provided
+		if (args.projectId) {
+			const project = await ctx.db.get(args.projectId);
+			if (!project || project.workspaceId !== args.workspaceId) {
+				throw new ConvexError({
+					code: "NOT_FOUND",
+					message: "Project not found or not in workspace",
+				});
 			}
-
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			await services.ideaService.update(ideaId, updateData);
-		} catch (error) {
-			handleDomainError(error);
 		}
-	},
-});
 
-/**
- * Delete an idea (soft delete)
- */
-export const remove = mutation({
-	args: { ideaId: v.id("ideas") },
-	handler: async (ctx, args) => {
-		try {
-			// 1. Get idea to determine workspace for auth
-			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
-			if (!idea) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
+		// Validate folder if provided
+		if (args.folderId) {
+			const folder = await ctx.db.get(args.folderId);
+			if (!folder || folder.workspaceId !== args.workspaceId) {
+				throw new ConvexError({
+					code: "NOT_FOUND",
+					message: "Folder not found or not in workspace",
+				});
 			}
-
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			await services.ideaService.delete(args.ideaId);
-		} catch (error) {
-			handleDomainError(error);
 		}
+
+		// Validate title
+		const sanitizedTitle = args.title.trim().substring(0, 200);
+		if (!sanitizedTitle) {
+			throw new ConvexError({
+				code: "INVALID_ARGUMENT",
+				message: "Idea title is required",
+			});
+		}
+
+		const now = Date.now();
+
+		// Create idea
+		const ideaId = await ctx.db.insert("ideas", {
+			workspaceId: args.workspaceId,
+			projectId: args.projectId,
+			folderId: args.folderId,
+			title: sanitizedTitle,
+			contentMD: args.contentMD || "",
+			contentBlocks: args.contentBlocks,
+			problem: args.problem,
+			hypothesis: args.hypothesis,
+			value: args.value,
+			risks: args.risks,
+			status: "draft",
+			createdBy: userId,
+			createdAt: now,
+			updatedAt: now,
+		});
+
+		// Log creation event
+		await logEvent(
+			ctx,
+			args.workspaceId,
+			"idea_created",
+			"idea",
+			ideaId,
+			{
+				ideaId,
+				ideaTitle: sanitizedTitle,
+			},
+		);
+
+		return await ctx.db.get(ideaId);
 	},
 });
 
 /**
- * Get a single idea by ID
+ * Get an idea by ID.
  */
 export const get = query({
-	args: { ideaId: v.id("ideas") },
+	args: { workspaceId, ideaId },
 	handler: async (ctx, args) => {
-		try {
-			// 1. Get idea to determine workspace for auth
-			const idea = await ctx.db.get(args.ideaId);
-			if (!idea) {
-				return null;
-			}
+		const _userId = await requireUserId(ctx);
+		await assertMember(ctx, args.workspaceId, "viewer");
 
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
+		const idea = await ctx.db.get(args.ideaId);
 
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			return await services.ideaService.get(args.ideaId);
-		} catch (error) {
-			handleDomainError(error);
+		if (!idea) {
+			return null;
 		}
+
+		// Verify idea belongs to workspace
+		if (idea.workspaceId !== args.workspaceId) {
+			throw new ConvexError({
+				code: "FORBIDDEN",
+				message: "Idea does not belong to workspace",
+			});
+		}
+
+		// Exclude soft-deleted ideas
+		if (idea.deletedAt) {
+			return null;
+		}
+
+		// Enrich with project and folder details
+		const project = idea.projectId ? await ctx.db.get(idea.projectId) : null;
+		const folder = idea.folderId ? await ctx.db.get(idea.folderId) : null;
+		const creator = await ctx.db.get(idea.createdBy);
+
+		return {
+			...idea,
+			project: project ? { _id: project._id, name: project.name } : null,
+			folder: folder ? { _id: folder._id, name: folder.name } : null,
+			creator: creator
+				? {
+						_id: creator._id,
+						name: creator.name,
+						email: creator.email,
+						image: creator.image,
+					}
+				: null,
+		};
 	},
 });
 
 /**
- * Search ideas with filters
+ * List ideas with filtering and search.
+ */
+export const list = query({
+	args: ideaListArgs,
+	handler: async (ctx, args) => {
+		const _userId = await requireUserId(ctx);
+		await assertMember(ctx, args.workspaceId, "viewer");
+
+		let query = ctx.db
+			.query("ideas")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+			.filter((q) => q.eq(q.field("deletedAt"), undefined));
+
+		// Filter by project if specified
+		if (args.projectId) {
+			query = ctx.db
+				.query("ideas")
+				.withIndex("by_workspace_project", (q) =>
+					q.eq("workspaceId", args.workspaceId).eq("projectId", args.projectId)
+				)
+				.filter((q) => q.eq(q.field("deletedAt"), undefined));
+		}
+
+		// Filter by folder if specified
+		if (args.folderId) {
+			query = ctx.db
+				.query("ideas")
+				.withIndex("by_workspace_folder", (q) =>
+					q.eq("workspaceId", args.workspaceId).eq("folderId", args.folderId)
+				)
+				.filter((q) => q.eq(q.field("deletedAt"), undefined));
+		}
+
+		// Apply status filter
+		if (args.status) {
+			query = query.filter((q) => q.eq(q.field("status"), args.status));
+		}
+
+		const limit = Math.min(args.limit ?? 50, 100);
+		const ideas = await query.order("desc").take(limit);
+
+		// Enrich with project and folder details
+		const enrichedIdeas = await Promise.all(
+			ideas.map(async (idea) => {
+				const project = idea.projectId ? await ctx.db.get(idea.projectId) : null;
+				const folder = idea.folderId ? await ctx.db.get(idea.folderId) : null;
+
+				return {
+					...idea,
+					project: project
+						? { _id: project._id, name: project.name, color: project.color }
+						: null,
+					folder: folder ? { _id: folder._id, name: folder.name } : null,
+				};
+			}),
+		);
+
+		return enrichedIdeas;
+	},
+});
+
+/**
+ * Search ideas by content and title.
  */
 export const search = query({
 	args: ideaSearchArgs,
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const _userId = await requireUserId(ctx);
+		await assertMember(ctx, args.workspaceId, "viewer");
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 3. Delegate to business logic
-			return await services.ideaService.search(args);
-		} catch (error) {
-			handleDomainError(error);
+		// If no query provided, return recent ideas
+		if (!args.query?.trim()) {
+			return await ctx.db
+				.query("ideas")
+				.withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+				.filter((q) => q.eq(q.field("deletedAt"), undefined))
+				.order("desc")
+				.take(args.limit || 20);
 		}
+
+		// Simple text search - in a real app you'd want full-text search
+		const allIdeas = await ctx.db
+			.query("ideas")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+			.filter((q) => q.eq(q.field("deletedAt"), undefined))
+			.collect();
+
+		const searchTerm = args.query.toLowerCase();
+		const matchingIdeas = allIdeas
+			.filter(
+				(idea) =>
+					idea.title.toLowerCase().includes(searchTerm) ||
+					idea.contentMD.toLowerCase().includes(searchTerm) ||
+					idea.problem?.toLowerCase().includes(searchTerm) ||
+					idea.hypothesis?.toLowerCase().includes(searchTerm)
+			)
+			.slice(0, args.limit || 20);
+
+		return matchingIdeas;
 	},
 });
 
 /**
- * List ideas for workspace
+ * Update an idea.
  */
-export const list = query({
-	args: {
-		workspaceId: v.id("workspaces"),
-		limit: v.optional(v.number()),
-		projectId: v.optional(v.id("projects")),
-		folderId: v.optional(v.id("folders")),
-		status: v.optional(
-			v.union(v.literal("draft"), v.literal("active"), v.literal("archived")),
-		),
-	},
+export const update = mutation({
+	args: ideaUpdateArgs,
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const userId = await requireUserId(ctx);
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 3. Delegate to business logic - use search with no filters
-			return await services.ideaService.search({
-				workspaceId: args.workspaceId,
-				limit: args.limit,
-				projectId: args.projectId,
-				folderId: args.folderId,
-				status: args.status,
+		const idea = await ctx.db.get(args.ideaId);
+		if (!idea) {
+			throw new ConvexError({
+				code: "NOT_FOUND",
+				message: "Idea not found",
 			});
-		} catch (error) {
-			handleDomainError(error);
 		}
-	},
-});
 
-/**
- * Delete an idea (alias for remove for backward compatibility)
- */
-export const deleteIdea = mutation({
-	args: { ideaId: v.id("ideas") },
-	handler: async (ctx, args) => {
-		try {
-			// 1. Get idea to determine workspace for auth
-			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
-			if (!idea) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
+		// Check permissions
+		await assertWriteEnabled(ctx, idea.workspaceId, "editor");
+
+
+		const updates: any = {
+			updatedAt: Date.now(),
+		};
+
+		// Handle title update
+		if (args.title !== undefined) {
+			const sanitizedTitle = args.title.trim().substring(0, 200);
+			if (!sanitizedTitle) {
+				throw new ConvexError({
+					code: "INVALID_ARGUMENT",
+					message: "Idea title cannot be empty",
+				});
 			}
-
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			await services.ideaService.delete(args.ideaId);
-		} catch (error) {
-			handleDomainError(error);
+			updates.title = sanitizedTitle;
 		}
+
+		// Handle content updates
+		if (args.contentMD !== undefined) updates.contentMD = args.contentMD;
+		if (args.contentBlocks !== undefined) updates.contentBlocks = args.contentBlocks;
+
+		// Handle structured fields
+		if (args.problem !== undefined) updates.problem = args.problem;
+		if (args.hypothesis !== undefined) updates.hypothesis = args.hypothesis;
+		if (args.value !== undefined) updates.value = args.value;
+		if (args.risks !== undefined) updates.risks = args.risks;
+
+		// Handle status update
+		if (args.status !== undefined) updates.status = args.status;
+
+		// Handle project assignment
+		if (args.projectId !== undefined) {
+			if (args.projectId) {
+				const project = await ctx.db.get(args.projectId);
+				if (!project || project.workspaceId !== idea.workspaceId) {
+					throw new ConvexError({
+						code: "NOT_FOUND",
+						message: "Project not found or not in workspace",
+					});
+				}
+			}
+			updates.projectId = args.projectId;
+		}
+
+		// Handle folder assignment
+		if (args.folderId !== undefined) {
+			if (args.folderId) {
+				const folder = await ctx.db.get(args.folderId);
+				if (!folder || folder.workspaceId !== idea.workspaceId) {
+					throw new ConvexError({
+						code: "NOT_FOUND",
+						message: "Folder not found or not in workspace",
+					});
+				}
+			}
+			updates.folderId = args.folderId;
+		}
+
+		await ctx.db.patch(args.ideaId, updates);
+
+		// Log update event
+		await logEvent(
+			ctx,
+			idea.workspaceId,
+			"idea_updated",
+			"idea",
+			args.ideaId,
+			{
+				ideaId: args.ideaId,
+				ideaTitle: updates.title || idea.title,
+				updatedFields: Object.keys(updates),
+			},
+		);
+
+		return await ctx.db.get(args.ideaId);
 	},
 });
 
 /**
- * Move idea to different folder/project
+ * Move an idea to a different folder or project.
  */
 export const move = mutation({
-	args: {
-		ideaId: v.id("ideas"),
-		targetFolderId: v.optional(v.id("folders")),
-		targetProjectId: v.optional(v.id("projects")),
-	},
+	args: ideaMoveArgs,
 	handler: async (ctx, args) => {
-		try {
-			// 1. Get idea to determine workspace for auth
-			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
-			if (!idea) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
-			}
+		const userId = await requireUserId(ctx);
 
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			await services.ideaService.move(
-				args.ideaId,
-				args.targetFolderId,
-				args.targetProjectId,
-			);
-		} catch (error) {
-			handleDomainError(error);
+		const idea = await ctx.db.get(args.ideaId);
+		if (!idea) {
+			throw new ConvexError({
+				code: "NOT_FOUND",
+				message: "Idea not found",
+			});
 		}
+
+		// Check permissions
+		await assertWriteEnabled(ctx, idea.workspaceId, "editor");
+
+		// Validate target folder if provided
+		if (args.targetFolderId) {
+			const folder = await ctx.db.get(args.targetFolderId);
+			if (!folder || folder.workspaceId !== idea.workspaceId) {
+				throw new ConvexError({
+					code: "NOT_FOUND",
+					message: "Target folder not found or not in workspace",
+				});
+			}
+		}
+
+		// Validate target project if provided
+		if (args.targetProjectId) {
+			const project = await ctx.db.get(args.targetProjectId);
+			if (!project || project.workspaceId !== idea.workspaceId) {
+				throw new ConvexError({
+					code: "NOT_FOUND",
+					message: "Target project not found or not in workspace",
+				});
+			}
+		}
+
+		// Update assignments
+		await ctx.db.patch(args.ideaId, {
+			folderId: args.targetFolderId,
+			projectId: args.targetProjectId,
+			updatedAt: Date.now(),
+		});
+
+		// Log move event
+		await logEvent(
+			ctx,
+			idea.workspaceId,
+			"idea_moved",
+			"idea",
+			args.ideaId,
+			{
+				ideaId: args.ideaId,
+				ideaTitle: idea.title,
+				fromFolder: idea.folderId,
+				toFolder: args.targetFolderId,
+				fromProject: idea.projectId,
+				toProject: args.targetProjectId,
+			},
+		);
+
+		return await ctx.db.get(args.ideaId);
+	},
+});
+
+/**
+ * Delete an idea (soft delete).
+ */
+export const deleteIdea = mutation({
+	args: ideaDeleteArgs,
+	handler: async (ctx, args) => {
+		const userId = await requireUserId(ctx);
+
+		const idea = await ctx.db.get(args.ideaId);
+		if (!idea) {
+			throw new ConvexError({
+				code: "NOT_FOUND",
+				message: "Idea not found",
+			});
+		}
+
+		// Check permissions (only creator or admins can delete)
+		await assertWriteEnabled(ctx, idea.workspaceId, "editor");
+
+		const membership = await ctx.db
+			.query("workspaceMembers")
+			.withIndex("by_workspace_user", (q) =>
+				q.eq("workspaceId", idea.workspaceId).eq("userId", userId)
+			)
+			.first();
+
+		if (
+			idea.createdBy !== userId &&
+			membership?.role !== "owner" &&
+			membership?.role !== "admin"
+		) {
+			throw new ConvexError({
+				code: "FORBIDDEN",
+				message: "Only idea creator or admins can delete ideas",
+			});
+		}
+
+		// Soft delete
+		await ctx.db.patch(args.ideaId, {
+			deletedAt: Date.now(),
+			updatedAt: Date.now(),
+		});
+
+		// Log deletion event
+		await logEvent(
+			ctx,
+			idea.workspaceId,
+			"idea_deleted",
+			"idea",
+			args.ideaId,
+			{ ideaId: args.ideaId, ideaTitle: idea.title },
+		);
 	},
 });
 
 // ============================================================================
-// Folder Management Functions (Thin Adapters)
+// Folder Management Functions
 // ============================================================================
 
 /**
- * Create a new folder
+ * Create a new folder.
  */
 export const createFolder = mutation({
 	args: folderCreateArgs,
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const userId = await requireUserId(ctx);
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
+		// Check permissions (editor required)
+		await assertWriteEnabled(ctx, args.workspaceId, "editor");
 
-			// 3. Delegate to business logic
-			return await services.folderService.create(
-				args.workspaceId,
-				args.name,
-				args.parentId,
-			);
-		} catch (error) {
-			handleDomainError(error);
-		}
-	},
-});
-
-/**
- * Delete a folder
- */
-export const deleteFolder = mutation({
-	args: { folderId: v.id("folders") },
-	handler: async (ctx, args) => {
-		try {
-			// 1. Get folder to determine workspace for auth
-			const folder = await ctx.db.get(args.folderId);
-			if (!folder) {
+		// Validate parent folder if provided
+		if (args.parentId) {
+			const parentFolder = await ctx.db.get(args.parentId);
+			if (!parentFolder || parentFolder.workspaceId !== args.workspaceId) {
 				throw new ConvexError({
 					code: "NOT_FOUND",
-					message: "Folder not found",
+					message: "Parent folder not found or not in workspace",
 				});
 			}
-
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				folder.workspaceId,
-			);
-			await assertMember(ctx, folder.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Delegate to business logic
-			await services.folderService.delete(args.folderId);
-		} catch (error) {
-			handleDomainError(error);
 		}
+
+		// Validate name
+		const sanitizedName = args.name.trim().substring(0, 100);
+		if (!sanitizedName) {
+			throw new ConvexError({
+				code: "INVALID_ARGUMENT",
+				message: "Folder name is required",
+			});
+		}
+
+		const now = Date.now();
+
+		// Create folder with sortKey based on creation time
+		const folderId = await ctx.db.insert("folders", {
+			workspaceId: args.workspaceId,
+			name: sanitizedName,
+			parentId: args.parentId,
+			sortKey: now, // Use timestamp for ordering
+			createdBy: userId,
+			createdAt: now,
+			updatedAt: now,
+		});
+
+		// Log creation event
+		await logEvent(
+			ctx,
+			args.workspaceId,
+			"folder_created",
+			"folder",
+			folderId,
+			{
+				folderId,
+				folderName: sanitizedName,
+			},
+		);
+
+		return await ctx.db.get(folderId);
 	},
 });
 
 /**
- * Get folder hierarchy for workspace
+ * Get folder hierarchy for workspace.
  */
 export const getFolderHierarchy = query({
-	args: { workspaceId: v.id("workspaces") },
+	args: { workspaceId },
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const _userId = await requireUserId(ctx);
+		await assertMember(ctx, args.workspaceId, "viewer");
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
+		const folders = await ctx.db
+			.query("folders")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", args.workspaceId))
+			.filter((q) => q.eq(q.field("deletedAt"), undefined))
+			.collect();
 
-			// 3. Delegate to business logic
-			return await services.folderService.getHierarchy(args.workspaceId);
-		} catch (error) {
-			handleDomainError(error);
-		}
-	},
-});
+		// Build hierarchy
+		const folderMap = new Map(folders.map((f) => [f._id, { ...f, children: [] }]));
+		const rootFolders: any[] = [];
 
-// ============================================================================
-// Web Clipper Functions (Thin Adapters)
-// ============================================================================
-
-/**
- * Append web clip content to existing idea
- */
-export const appendWebClip = mutation({
-	args: {
-		ideaId: v.id("ideas"),
-		content: v.string(),
-		metadata: v.optional(v.any()),
-	},
-	handler: async (ctx, args) => {
-		try {
-			// 1. Get idea to determine workspace for auth
-			const idea: Doc<"ideas"> | null = await ctx.db.get(args.ideaId);
-			if (!idea) {
-				throw new ConvexError({ code: "NOT_FOUND", message: "Idea not found" });
+		folders.forEach((folder) => {
+			const folderWithChildren = folderMap.get(folder._id);
+			if (folder.parentId && folderMap.has(folder.parentId)) {
+				folderMap.get(folder.parentId)!.children.push(folderWithChildren);
+			} else {
+				rootFolders.push(folderWithChildren);
 			}
+		});
 
-			// 2. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				idea.workspaceId,
-			);
-			await assertMember(ctx, idea.workspaceId);
-
-			// 3. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
-
-			// 4. Append content to existing idea
-			const updatedContent = `${idea.contentMD}\n\n---\n\n${args.content}`;
-			await services.ideaService.update(args.ideaId, {
-				contentMD: updatedContent,
-			});
-
-			return args.ideaId;
-		} catch (error) {
-			handleDomainError(error);
-		}
+		return rootFolders;
 	},
 });
 
 /**
- * Create new idea from web clip
+ * Delete a folder (soft delete).
+ */
+export const deleteFolder = mutation({
+	args: folderDeleteArgs,
+	handler: async (ctx, args) => {
+		const userId = await requireUserId(ctx);
+
+		const folder = await ctx.db.get(args.folderId);
+		if (!folder) {
+			throw new ConvexError({
+				code: "NOT_FOUND",
+				message: "Folder not found",
+			});
+		}
+
+		// Check permissions (admin required for deletion)
+		await assertWriteEnabled(ctx, folder.workspaceId, "admin");
+
+		// Check if folder has children
+		const childFolders = await ctx.db
+			.query("folders")
+			.withIndex("by_workspace", (q) => q.eq("workspaceId", folder.workspaceId))
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("parentId"), args.folderId),
+					q.eq(q.field("deletedAt"), undefined)
+				)
+			)
+			.collect();
+
+		if (childFolders.length > 0) {
+			throw new ConvexError({
+				code: "INVALID_ARGUMENT",
+				message: "Cannot delete folder with subfolders",
+			});
+		}
+
+		// Check if folder has ideas
+		const ideasInFolder = await ctx.db
+			.query("ideas")
+			.withIndex("by_workspace_folder", (q) =>
+				q.eq("workspaceId", folder.workspaceId).eq("folderId", args.folderId)
+			)
+			.filter((q) => q.eq(q.field("deletedAt"), undefined))
+			.collect();
+
+		if (ideasInFolder.length > 0) {
+			throw new ConvexError({
+				code: "INVALID_ARGUMENT",
+				message: "Cannot delete folder containing ideas",
+			});
+		}
+
+		// Soft delete
+		await ctx.db.patch(args.folderId, {
+			deletedAt: Date.now(),
+			updatedAt: Date.now(),
+		});
+
+		// Log deletion event
+		await logEvent(
+			ctx,
+			folder.workspaceId,
+			"folder_deleted",
+			"folder",
+			args.folderId,
+			{ folderId: args.folderId, folderName: folder.name },
+		);
+	},
+});
+
+// ============================================================================
+// Legacy/Extension Functions (keeping for compatibility)
+// ============================================================================
+
+/**
+ * Add content to existing idea.
+ */
+export const addContent = mutation({
+	args: {
+		ideaId,
+		content: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const userId = await requireUserId(ctx);
+
+		const idea = await ctx.db.get(args.ideaId);
+		if (!idea) {
+			throw new ConvexError({
+				code: "NOT_FOUND",
+				message: "Idea not found",
+			});
+		}
+
+		// Check permissions
+		await assertWriteEnabled(ctx, idea.workspaceId, "editor");
+
+		// Append content to existing idea
+		const updatedContent = `${idea.contentMD}\n\n---\n\n${args.content}`;
+		await ctx.db.patch(args.ideaId, {
+			contentMD: updatedContent,
+			updatedAt: Date.now(),
+		});
+
+		// Log update event
+		await logEvent(
+			ctx,
+			idea.workspaceId,
+			"idea_updated",
+			"idea",
+			args.ideaId,
+			{ ideaId: args.ideaId, ideaTitle: idea.title, action: "content_added" },
+		);
+	},
+});
+
+/**
+ * Create idea from web clip.
  */
 export const createFromWebClip = mutation({
 	args: {
@@ -541,30 +705,36 @@ export const createFromWebClip = mutation({
 		tags: v.optional(v.array(v.string())),
 	},
 	handler: async (ctx, args) => {
-		try {
-			// 1. Authentication & Authorization
-			const businessContext = await createBusinessContext(
-				ctx,
-				args.workspaceId,
-			);
-			await assertMember(ctx, args.workspaceId);
+		const userId = await requireUserId(ctx);
 
-			// 2. Create dependencies
-			const repositories = createRepositories(ctx);
-			const services = createServices(repositories, businessContext);
+		// Check permissions
+		await assertWriteEnabled(ctx, args.workspaceId, "editor");
 
-			// 3. Create idea with web clip content
-			const ideaData = {
-				workspaceId: args.workspaceId,
-				title: args.title,
-				contentMD: args.content,
-				folderId: args.folderId,
-				projectId: args.projectId,
-			};
+		// Create idea with web clip content
+		const ideaData = {
+			workspaceId: args.workspaceId,
+			title: args.title,
+			contentMD: args.content,
+			folderId: args.folderId,
+			projectId: args.projectId,
+		};
 
-			return await services.ideaService.create(ideaData);
-		} catch (error) {
-			handleDomainError(error);
-		}
+		const ideaId = await ctx.runMutation(api.ideas.create, ideaData);
+
+		// Log web clip event
+		await logEvent(
+			ctx,
+			args.workspaceId,
+			"web_clip_created",
+			"idea",
+			ideaId,
+			{
+				ideaId,
+				url: args.url,
+				ideaTitle: args.title,
+			},
+		);
+
+		return ideaId;
 	},
 });

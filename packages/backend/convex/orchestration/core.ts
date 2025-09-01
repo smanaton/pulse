@@ -40,7 +40,7 @@ export const submitJob = mutation({
 		const withinLimit = await checkRateLimit(
 			ctx,
 			userId,
-			"orchestration_job",
+			"ai_tokens_daily",
 			args.workspaceId,
 			10,
 			60,
@@ -80,7 +80,7 @@ export const submitJob = mutation({
 		await incrementRateLimit(
 			ctx,
 			userId,
-			"orchestration_job",
+			"ai_tokens_daily",
 			args.workspaceId,
 			60,
 		);

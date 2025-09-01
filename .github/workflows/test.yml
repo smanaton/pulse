@@ -1,0 +1,475 @@
+# Enhanced Test CI Pipeline
+# Implements pragmatic test pyramid: Unit → Integration → Contract → E2E
+# Fast feedback, parallel execution, fail-fast strategy
+
+name: Test Suite
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  # Allow manual triggering
+  workflow_dispatch:
+
+# Cancel in-progress runs for the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Global environment variables
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10.15.0"
+
+jobs:
+  # Job 1: Setup and Dependencies
+  setup:
+    name: Setup Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "key=${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+  # Job 2: Lint and Type Check (Fast feedback)
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript type checking
+        run: pnpm typecheck
+
+      - name: Biome lint check
+        run: pnpm check --max-diagnostics=20
+
+      - name: Convex security guard validation
+        run: pnpm repo:guards
+
+  # Job 3: Unit Tests (Fast, isolated)
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        package: [web, backend, core, ideas-logic, extension]
+        include:
+          - package: web
+            path: apps/web
+            script: test:unit
+          - package: backend
+            path: packages/backend
+            script: test:unit
+          - package: core
+            path: packages/core
+            script: test
+          - package: ideas-logic
+            path: packages/ideas-logic
+            script: test
+          - package: extension
+            path: apps/extension
+            script: test:unit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm -F ${{ matrix.package }} run ${{ matrix.script }} --coverage --reporter=verbose
+        env:
+          # Ensure tests run in CI mode
+          CI: true
+          NODE_ENV: test
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ${{ matrix.path }}/coverage/lcov.info
+          flags: unit-${{ matrix.package }}
+          name: unit-${{ matrix.package }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: always()
+
+  # Job 4: Contract Tests (API shape validation)
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    needs: [setup, lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run contract tests
+        run: |
+          cd tests/contracts
+          pnpm vitest run --reporter=verbose
+        env:
+          CI: true
+
+      - name: Upload contract test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-test-results
+          path: tests/contracts/test-results/
+        if: always()
+
+  # Job 5: Integration Tests (Router + Convex)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [setup, unit-tests]
+    services:
+      # Mock Convex service for integration tests
+      convex-mock:
+        image: node:22-alpine
+        ports:
+          - 8787:8787
+        options: --health-cmd="wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1" --health-interval=30s --health-timeout=10s --health-retries=3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run integration tests (Web)
+        run: pnpm -F web run test:integration --coverage
+        env:
+          CI: true
+          # Mock Convex URL for integration tests
+          CONVEX_URL: http://localhost:8787
+
+      - name: Run integration tests (Backend)
+        run: pnpm -F @pulse/backend run test:integration
+        env:
+          CI: true
+
+      - name: Upload integration coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: apps/web/coverage/lcov.info
+          flags: integration
+          name: integration-tests
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: always()
+
+  # Job 6: E2E Tests (Smoke only on PR, full on main)
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [setup, integration-tests, contract-tests]
+    # Only run E2E on main branch or when PR is labeled
+    if: github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'e2e')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run E2E smoke tests
+        run: npx playwright test --project=smoke-chromium --reporter=html
+        env:
+          CI: true
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+        if: always()
+
+      - name: Upload E2E artifacts on failure
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failures
+          path: |
+            test-results/
+            playwright-report/
+        if: failure()
+
+  # Job 7: Build Verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [setup, lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            apps/web/dist/
+            packages/*/dist/
+        if: success()
+
+  # Job 8: Test Summary (Collects all results)
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, contract-tests, integration-tests, build]
+    # Always run summary, even if some jobs fail
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Contract Tests: ${{ needs.contract-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          
+          # Fail if any critical job failed
+          if [[ "${{ needs.lint.result }}" == "failure" || 
+                "${{ needs.unit-tests.result }}" == "failure" || 
+                "${{ needs.build.result }}" == "failure" ]]; then
+            echo "❌ Critical tests failed"
+            exit 1
+          fi
+          
+          # Warn if non-critical jobs failed
+          if [[ "${{ needs.contract-tests.result }}" == "failure" || 
+                "${{ needs.integration-tests.result }}" == "failure" ]]; then
+            echo "⚠️ Some tests failed but not blocking"
+            # Don't exit 1 - these are warnings
+          fi
+          
+          echo "✅ Test pipeline completed"
+
+  # Job 9: Performance Tests (Only on main branch)
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            apps/*/node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run performance tests
+        run: |
+          # Bundle size analysis
+          pnpm -F web run build --analyzer
+          
+          # Performance audit (if you have performance tests)
+          # pnpm -F web run test:performance
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: apps/web/dist/stats.html
+        if: always()

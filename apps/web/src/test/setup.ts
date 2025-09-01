@@ -92,6 +92,11 @@ vi.mock("convex/react", () => ({
 			Promise.resolve({ type: "success", message: "Action completed" }),
 		),
 	),
+	useConvex: vi.fn(() => ({
+		query: vi.fn(),
+		mutation: vi.fn(),
+		action: vi.fn(),
+	})),
 	Authenticated: vi.fn(
 		({ children }: { children: React.ReactNode }) => children,
 	),
