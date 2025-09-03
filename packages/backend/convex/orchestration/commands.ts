@@ -166,12 +166,12 @@ export const cancelRun = mutation({
 				};
 			}
 
-			// Update run with command tracking (acknowledgment will be set when agent processes the command)
+			// Update run with command tracking (cancel executes synchronously, acknowledge immediately)
 			await ctx.db.patch(run._id, {
 				lastCommand: {
 					type: "run.cancel",
 					issuedAt: Date.now(),
-					acknowledgedAt: undefined,
+					acknowledgedAt: Date.now(),
 				},
 			});
 
@@ -384,7 +384,7 @@ export const getCommandStatus = query({
 		const run = await getRun(ctx, args.workspaceId, args.runId);
 
 		return {
-			lastCommand: run.lastCommand ?? undefined,
+			lastCommand: run.lastCommand ?? null,
 			isPending: !!(run.lastCommand && !run.lastCommand.acknowledgedAt),
 		};
 	},
