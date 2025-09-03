@@ -166,12 +166,12 @@ export const cancelRun = mutation({
 				};
 			}
 
-			// Update run with command tracking (immediately acknowledged since it executes synchronously)
+			// Update run with command tracking (acknowledgment will be set when agent processes the command)
 			await ctx.db.patch(run._id, {
 				lastCommand: {
 					type: "run.cancel",
 					issuedAt: Date.now(),
-					acknowledgedAt: Date.now(),
+					acknowledgedAt: null,
 				},
 			});
 
