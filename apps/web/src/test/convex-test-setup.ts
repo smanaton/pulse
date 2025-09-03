@@ -8,9 +8,62 @@
 // Test setup for future real Convex integration
 // For now, we use smart mocks that provide realistic behavior
 
+// Test user type
+interface TestUser {
+	_id: string;
+	_creationTime: number;
+	email: string;
+	name: string;
+	image?: string | null;
+	emailVerified?: number;
+	createdAt: number;
+	updatedAt: number;
+}
+
+// Test workspace type
+interface TestWorkspace {
+	_id: string;
+	_creationTime: number;
+	type: "personal" | "shared";
+	isPersonal: boolean;
+	plan: "free" | "pro" | "enterprise";
+	name: string;
+	ownerUserId: string;
+	createdAt: number;
+	updatedAt: number;
+}
+
+// Test idea type
+interface TestIdea {
+	_id: string;
+	_creationTime: number;
+	workspaceId: string;
+	title: string;
+	contentMD: string;
+	status: "draft" | "published" | "archived";
+	projectId?: string;
+	createdBy: string;
+	createdAt: number;
+	updatedAt: number;
+}
+
+// Test project type
+interface TestProject {
+	_id: string;
+	_creationTime: number;
+	workspaceId: string;
+	name: string;
+	description: string;
+	status: "active" | "completed" | "archived";
+	sortKey: number;
+	createdBy: string;
+	createdAt: number;
+	updatedAt: number;
+}
+
 // Test data factories with proper types
 export const TestDataFactory = {
-	user: (overrides?: Partial<any>) => ({
+	user: (overrides?: Partial<TestUser>): TestUser => ({
 		_id: "user_test_123",
 		_creationTime: Date.now(),
 		email: "test@example.com",
@@ -22,7 +75,7 @@ export const TestDataFactory = {
 		...overrides,
 	}),
 
-	workspace: (overrides?: Partial<any>) => ({
+	workspace: (overrides?: Partial<TestWorkspace>): TestWorkspace => ({
 		_id: "workspace_test_123",
 		_creationTime: Date.now(),
 		type: "personal" as const,
@@ -35,7 +88,7 @@ export const TestDataFactory = {
 		...overrides,
 	}),
 
-	idea: (overrides?: Partial<any>) => ({
+	idea: (overrides?: Partial<TestIdea>): TestIdea => ({
 		_id: "idea_test_123",
 		_creationTime: Date.now(),
 		workspaceId: "workspace_test_123",
@@ -48,7 +101,7 @@ export const TestDataFactory = {
 		...overrides,
 	}),
 
-	project: (overrides?: Partial<any>) => ({
+	project: (overrides?: Partial<TestProject>): TestProject => ({
 		_id: "project_test_123",
 		_creationTime: Date.now(),
 		workspaceId: "workspace_test_123",
@@ -90,7 +143,7 @@ export const TestScenarios = {
 				projectId: project._id,
 				createdBy: user._id,
 				title: "Second Test Idea",
-				status: "active" as const,
+				status: "published" as const,
 			}),
 		];
 		return { user, workspace, project, ideas };

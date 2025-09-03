@@ -1,4 +1,5 @@
 import { api } from "@pulse/backend";
+import type { Id } from "@pulse/backend/dataModel";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { useState } from "react";
@@ -19,7 +20,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 	{
 		id: "board-1",
 		title: "To Do",
-		workspaceId: workspaceId as any,
+		workspaceId: workspaceId as Id<"workspaces">,
 		position: 0,
 		tasks: [
 			{
@@ -35,7 +36,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				estimatedHours: 8,
 				tags: ["design", "wireframes", "dashboard"],
 				assignedTo: [],
-				createdBy: "user1" as any,
+				createdBy: "user1" as Id<"users">,
 				createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
 			},
@@ -52,7 +53,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				estimatedHours: 4,
 				tags: ["setup", "repository", "devops"],
 				assignedTo: [],
-				createdBy: "user2" as any,
+				createdBy: "user2" as Id<"users">,
 				createdAt: Date.now() - 1 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 6 * 60 * 60 * 1000,
 			},
@@ -61,7 +62,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 	{
 		id: "board-2",
 		title: "In Progress",
-		workspaceId: workspaceId as any,
+		workspaceId: workspaceId as Id<"workspaces">,
 		position: 1,
 		tasks: [
 			{
@@ -78,7 +79,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				actualHours: 8,
 				tags: ["backend", "auth", "security"],
 				assignedTo: [],
-				createdBy: "user1" as any,
+				createdBy: "user1" as Id<"users">,
 				createdAt: Date.now() - 3 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 2 * 60 * 60 * 1000,
 			},
@@ -87,7 +88,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 	{
 		id: "board-3",
 		title: "Review",
-		workspaceId: workspaceId as any,
+		workspaceId: workspaceId as Id<"workspaces">,
 		position: 2,
 		tasks: [
 			{
@@ -104,7 +105,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				actualHours: 2,
 				tags: ["review", "api", "backend"],
 				assignedTo: [],
-				createdBy: "user3" as any,
+				createdBy: "user3" as Id<"users">,
 				createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 1 * 60 * 60 * 1000,
 			},
@@ -113,7 +114,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 	{
 		id: "board-4",
 		title: "Done",
-		workspaceId: workspaceId as any,
+		workspaceId: workspaceId as Id<"workspaces">,
 		position: 3,
 		tasks: [
 			{
@@ -129,7 +130,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				actualHours: 14,
 				tags: ["planning", "requirements", "documentation"],
 				assignedTo: [],
-				createdBy: "user1" as any,
+				createdBy: "user1" as Id<"users">,
 				createdAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
 			},
@@ -146,7 +147,7 @@ const createMockBoards = (workspaceId: string): KanbanBoardType[] => [
 				actualHours: 6,
 				tags: ["database", "schema", "backend"],
 				assignedTo: [],
-				createdBy: "user2" as any,
+				createdBy: "user2" as Id<"users">,
 				createdAt: Date.now() - 6 * 24 * 60 * 60 * 1000,
 				updatedAt: Date.now() - 4 * 24 * 60 * 60 * 1000,
 			},

@@ -18,10 +18,13 @@ vi.mock("../../../core/src/shared", () => ({
 	}),
 
 	sanitizeTitle: vi.fn((title: string) => {
-		return title
-			.trim()
-			.replace(/[\x00-\x1F\x7F]/g, "")
-			.substring(0, 200);
+		return (
+			title
+				.trim()
+				// biome-ignore lint/suspicious/noControlCharactersInRegex: sanitize helper for test inputs
+				.replace(/[\u0000-\u001F\u007F]/g, "")
+				.substring(0, 200)
+		);
 	}),
 
 	formatDate: vi.fn((timestamp: number) => {

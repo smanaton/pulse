@@ -154,6 +154,7 @@ export function ProjectFilters({
 				<div className="flex flex-wrap gap-2">
 					{statusOptions.map((status) => (
 						<button
+							type="button"
 							key={status.value}
 							onClick={() => toggleArrayFilter("status", status.value)}
 							className={`rounded-full px-3 py-1 font-medium text-sm transition-colors ${
@@ -172,12 +173,13 @@ export function ProjectFilters({
 					<div className="space-y-4 border-gray-200 border-t pt-4 dark:border-gray-700">
 						{/* Priority Filter */}
 						<div>
-							<label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+							<h3 className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
 								Priority
-							</label>
+							</h3>
 							<div className="flex flex-wrap gap-2">
 								{priorityOptions.map((priority) => (
 									<button
+										type="button"
 										key={priority.value}
 										onClick={() =>
 											toggleArrayFilter("priority", priority.value)
@@ -197,13 +199,14 @@ export function ProjectFilters({
 						{/* Tags Filter */}
 						{availableTags.length > 0 && (
 							<div>
-								<label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+								<h3 className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
 									<Tag className="mr-1 inline h-4 w-4" />
 									Tags
-								</label>
+								</h3>
 								<div className="flex flex-wrap gap-2">
 									{availableTags.slice(0, 8).map((tag) => (
 										<button
+											type="button"
 											key={tag}
 											onClick={() => toggleArrayFilter("tags", tag)}
 											className={`rounded-full px-3 py-1 font-medium text-sm transition-colors ${
@@ -227,13 +230,14 @@ export function ProjectFilters({
 						{/* Team Members Filter */}
 						{teamMembers.length > 0 && (
 							<div>
-								<label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+								<h3 className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
 									<Users className="mr-1 inline h-4 w-4" />
 									Team Members
-								</label>
+								</h3>
 								<div className="flex flex-wrap gap-2">
 									{teamMembers.slice(0, 6).map((member) => (
 										<button
+											type="button"
 											key={member.id}
 											onClick={() => toggleArrayFilter("assignedTo", member.id)}
 											className={`flex items-center rounded-full px-3 py-1 font-medium text-sm transition-colors ${
@@ -263,10 +267,10 @@ export function ProjectFilters({
 
 						{/* Progress Range */}
 						<div>
-							<label className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
+							<h3 className="mb-2 block font-medium text-gray-700 text-sm dark:text-gray-300">
 								Progress Range: {filters.progress.min}% - {filters.progress.max}
 								%
-							</label>
+							</h3>
 							<div className="flex items-center space-x-4">
 								<input
 									type="range"

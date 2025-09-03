@@ -3,7 +3,7 @@ import { api } from "@pulse/backend";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Button, Card, Checkbox, Label, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export const Route = createFileRoute("/auth/sign-in")({
 	component: SignInPage,
@@ -18,6 +18,10 @@ function SignInPage() {
 	const [showEmailForm, setShowEmailForm] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+
+	const emailId = useId();
+	const passwordId = useId();
+	const rememberMeId = useId();
 
 	// Redirect if already authenticated - handled by __root.tsx
 
@@ -201,7 +205,7 @@ function SignInPage() {
 										<div className="flex flex-col gap-y-2">
 											<Label htmlFor="email">Your email</Label>
 											<TextInput
-												id="email"
+												id={emailId}
 												name="email"
 												placeholder="name@company.com"
 												type="email"
@@ -213,7 +217,7 @@ function SignInPage() {
 										<div className="flex flex-col gap-y-2">
 											<Label htmlFor="password">Your password</Label>
 											<TextInput
-												id="password"
+												id={passwordId}
 												name="password"
 												placeholder="••••••••"
 												type="password"
@@ -224,7 +228,7 @@ function SignInPage() {
 										</div>
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-x-3">
-												<Checkbox id="rememberMe" name="rememberMe" />
+												<Checkbox id={rememberMeId} name="rememberMe" />
 												<Label htmlFor="rememberMe">Remember me</Label>
 											</div>
 											<Link

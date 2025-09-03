@@ -33,8 +33,6 @@ export default defineConfig({
 		// Test file patterns
 		include: [
 			"convex/**/*.test.ts",
-			"convex/**/*.mock.test.ts",
-			"convex/**/*.unit.test.ts",
 		],
 		// Separate integration tests (slower, require real deployment)
 		exclude: ["convex/**/*.integration.test.ts"],

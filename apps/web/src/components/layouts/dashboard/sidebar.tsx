@@ -8,7 +8,7 @@ import {
 	TextInput,
 } from "flowbite-react";
 import type { ComponentProps, FC, HTMLAttributeAnchorTarget } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
 	HiCalendar,
 	HiChartPie,
@@ -55,6 +55,7 @@ export function DashboardSidebar() {
 }
 
 function DesktopSidebar() {
+	const sidebarId = useId();
 	const location = useLocation();
 	const { isCollapsed, setCollapsed } = useSidebarContext().desktop;
 	const [isPreview, setIsPreview] = useState(isCollapsed);
@@ -87,7 +88,7 @@ function DesktopSidebar() {
 				"fixed inset-y-0 left-0 z-20 flex h-full shrink-0 flex-col border-gray-200 border-r pt-16 duration-75 sm:flex lg:flex dark:border-gray-700",
 				isCollapsed && "hidden w-16",
 			)}
-			id="sidebar"
+			id={sidebarId}
 		>
 			<div className="flex h-full flex-col justify-between">
 				<div>
@@ -118,6 +119,7 @@ function DesktopSidebar() {
 }
 
 function MobileSidebar() {
+	const sidebarId = useId();
 	const location = useLocation();
 	const { isOpen, close } = useSidebarContext().mobile;
 
@@ -131,7 +133,7 @@ function MobileSidebar() {
 					"fixed inset-y-0 left-0 z-20 hidden h-full shrink-0 flex-col border-gray-200 border-r pt-16 lg:flex dark:border-gray-700",
 					isOpen && "flex",
 				)}
-				id="sidebar"
+				id={sidebarId}
 			>
 				<div className="flex h-full flex-col justify-between">
 					<div>

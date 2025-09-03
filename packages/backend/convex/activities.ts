@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { assertMember } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
@@ -167,7 +167,7 @@ export const getTimeline = query({
 		}
 
 		// Enrich with actor details
-		const enrichedGroups: Record<string, any[]> = {};
+		const enrichedGroups: Record<string, Doc<"activities">[]> = {};
 
 		for (const [date, dateActivities] of Object.entries(groupedActivities)) {
 			enrichedGroups[date] = await Promise.all(

@@ -100,8 +100,6 @@ export function IdeaCard({ idea, workspaceId }: IdeaCardProps) {
 							{idea.title}
 						</CardTitle>
 						<Dropdown
-							arrowIcon={false}
-							inline
 							label={
 								<MoreHorizontal className="h-4 w-4 text-gray-400 hover:text-gray-600" />
 							}

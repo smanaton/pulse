@@ -1,5 +1,6 @@
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@pulse/backend";
+import type { Doc } from "@pulse/backend/dataModel";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import {
@@ -13,6 +14,7 @@ import {
 	NavbarBrand,
 	TextInput,
 } from "flowbite-react";
+import { useId } from "react";
 import {
 	HiBell,
 	HiCog,
@@ -28,10 +30,24 @@ import { useSidebarContext } from "@/contexts/sidebar-context";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { ThemeToggle } from "./theme-toggle";
 
+// Helper function to convert database user to dropdown user
+function mapUserForDropdown(
+	dbUser: Doc<"users"> | null,
+): UserDropdownProps["user"] {
+	if (!dbUser) return null;
+	return {
+		name: dbUser.name,
+		email: dbUser.email,
+		pictureUrl: dbUser.image, // Map image to pictureUrl
+	};
+}
+
 export function SidebarNavbar() {
+	const searchId = useId();
 	const sidebar = useSidebarContext();
 	const isDesktop = useMediaQuery("(min-width: 1024px)");
-	const user = useQuery(api.users.getCurrentUser);
+	const dbUser = useQuery(api.users.getCurrentUser);
+	const user = mapUserForDropdown(dbUser ?? null);
 	const { signOut } = useAuthActions();
 
 	function handleToggleSidebar() {
@@ -51,10 +67,7 @@ export function SidebarNavbar() {
 	};
 
 	return (
-		<Navbar
-			fluid
-			className="fixed top-0 z-30 w-full border-gray-200 border-b bg-white p-0 sm:p-0 dark:border-gray-700 dark:bg-gray-800"
-		>
+		<Navbar className="fixed top-0 z-30 w-full border-gray-200 border-b bg-white p-0 sm:p-0 dark:border-gray-700 dark:bg-gray-800">
 			<div className="w-full p-3 pr-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center">
@@ -83,18 +96,20 @@ export function SidebarNavbar() {
 							</span>
 						</NavbarBrand>
 						<form className="hidden lg:block lg:pl-2">
-							<Label htmlFor="search" className="sr-only">
+							<Label htmlFor={searchId} className="sr-only">
 								Search
 							</Label>
-							<TextInput
-								className="w-full lg:w-96"
-								icon={HiSearch}
-								id="search"
-								name="search"
-								placeholder="Search"
-								required
-								type="search"
-							/>
+							<div className="relative">
+								<HiSearch className="absolute top-2.5 left-2.5 h-4 w-4 text-gray-400" />
+								<TextInput
+									className="w-full pl-8 lg:w-96"
+									id={searchId}
+									name="search"
+									placeholder="Search"
+									required
+									type="search"
+								/>
+							</div>
 						</form>
 					</div>
 					<div className="flex items-center lg:gap-3">
@@ -124,8 +139,6 @@ function NotificationBellDropdown() {
 	return (
 		<Dropdown
 			className="rounded"
-			arrowIcon={false}
-			inline
 			label={
 				<span className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
 					<span className="sr-only">Notifications</span>
@@ -150,8 +163,6 @@ function AppDrawerDropdown() {
 	return (
 		<Dropdown
 			className="rounded"
-			arrowIcon={false}
-			inline
 			label={
 				<span className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
 					<span className="sr-only">Apps</span>
@@ -188,7 +199,11 @@ function AppDrawerDropdown() {
 }
 
 interface UserDropdownProps {
-	user: any;
+	user: {
+		name?: string;
+		email?: string;
+		pictureUrl?: string;
+	} | null;
 	onSignOut: () => void;
 }
 
@@ -196,13 +211,11 @@ function UserDropdown({ user, onSignOut }: UserDropdownProps) {
 	return (
 		<Dropdown
 			className="rounded"
-			arrowIcon={false}
-			inline
 			label={
 				<span>
 					<span className="sr-only">User menu</span>
-					{user?.image ? (
-						<Avatar alt="" img={user.image} rounded size="sm" />
+					{user?.pictureUrl ? (
+						<Avatar alt="" img={user.pictureUrl} rounded size="sm" />
 					) : (
 						<Avatar alt="" rounded size="sm">
 							<HiUserCircle className="h-6 w-6" />

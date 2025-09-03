@@ -3,6 +3,8 @@
  */
 
 import { describe, expect, it } from "vitest";
+import type { ConvexContext } from "./guards";
+import type { Id } from "../types";
 import {
 	canAccess,
 	createMockAuthGuards,
@@ -79,21 +81,23 @@ describe("Auth Guards", () => {
 			expect(typeof mockGuards.checkPermission).toBe("function");
 
 			// Test mock implementations
-			const userId = await mockGuards.requireUserId({} as any);
+			const userId = await mockGuards.requireUserId(
+				{} as unknown as ConvexContext,
+			);
 			expect(userId).toBe("test-user-id");
 
 			const membership = await mockGuards.assertMembership(
-				{} as any,
-				"user123" as any,
-				"workspace123" as any,
+				{} as unknown as ConvexContext,
+				"user123" as Id<"users">,
+				"workspace123" as Id<"workspaces">,
 			);
 			expect(membership.userId).toBe("user123");
 			expect(membership.role).toBe("editor");
 
 			const hasPermission = await mockGuards.checkPermission(
-				{} as any,
-				"user123" as any,
-				"workspace123" as any,
+				{} as unknown as ConvexContext,
+				"user123" as Id<"users">,
+				"workspace123" as Id<"workspaces">,
 				"test:permission",
 			);
 			expect(hasPermission).toBe(true);

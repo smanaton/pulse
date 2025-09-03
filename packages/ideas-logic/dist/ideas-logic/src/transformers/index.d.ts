@@ -10,7 +10,7 @@ export declare function transformCreateIdeaInput(input: CreateIdeaInput): Proces
 export declare function transformUpdateIdeaInput(input: UpdateIdeaInput, _existingIdea: {
     title: string;
     contentMD: string;
-    contentBlocks?: any;
+    contentBlocks?: unknown;
     status: "draft" | "active" | "archived";
     projectId?: Id<"projects">;
     folderId?: Id<"folders">;
@@ -28,8 +28,17 @@ export declare function extractPlainTextFromMarkdown(markdown: string): string;
 export declare function extractKeywordsFromContent(content: string, maxKeywords?: number): string[];
 export declare function transformSearchQuery(query: string): string;
 export declare function buildSearchTerms(query: string): string[];
-export declare function transformIdeaForExport(idea: any, format: "json" | "markdown" | "csv"): any;
+type IdeaLike = {
+    _id: string;
+    title: string;
+    contentMD: string;
+    status: string;
+    createdAt: number;
+    updatedAt: number;
+};
+export declare function transformIdeaForExport(idea: IdeaLike, format: "json" | "markdown" | "csv"): unknown;
 export declare function transformBulkCreateIdeas(inputs: CreateIdeaInput[]): ProcessedIdeaData[];
 export declare function transformBulkCreateFolders(inputs: CreateFolderInput[]): ProcessedFolderData[];
 export declare function transformBulkCreateTags(inputs: CreateTagInput[]): ProcessedTagData[];
+export {};
 //# sourceMappingURL=index.d.ts.map

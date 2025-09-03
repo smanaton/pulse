@@ -8,6 +8,7 @@
 import { ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
+import type { Doc } from "./_generated/dataModel";
 import { requireUserId } from "./server/lib/authz";
 import {
 	projectCreateArgs,
@@ -208,7 +209,7 @@ export const update = mutation({
 		// Check permissions (editor required)
 		await assertWriteEnabled(ctx, project.workspaceId, "editor");
 
-		const updates: any = {
+		const updates: Partial<Doc<"projects">> = {
 			updatedAt: Date.now(),
 		};
 
@@ -673,9 +674,10 @@ export const getStats = query({
 			}
 
 			// Get task statistics
+			const projectId = args.projectId as NonNullable<typeof args.projectId>;
 			const tasks = await ctx.db
 				.query("tasks")
-				.withIndex("by_project", (q) => q.eq("projectId", args.projectId!))
+				.withIndex("by_project", (q) => q.eq("projectId", projectId))
 				.filter((q) => q.eq(q.field("deletedAt"), undefined))
 				.collect();
 
@@ -693,7 +695,7 @@ export const getStats = query({
 			// Get member count
 			const memberCount = await ctx.db
 				.query("projectMembers")
-				.withIndex("by_project", (q) => q.eq("projectId", args.projectId!))
+				.withIndex("by_project", (q) => q.eq("projectId", projectId))
 				.collect()
 				.then((members) => members.length);
 

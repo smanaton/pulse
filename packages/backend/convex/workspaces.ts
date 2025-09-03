@@ -17,6 +17,7 @@ import {
 	normalizeSlug,
 } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
+import { getUserIdReadOnly } from "./server/lib/authz";
 import {
 	emptyArgs,
 	workspaceByIdArgs,
@@ -524,7 +525,7 @@ export const setKillSwitch = mutation({
 export const listUserWorkspaces = query({
 	args: emptyArgs,
 	handler: async (ctx, _args) => {
-		const userId = await requireUserId(ctx);
+		const userId = await getUserIdReadOnly(ctx);
 		if (!userId) {
 			return [];
 		}

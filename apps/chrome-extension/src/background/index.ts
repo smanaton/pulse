@@ -2,7 +2,7 @@ import browser from "webextension-polyfill";
 import { createConvexClient, formatContentAsMarkdown } from "../lib/convex";
 
 interface CaptureData {
-	url: string;
+	url?: string;
 	title?: string;
 	type: string;
 	selection?: string;
@@ -148,13 +148,13 @@ async function handleCapture(data: CaptureData) {
 		});
 
 		const contentData = {
-			url: data.url,
+			url: data.url || "",
 			title: data.title || "Untitled",
 			content: "",
 			selection: data.selection || "",
 			metadata: {
 				captureType: data.type,
-				domain: new URL(data.url).hostname,
+				domain: new URL(data.url || "about:blank").hostname,
 				timestamp: new Date().toISOString(),
 			},
 		};
@@ -248,7 +248,7 @@ async function handleCapture(data: CaptureData) {
 			// Create new idea
 			ideaId = await convex.saveWebClip({
 				workspaceId: targetWorkspace._id,
-				url: data.url,
+				url: data.url || "",
 				title: data.title || "Untitled",
 				content: markdownContent,
 				metadata: contentData.metadata,
@@ -406,8 +406,4 @@ async function handleGetRecentIdeas(data: GetRecentIdeasData) {
 	return await convex.getRecentIdeas(data.workspaceId, data.limit || 10);
 }
 
-async function _getPulseApiUrl(): Promise<string> {
-	// Get saved API URL from storage
-	const result = await browser.storage.local.get(["pulseApiUrl"]);
-	return result.pulseApiUrl || "http://127.0.0.1:3210";
-}
+

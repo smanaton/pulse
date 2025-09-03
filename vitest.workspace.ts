@@ -2,15 +2,15 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import react from "@vitejs/plugin-react";
-import { defineWorkspace } from "vitest/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineWorkspace([
+export default [
 	// --- WEB ---
 	{
-		plugins: [react()],
+		// plugins intentionally omitted at workspace level to avoid importing
+		// web-only build plugins here; per-project configs (apps/web) should
+		// include their own plugins.
 		resolve: {
 			alias: { "@": path.resolve(__dirname, "./apps/web/src") },
 		},
@@ -68,4 +68,4 @@ export default defineWorkspace([
 			},
 		},
 	},
-]);
+];

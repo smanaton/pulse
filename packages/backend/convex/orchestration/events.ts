@@ -279,7 +279,8 @@ export const listEvents = query({
 
 		// Apply cursor for pagination
 		if (args.cursor) {
-			query = query.filter((q) => q.gt(q.field("timestamp"), args.cursor!));
+			const cursor = args.cursor as number;
+			query = query.filter((q) => q.gt(q.field("timestamp"), cursor));
 		}
 
 		const events = await query.take(args.limit ?? 100);

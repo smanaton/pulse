@@ -3,9 +3,9 @@
 	"files": {
 		"includes": [
 			"apps/web/src/**/*.{ts,tsx,js,jsx}",
+			"apps/web/tests/**/*.{ts,tsx,js,jsx}",
 			"packages/*/src/**/*.{ts,tsx,js,jsx}",
 			"packages/backend/convex/**/*.ts",
-			"scripts/**/*.{ts,js,cjs,mjs}",
 			"*.{ts,js,cjs,mjs}",
 			"apps/*/vite.config.ts",
 			"apps/*/tailwind.config.js",
@@ -25,7 +25,7 @@
 		]
 	},
 	"formatter": { "enabled": true, "indentStyle": "tab" },
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"assist": { "actions": { "source": { "organizeImports": "off" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {

@@ -46,7 +46,7 @@ export function transformUpdateIdeaInput(
 	_existingIdea: {
 		title: string;
 		contentMD: string;
-		contentBlocks?: any;
+		contentBlocks?: unknown;
 		status: "draft" | "active" | "archived";
 		projectId?: Id<"projects">;
 		folderId?: Id<"folders">;
@@ -327,10 +327,19 @@ export function buildSearchTerms(query: string): string[] {
 // Export Transformers
 // ============================================================================
 
+type IdeaLike = {
+	_id: string;
+	title: string;
+	contentMD: string;
+	status: string;
+	createdAt: number;
+	updatedAt: number;
+};
+
 export function transformIdeaForExport(
-	idea: any,
+	idea: IdeaLike,
 	format: "json" | "markdown" | "csv",
-): any {
+): unknown {
 	switch (format) {
 		case "json":
 			return {

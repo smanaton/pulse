@@ -124,6 +124,8 @@ export const rateLimitType = v.union(
 	v.literal("invite_per_workspace"),
 	v.literal("invite_per_user"),
 	v.literal("ai_tokens_daily"),
+	v.literal("ai_tags_daily"),
+	v.literal("ai_summaries_daily"),
 	v.literal("move_operations"),
 );
 

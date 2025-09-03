@@ -97,15 +97,15 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
 		return (
 			<div className="space-y-6">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-					{[...Array(4)].map((_, i) => (
-						<Card key={i} className="animate-pulse">
+					{[...Array(4)].map(() => (
+						<Card key={crypto.randomUUID()} className="animate-pulse">
 							<div className="h-16 rounded bg-gray-200 dark:bg-gray-700" />
 						</Card>
 					))}
 				</div>
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-					{[...Array(2)].map((_, i) => (
-						<Card key={i} className="animate-pulse">
+					{[...Array(2)].map(() => (
+						<Card key={crypto.randomUUID()} className="animate-pulse">
 							<div className="h-64 rounded bg-gray-200 dark:bg-gray-700" />
 						</Card>
 					))}
@@ -135,13 +135,13 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
 		// Single project dashboard
 		const {
 			project,
-			completionRate,
-			overdueRate,
-			activeTasksRate,
+			completionRate: _completionRate,
+			overdueRate: _overdueRate,
+			activeTasksRate: _activeTasksRate,
 			isOverdue,
 			daysUntilDeadline,
 			tasks: projectTasks,
-			members,
+			members: _members,
 			timeTracking,
 		} = metrics;
 
@@ -351,8 +351,8 @@ export function ProjectDashboard({ projectId }: ProjectDashboardProps) {
 							Project Tags
 						</h3>
 						<div className="flex flex-wrap gap-2">
-							{project.tags.map((tag, index) => (
-								<Badge key={index} color="gray" size="sm">
+							{project.tags.map((tag, _index) => (
+								<Badge key={tag} color="gray" size="sm">
 									#{tag}
 								</Badge>
 							))}

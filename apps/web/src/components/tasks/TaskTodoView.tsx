@@ -72,7 +72,7 @@ function TaskItem({
 	const dueDateInfo = formatDueDate(task.dueDate);
 
 	return (
-		<div
+		<li
 			className={`group flex items-start space-x-3 rounded-lg p-3 transition-all duration-200 ${
 				isCompleted
 					? "border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
@@ -161,7 +161,10 @@ function TaskItem({
 								{task.assignees.slice(0, 3).map(
 									(assignee, index) =>
 										assignee && (
-											<div key={index} className="flex items-center">
+											<div
+												key={assignee.email || `assignee-${index}`}
+												className="flex items-center"
+											>
 												{assignee.image ? (
 													<img
 														src={assignee.image}
@@ -203,7 +206,7 @@ function TaskItem({
 					)}
 				</div>
 			</div>
-		</div>
+		</li>
 	);
 }
 
@@ -286,7 +289,7 @@ function PrioritySection({
 
 export function TaskTodoView({ projectId }: TaskTodoViewProps) {
 	const { currentWorkspace } = useWorkspaceContext();
-	const { tasks, updateTask, createTask } = useTasks(
+	const { tasks, updateTask } = useTasks(
 		currentWorkspace?._id,
 		projectId ? { projectId } : undefined,
 	);
@@ -309,8 +312,8 @@ export function TaskTodoView({ projectId }: TaskTodoViewProps) {
 	if (!tasks) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-				{[...Array(4)].map((_, i) => (
-					<Card key={i} className="animate-pulse">
+				{[...Array(4)].map(() => (
+					<Card key={crypto.randomUUID()} className="animate-pulse">
 						<div className="h-64 rounded bg-gray-200 dark:bg-gray-700" />
 					</Card>
 				))}

@@ -18,13 +18,13 @@
 			"@pulse/core/*": ["../core/src/*"],
 			"@pulse/ideas-logic": ["../ideas-logic/src/index.ts"],
 			"@pulse/ideas-logic/*": ["../ideas-logic/src/*"]
-		}
+		},
+		"types": ["vite/client"]
 	},
 	"include": ["convex/**/*.ts"],
 	"exclude": [
 		"convex/**/*.test.ts",
 		"convex/**/*.spec.ts",
-		"convex/**/*.convex.test.ts",
 		"node_modules"
 	]
 }

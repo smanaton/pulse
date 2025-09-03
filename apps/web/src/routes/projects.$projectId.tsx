@@ -306,7 +306,7 @@ function ProjectDetailPage() {
 				{/* Navigation Tabs */}
 				<div className="border-gray-200 border-b dark:border-gray-700">
 					<nav className="flex space-x-8">
-						<button
+						<Button
 							onClick={() => setActiveTab("overview")}
 							className={`border-b-2 px-1 py-2 font-medium text-sm ${
 								activeTab === "overview"
@@ -316,8 +316,8 @@ function ProjectDetailPage() {
 						>
 							<Activity className="mr-2 inline h-4 w-4" />
 							Overview
-						</button>
-						<button
+						</Button>
+						<Button
 							onClick={() => setActiveTab("tasks")}
 							className={`border-b-2 px-1 py-2 font-medium text-sm ${
 								activeTab === "tasks"
@@ -327,8 +327,8 @@ function ProjectDetailPage() {
 						>
 							<CheckSquare className="mr-2 inline h-4 w-4" />
 							Tasks ({totalTasks})
-						</button>
-						<button
+						</Button>
+						<Button
 							onClick={() => setActiveTab("files")}
 							className={`border-b-2 px-1 py-2 font-medium text-sm ${
 								activeTab === "files"
@@ -338,7 +338,7 @@ function ProjectDetailPage() {
 						>
 							<FolderOpen className="mr-2 inline h-4 w-4" />
 							Files
-						</button>
+						</Button>
 					</nav>
 				</div>
 
@@ -389,8 +389,8 @@ function ProjectDetailPage() {
 													Tags
 												</dt>
 												<dd className="flex flex-wrap gap-1">
-													{project.tags.map((tag, index) => (
-														<Badge key={index} color="gray" size="xs">
+													{project.tags.map((tag, _index) => (
+														<Badge key={tag} color="gray" size="xs">
 															#{tag}
 														</Badge>
 													))}

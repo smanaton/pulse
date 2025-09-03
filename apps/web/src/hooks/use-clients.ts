@@ -7,6 +7,7 @@ import { invalidatePatterns, queryKeys } from "../lib/query-client";
 // Types
 export interface Client {
 	_id: Id<"clients">;
+	_creationTime: number;
 	workspaceId: Id<"workspaces">;
 	name: string;
 	email?: string;
@@ -79,11 +80,15 @@ export function useClients(
 
 	return useQuery({
 		queryKey: [...queryKeys.clients.byWorkspace(workspaceId || ""), options],
-		queryFn: () =>
-			convex.query(api.clients.list, {
-				workspaceId: workspaceId!,
+		queryFn: () => {
+			if (!workspaceId) {
+				throw new Error("Workspace ID is required");
+			}
+			return convex.query(api.clients.list, {
+				workspaceId,
 				...options,
-			}),
+			});
+		},
 		enabled: !!workspaceId,
 	});
 }

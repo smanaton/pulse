@@ -1,9 +1,10 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), tsconfigPaths()],
 	test: {
 		environment: "jsdom",
 		setupFiles: ["./src/test/setup.ts"],
@@ -18,17 +19,19 @@ export default defineConfig({
 			"src/**/*.test.ts",
 			"src/**/*.test.tsx",
 		],
-		exclude: [
-			"tests/integration/**/*",
-			"tests/e2e/**/*",
-		],
+		exclude: ["tests/integration/**/*", "tests/e2e/**/*"],
 		deps: {
-			inline: ["@convex-dev/auth", "convex"],
+			optimizer: {
+				web: {
+					include: ["@convex-dev/auth", "convex"],
+				},
+			},
 		},
 	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			"@test": path.resolve(__dirname, "./src/test"),
 		},
 	},
 });

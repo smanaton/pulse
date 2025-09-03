@@ -50,6 +50,7 @@ function IdeaEditorPage() {
 						access to it.
 					</p>
 					<button
+						type="button"
 						onClick={() => navigate({ to: "/ideas" })}
 						className="text-blue-600 hover:text-blue-500"
 					>

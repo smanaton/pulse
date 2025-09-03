@@ -14,12 +14,13 @@ import {
 /**
  * Emit a control event to an agent
  */
+import type { MutationCtx } from "../_generated/server";
 async function emitControlEvent(
-	ctx: any,
+	ctx: MutationCtx,
 	workspaceId: Id<"workspaces">,
 	runId: string,
 	command: ControlCommand,
-	data?: any,
+	data?: Record<string, unknown>,
 ): Promise<void> {
 	const eventId = crypto.randomUUID();
 

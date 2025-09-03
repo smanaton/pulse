@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 /* biome-disable lint/a11y/noLabelWithoutControl: This is a reusable component, association is handled by consumer */
 function Label({ className, ...props }: React.ComponentProps<"label">) {
 	return (
+		// biome-ignore lint/a11y/noLabelWithoutControl: Reusable component - control association handled by parent
 		<label
 			data-slot="label"
 			className={cn(

@@ -126,8 +126,8 @@ export function IdeasList({
 			{displayedIdeas === undefined ? (
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{/* Loading skeletons */}
-					{Array.from({ length: 6 }).map((_, i) => (
-						<Card key={i} className="animate-pulse">
+					{Array.from({ length: 6 }, (_, i) => i).map((index) => (
+						<Card key={`loading-skeleton-${index}`} className="animate-pulse">
 							<CardHeader>
 								<div className="h-4 rounded bg-gray-200" />
 							</CardHeader>

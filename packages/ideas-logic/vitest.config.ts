@@ -1,7 +1,9 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+	plugins: [tsconfigPaths()],
 	test: {
 		globals: true,
 		environment: "node",
@@ -9,6 +11,7 @@ export default defineConfig({
 		exclude: ["node_modules", "dist", ".idea", ".git", ".cache"],
 		setupFiles: ["./src/test/setup.ts"],
 		coverage: {
+			provider: "v8",
 			reporter: ["text", "json", "html"],
 			include: ["src/**/*.{js,ts}"],
 			exclude: [
@@ -17,12 +20,6 @@ export default defineConfig({
 				"src/index.ts", // Re-export file
 				"src/test/**/*", // Test setup files
 			],
-		},
-	},
-	resolve: {
-		alias: {
-			"@pulse/core": "../core/src",
-			"@pulse/ideas-logic": "/src",
 		},
 	},
 });

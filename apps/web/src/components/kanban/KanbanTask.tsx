@@ -145,8 +145,13 @@ export function KanbanTask({
 			{/* Tags */}
 			{task.tags && task.tags.length > 0 && (
 				<div className="mb-3 flex flex-wrap gap-1">
-					{task.tags.slice(0, 3).map((tag, index) => (
-						<Badge key={index} color="info" size="xs" className="text-xs">
+					{task.tags.slice(0, 3).map((tag) => (
+						<Badge
+							key={`tag-${tag}`}
+							color="info"
+							size="xs"
+							className="text-xs"
+						>
 							{tag}
 						</Badge>
 					))}

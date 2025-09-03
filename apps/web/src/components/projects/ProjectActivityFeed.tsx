@@ -30,7 +30,10 @@ interface ActivityItem {
 	entityType: string;
 	entityId: string;
 	description: string;
-	metadata?: any;
+	metadata?: {
+		updatedFields?: string[];
+		[key: string]: unknown;
+	};
 	createdAt: number;
 	actorName: string;
 	actorAvatar?: string | null;
@@ -62,7 +65,23 @@ export function ProjectActivityFeed({
 
 		return activities.activities.map(
 			(activity): ActivityItem & { icon: React.ReactNode; color: string } => {
-				const baseActivity = activity as ActivityItem;
+				const baseActivity: ActivityItem = {
+					_id: activity._id || "",
+					_creationTime: activity._creationTime || 0,
+					actorId: activity.actorId,
+					actorType: activity.actorType || "user",
+					action: activity.action || "",
+					entityType: activity.entityType || "",
+					entityId: activity.entityId || "",
+					description:
+						typeof activity.description === "string"
+							? activity.description
+							: "",
+					metadata: activity.metadata || {},
+					createdAt: activity.createdAt || activity._creationTime || 0,
+					actorName: activity.actorName || "",
+					actorAvatar: activity.actorAvatar || null,
+				};
 
 				// Determine icon and color based on action
 				let icon: React.ReactNode;
@@ -190,8 +209,11 @@ export function ProjectActivityFeed({
 					</div>
 				)}
 				<div className="space-y-3">
-					{[...Array(3)].map((_, i) => (
-						<div key={i} className="flex animate-pulse items-start space-x-3">
+					{[...Array(3)].map(() => (
+						<div
+							key={crypto.randomUUID()}
+							className="flex animate-pulse items-start space-x-3"
+						>
 							<div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700" />
 							<div className="flex-1 space-y-2">
 								<div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />

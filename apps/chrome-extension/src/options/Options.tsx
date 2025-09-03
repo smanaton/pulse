@@ -34,7 +34,7 @@ const Options: React.FC = () => {
 
 	useEffect(() => {
 		loadSettings();
-	}, [loadSettings]);
+	}, []);
 
 	const loadSettings = async () => {
 		try {

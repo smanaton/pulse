@@ -25,25 +25,39 @@ Before starting, ensure you have:
 
 3. **Environment Files** configured (see below)
 
-## Environment Configuration
-
-### Backend Environment Variables
-
-The backend environment file `packages/backend/.env.local` should contain:
+If you want a quick bootstrap for local dev, the repository provides a helper script that copies env templates into place:
 
 ```bash
-# Convex Deployment (auto-generated)
-CONVEX_DEPLOYMENT=anonymous:anonymous-backend
+pnpm run setup:local
+```
+
+After running it, inspect `packages/backend/.env.local` and `apps/web/.env.local` and fill in any secrets.
+
+## Environment Configuration
+
+### Convex Environment Variables (OAuth)
+
+Convex reads OAuth provider credentials from its own environment. Set them via the Convex CLI against your local deployment:
+
+```bash
+cd packages/backend
+npx convex env set SITE_URL "http://localhost:3003"
+npx convex env set AUTH_GOOGLE_ID "<your-google-client-id>.apps.googleusercontent.com"
+npx convex env set AUTH_GOOGLE_SECRET "<your-google-client-secret>"
+# Optional if using GitHub OAuth
+npx convex env set AUTH_GITHUB_ID "<your-github-client-id>"
+npx convex env set AUTH_GITHUB_SECRET "<your-github-client-secret>"
+```
+
+You can verify current values with `npx convex env get <NAME>`.
+
+### Backend .env.local (non-secret runtime only)
+
+The backend `.env.local` is still used for non-secret runtime configuration and is often managed by `convex dev` automatically:
+
+```bash
+# Convex local dev URL (auto-managed by Convex CLI)
 CONVEX_URL=http://127.0.0.1:3210
-
-# OAuth Provider Credentials
-GOOGLE_CLIENT_ID=your_google_client_id_here
-GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-GITHUB_CLIENT_ID=your_github_client_id_here
-GITHUB_CLIENT_SECRET=your_github_client_secret_here
-
-# Site URL for OAuth redirects
-CONVEX_SITE_URL=http://localhost:3003
 ```
 
 ### Frontend Environment Variables

@@ -1,5 +1,6 @@
 import { httpRouter } from "convex/server";
 import { api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 
@@ -24,6 +25,15 @@ function _extractAndHashApiKey(request: Request): string {
 	return token;
 }
 
+async function sha256Hex(input: string): Promise<string> {
+	const encoder = new TextEncoder();
+	const data = encoder.encode(input);
+	const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+	return Array.from(new Uint8Array(hashBuffer), (b) =>
+		b.toString(16).padStart(2, "0"),
+	).join("");
+}
+
 /**
  * Authentication endpoint for extension
  */
@@ -40,12 +50,7 @@ http.route({
 			const token = authHeader.substring(7);
 
 			// Hash the token for validation
-			const encoder = new TextEncoder();
-			const data = encoder.encode(token);
-			const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-			const keyHash = Array.from(new Uint8Array(hashBuffer), (b) =>
-				b.toString(16).padStart(2, "0"),
-			).join("");
+			const keyHash = await sha256Hex(token);
 
 			// Validate the API key
 			const authInfo = await ctx.runQuery(api.apiKeys.validate, { keyHash });
@@ -94,12 +99,7 @@ http.route({
 			const token = authHeader.substring(7);
 
 			// Hash the token for validation
-			const encoder = new TextEncoder();
-			const data = encoder.encode(token);
-			const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-			const keyHash = Array.from(new Uint8Array(hashBuffer), (b) =>
-				b.toString(16).padStart(2, "0"),
-			).join("");
+			const keyHash = await sha256Hex(token);
 
 			// Validate the API key
 			const authInfo = await ctx.runQuery(api.apiKeys.validate, { keyHash });
@@ -172,12 +172,7 @@ http.route({
 			const token = authHeader.substring(7);
 
 			// Hash the token for validation
-			const encoder = new TextEncoder();
-			const data = encoder.encode(token);
-			const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-			const keyHash = Array.from(new Uint8Array(hashBuffer), (b) =>
-				b.toString(16).padStart(2, "0"),
-			).join("");
+			const keyHash = await sha256Hex(token);
 
 			// Validate the API key
 			const authInfo = await ctx.runQuery(api.apiKeys.validate, { keyHash });
@@ -196,7 +191,7 @@ http.route({
 
 			// Get task status
 			const status = await ctx.runQuery(api.clipper.getTaskStatus, {
-				taskId: taskId as any,
+				taskId: taskId as Id<"clipperTasks">,
 			});
 
 			return new Response(JSON.stringify(status), {

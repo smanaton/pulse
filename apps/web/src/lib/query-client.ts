@@ -1,6 +1,22 @@
 import type { DefaultOptions } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/react-query";
 
+// Type for Convex/API errors
+interface ApiError {
+	code?: string;
+	message?: string;
+	status?: number;
+}
+
+// Type guard to check if error is an API error
+function isApiError(error: unknown): error is ApiError {
+	return (
+		typeof error === "object" &&
+		error !== null &&
+		("code" in error || "message" in error || "status" in error)
+	);
+}
+
 const defaultOptions: DefaultOptions = {
 	queries: {
 		// Stale-while-revalidate pattern
@@ -8,9 +24,12 @@ const defaultOptions: DefaultOptions = {
 		gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
 
 		// Retry configuration
-		retry: (failureCount, error: any) => {
+		retry: (failureCount, error: unknown) => {
 			// Don't retry on certain error types
-			if (error?.code === "UNAUTHORIZED" || error?.code === "FORBIDDEN") {
+			if (
+				isApiError(error) &&
+				(error.code === "UNAUTHORIZED" || error.code === "FORBIDDEN")
+			) {
 				return false;
 			}
 			// Retry up to 3 times for other errors
@@ -26,16 +45,19 @@ const defaultOptions: DefaultOptions = {
 	},
 	mutations: {
 		// Retry mutations on network errors
-		retry: (failureCount, error: any) => {
+		retry: (failureCount, error: unknown) => {
 			// Don't retry on client errors
-			if (error?.code === "INVALID_ARGUMENT" || error?.code === "NOT_FOUND") {
+			if (
+				isApiError(error) &&
+				(error.code === "INVALID_ARGUMENT" || error.code === "NOT_FOUND")
+			) {
 				return false;
 			}
 			return failureCount < 2; // Retry mutations up to 2 times
 		},
 
 		// Global mutation error handling
-		onError: (error: any, _variables, _context) => {
+		onError: (error: unknown, _variables, _context) => {
 			console.error("Mutation error:", error);
 			// You could add toast notifications here
 		},

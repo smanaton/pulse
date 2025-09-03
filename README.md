@@ -35,14 +35,30 @@ pnpm dev:setup
 
 Follow the prompts to create a new Convex project and connect it to your application.
 
+Then, set required Convex auth environment variables (Convex reads these from its own environment, not .env files):
+
+```bash
+cd packages/backend
+npx convex env set SITE_URL "http://localhost:3003"
+npx convex env set AUTH_GOOGLE_ID "<your-google-client-id>.apps.googleusercontent.com"
+npx convex env set AUTH_GOOGLE_SECRET "<your-google-client-secret>"
+# Optional if using GitHub OAuth
+npx convex env set AUTH_GITHUB_ID "<your-github-client-id>"
+npx convex env set AUTH_GITHUB_SECRET "<your-github-client-secret>"
+```
+
+You can verify values with `npx convex env get <NAME>`.
+
 Then, run the development server:
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-Your app will connect to the Convex cloud backend automatically.
+Open [http://localhost:3003](http://localhost:3003) in your browser to see the web application.
+Notes:
+- The dev script will fail fast if `SITE_URL`, `AUTH_GOOGLE_ID`, or `AUTH_GOOGLE_SECRET` are missing. Bypass with `PULSE_DEV_SKIP_AUTH_CHECK=1 pnpm dev` if you don't need OAuth locally.
+- Convex dev runs locally at http://127.0.0.1:3210; the web app points to it via `VITE_CONVEX_URL`.
 
 
 

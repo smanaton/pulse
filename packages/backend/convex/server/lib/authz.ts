@@ -8,12 +8,15 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import type { Id } from "../../_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "../../_generated/server";
 
 /**
  * For mutations: Can create users if they don't exist
  * Uses Convex Auth getAuthUserId for production authentication
  */
-export async function requireUserId(ctx: any): Promise<Id<"users">> {
+export async function requireUserId(
+	ctx: MutationCtx | QueryCtx,
+): Promise<Id<"users">> {
 	const userId = await getAuthUserId(ctx);
 
 	// In production/non-test environments, getAuthUserId returns the actual user ID
@@ -30,9 +33,7 @@ export async function requireUserId(ctx: any): Promise<Id<"users">> {
 			// Look up existing user by tokenIdentifier
 			const existingUser = await ctx.db
 				.query("users")
-				.withIndex("by_token", (q: any) =>
-					q.eq("tokenIdentifier", tokenIdentifier),
-				)
+				.withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
 				.unique();
 
 			if (existingUser) {
@@ -41,7 +42,7 @@ export async function requireUserId(ctx: any): Promise<Id<"users">> {
 
 			// Create new user with tokenIdentifier (test mode only)
 			const now = Date.now();
-			const newUserId = await ctx.db.insert("users", {
+			const newUserId = await (ctx as MutationCtx).db.insert("users", {
 				tokenIdentifier,
 				email: identity.email ?? undefined,
 				name: identity.name ?? undefined,
@@ -64,7 +65,9 @@ export async function requireUserId(ctx: any): Promise<Id<"users">> {
  * For queries: Read-only, won't create users
  * Uses Convex Auth getAuthUserId for production authentication
  */
-export async function requireUserIdReadOnly(ctx: any): Promise<Id<"users">> {
+export async function requireUserIdReadOnly(
+	ctx: MutationCtx | QueryCtx,
+): Promise<Id<"users">> {
 	const userId = await getAuthUserId(ctx);
 
 	// In production/non-test environments, getAuthUserId returns the actual user ID
@@ -81,9 +84,7 @@ export async function requireUserIdReadOnly(ctx: any): Promise<Id<"users">> {
 			// Look up existing user by tokenIdentifier (test mode only)
 			const existingUser = await ctx.db
 				.query("users")
-				.withIndex("by_token", (q: any) =>
-					q.eq("tokenIdentifier", tokenIdentifier),
-				)
+				.withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
 				.unique();
 
 			if (!existingUser) {
@@ -107,34 +108,68 @@ export async function requireUserIdReadOnly(ctx: any): Promise<Id<"users">> {
 /**
  * Optional version for mutations that returns null instead of throwing
  */
-export async function getUserId(ctx: any): Promise<Id<"users"> | null> {
-	try {
-		return await requireUserId(ctx);
-	} catch (error) {
-		if (
-			error instanceof ConvexError &&
-			error.data?.code === "UNAUTHENTICATED"
-		) {
-			return null;
-		}
-		throw error;
+export async function getUserId(
+	ctx: MutationCtx | QueryCtx,
+): Promise<Id<"users"> | null> {
+	// Prefer a non-throwing path to avoid exceptions in expected anonymous flows.
+	const authed = await getAuthUserId(ctx);
+	if (authed !== null && process.env.NODE_ENV !== "test") {
+		return authed as Id<"users">;
 	}
+
+	// In tests, allow identifying/creating a user based on tokenIdentifier.
+	if (process.env.NODE_ENV === "test") {
+		const identity = await ctx.auth?.getUserIdentity?.();
+		const tokenIdentifier = identity?.tokenIdentifier;
+		if (!tokenIdentifier) return null;
+
+		const existingUser = await ctx.db
+			.query("users")
+			.withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+			.unique();
+		if (existingUser) return existingUser._id;
+
+		// Only create in mutation contexts
+		if ("scheduler" in ctx) {
+			const now = Date.now();
+			const newUserId = await (ctx as MutationCtx).db.insert("users", {
+				tokenIdentifier,
+				email: identity?.email ?? undefined,
+				name: identity?.name ?? undefined,
+				createdAt: now,
+				updatedAt: now,
+			});
+			return newUserId;
+		}
+		return null;
+	}
+
+	return null;
 }
 
 /**
  * Optional version for queries that returns null instead of throwing
  */
-export async function getUserIdReadOnly(ctx: any): Promise<Id<"users"> | null> {
-	try {
-		return await requireUserIdReadOnly(ctx);
-	} catch (error) {
-		if (
-			error instanceof ConvexError &&
-			(error.data?.code === "UNAUTHENTICATED" ||
-				error.data?.code === "USER_NOT_FOUND")
-		) {
-			return null;
-		}
-		throw error;
+export async function getUserIdReadOnly(
+	ctx: MutationCtx | QueryCtx,
+): Promise<Id<"users"> | null> {
+	// Non-throwing lookup suitable for queries that allow anonymous access.
+	const authed = await getAuthUserId(ctx);
+	if (authed !== null && process.env.NODE_ENV !== "test") {
+		return authed as Id<"users">;
 	}
+
+	if (process.env.NODE_ENV === "test") {
+		const identity = await ctx.auth?.getUserIdentity?.();
+		const tokenIdentifier = identity?.tokenIdentifier;
+		if (!tokenIdentifier) return null;
+
+		const existingUser = await ctx.db
+			.query("users")
+			.withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+			.unique();
+		return existingUser?._id ?? null;
+	}
+
+	return null;
 }

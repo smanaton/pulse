@@ -14,14 +14,14 @@ export interface CreateIdeaInput {
 	folderId?: Id<"folders">;
 	title: string;
 	contentMD: string;
-	contentBlocks?: any; // BlockNote structured content
+	contentBlocks?: unknown; // BlockNote structured content
 	createdBy: Id<"users">;
 }
 
 export interface UpdateIdeaInput {
 	title?: string;
 	contentMD?: string;
-	contentBlocks?: any;
+	contentBlocks?: unknown;
 	status?: "draft" | "active" | "archived";
 	projectId?: Id<"projects">;
 	folderId?: Id<"folders">;
@@ -86,7 +86,7 @@ export interface TagIdeaInput {
 export interface ProcessedIdeaData {
 	title: string;
 	contentMD: string;
-	contentBlocks?: any;
+	contentBlocks?: unknown;
 	status: "draft" | "active" | "archived";
 	workspaceId: Id<"workspaces">;
 	projectId?: Id<"projects">;
@@ -173,7 +173,7 @@ export interface ExportOptions {
 
 export interface ExportResult {
 	format: string;
-	data: any;
+	data: unknown;
 	metadata: {
 		exportedAt: number;
 		totalItems: number;
@@ -196,7 +196,7 @@ export interface ImportResult {
 }
 
 export interface ImportError {
-	item: any;
+	item: unknown;
 	error: string;
 	line?: number;
 }

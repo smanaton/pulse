@@ -6,11 +6,14 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import type { Doc, Id } from "./_generated/dataModel";
+import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 import {
+	folderCreateArgs,
+	folderDeleteArgs,
 	ideaCreateArgs,
 	ideaDeleteArgs,
 	ideaId,
@@ -18,9 +21,6 @@ import {
 	ideaMoveArgs,
 	ideaSearchArgs,
 	ideaUpdateArgs,
-	folderCreateArgs,
-	folderDeleteArgs,
-	folderId,
 	workspaceId,
 } from "./validators";
 
@@ -29,7 +29,8 @@ import {
  */
 export const create = mutation({
 	args: ideaCreateArgs,
-	handler: async (ctx, args) => {
+	returns: v.id("ideas"),
+	handler: async (ctx, args): Promise<Id<"ideas">> => {
 		const userId = await requireUserId(ctx);
 
 		// Check permissions (editor required)
@@ -87,19 +88,12 @@ export const create = mutation({
 		});
 
 		// Log creation event
-		await logEvent(
-			ctx,
-			args.workspaceId,
-			"idea_created",
-			"idea",
+		await logEvent(ctx, args.workspaceId, "idea_created", "idea", ideaId, {
 			ideaId,
-			{
-				ideaId,
-				ideaTitle: sanitizedTitle,
-			},
-		);
+			ideaTitle: sanitizedTitle,
+		});
 
-		return await ctx.db.get(ideaId);
+		return ideaId;
 	},
 });
 
@@ -107,10 +101,9 @@ export const create = mutation({
  * Get an idea by ID.
  */
 export const get = query({
-	args: { workspaceId, ideaId },
+	args: { ideaId },
 	handler: async (ctx, args) => {
 		const _userId = await requireUserId(ctx);
-		await assertMember(ctx, args.workspaceId, "viewer");
 
 		const idea = await ctx.db.get(args.ideaId);
 
@@ -118,37 +111,15 @@ export const get = query({
 			return null;
 		}
 
-		// Verify idea belongs to workspace
-		if (idea.workspaceId !== args.workspaceId) {
-			throw new ConvexError({
-				code: "FORBIDDEN",
-				message: "Idea does not belong to workspace",
-			});
-		}
+		// Verify user has access to the workspace this idea belongs to
+		await assertMember(ctx, idea.workspaceId, "viewer");
 
 		// Exclude soft-deleted ideas
 		if (idea.deletedAt) {
 			return null;
 		}
 
-		// Enrich with project and folder details
-		const project = idea.projectId ? await ctx.db.get(idea.projectId) : null;
-		const folder = idea.folderId ? await ctx.db.get(idea.folderId) : null;
-		const creator = await ctx.db.get(idea.createdBy);
-
-		return {
-			...idea,
-			project: project ? { _id: project._id, name: project.name } : null,
-			folder: folder ? { _id: folder._id, name: folder.name } : null,
-			creator: creator
-				? {
-						_id: creator._id,
-						name: creator.name,
-						email: creator.email,
-						image: creator.image,
-					}
-				: null,
-		};
+		return idea;
 	},
 });
 
@@ -171,7 +142,7 @@ export const list = query({
 			query = ctx.db
 				.query("ideas")
 				.withIndex("by_workspace_project", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("projectId", args.projectId)
+					q.eq("workspaceId", args.workspaceId).eq("projectId", args.projectId),
 				)
 				.filter((q) => q.eq(q.field("deletedAt"), undefined));
 		}
@@ -181,7 +152,7 @@ export const list = query({
 			query = ctx.db
 				.query("ideas")
 				.withIndex("by_workspace_folder", (q) =>
-					q.eq("workspaceId", args.workspaceId).eq("folderId", args.folderId)
+					q.eq("workspaceId", args.workspaceId).eq("folderId", args.folderId),
 				)
 				.filter((q) => q.eq(q.field("deletedAt"), undefined));
 		}
@@ -197,7 +168,9 @@ export const list = query({
 		// Enrich with project and folder details
 		const enrichedIdeas = await Promise.all(
 			ideas.map(async (idea) => {
-				const project = idea.projectId ? await ctx.db.get(idea.projectId) : null;
+				const project = idea.projectId
+					? await ctx.db.get(idea.projectId)
+					: null;
 				const folder = idea.folderId ? await ctx.db.get(idea.folderId) : null;
 
 				return {
@@ -247,7 +220,7 @@ export const search = query({
 					idea.title.toLowerCase().includes(searchTerm) ||
 					idea.contentMD.toLowerCase().includes(searchTerm) ||
 					idea.problem?.toLowerCase().includes(searchTerm) ||
-					idea.hypothesis?.toLowerCase().includes(searchTerm)
+					idea.hypothesis?.toLowerCase().includes(searchTerm),
 			)
 			.slice(0, args.limit || 20);
 
@@ -261,7 +234,7 @@ export const search = query({
 export const update = mutation({
 	args: ideaUpdateArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const idea = await ctx.db.get(args.ideaId);
 		if (!idea) {
@@ -274,8 +247,7 @@ export const update = mutation({
 		// Check permissions
 		await assertWriteEnabled(ctx, idea.workspaceId, "editor");
 
-
-		const updates: any = {
+		const updates: Partial<Doc<"ideas">> = {
 			updatedAt: Date.now(),
 		};
 
@@ -293,7 +265,8 @@ export const update = mutation({
 
 		// Handle content updates
 		if (args.contentMD !== undefined) updates.contentMD = args.contentMD;
-		if (args.contentBlocks !== undefined) updates.contentBlocks = args.contentBlocks;
+		if (args.contentBlocks !== undefined)
+			updates.contentBlocks = args.contentBlocks;
 
 		// Handle structured fields
 		if (args.problem !== undefined) updates.problem = args.problem;
@@ -335,18 +308,11 @@ export const update = mutation({
 		await ctx.db.patch(args.ideaId, updates);
 
 		// Log update event
-		await logEvent(
-			ctx,
-			idea.workspaceId,
-			"idea_updated",
-			"idea",
-			args.ideaId,
-			{
-				ideaId: args.ideaId,
-				ideaTitle: updates.title || idea.title,
-				updatedFields: Object.keys(updates),
-			},
-		);
+		await logEvent(ctx, idea.workspaceId, "idea_updated", "idea", args.ideaId, {
+			ideaId: args.ideaId,
+			ideaTitle: updates.title || idea.title,
+			updatedFields: Object.keys(updates),
+		});
 
 		return await ctx.db.get(args.ideaId);
 	},
@@ -358,7 +324,7 @@ export const update = mutation({
 export const move = mutation({
 	args: ideaMoveArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const idea = await ctx.db.get(args.ideaId);
 		if (!idea) {
@@ -401,21 +367,14 @@ export const move = mutation({
 		});
 
 		// Log move event
-		await logEvent(
-			ctx,
-			idea.workspaceId,
-			"idea_moved",
-			"idea",
-			args.ideaId,
-			{
-				ideaId: args.ideaId,
-				ideaTitle: idea.title,
-				fromFolder: idea.folderId,
-				toFolder: args.targetFolderId,
-				fromProject: idea.projectId,
-				toProject: args.targetProjectId,
-			},
-		);
+		await logEvent(ctx, idea.workspaceId, "idea_moved", "idea", args.ideaId, {
+			ideaId: args.ideaId,
+			ideaTitle: idea.title,
+			fromFolder: idea.folderId,
+			toFolder: args.targetFolderId,
+			fromProject: idea.projectId,
+			toProject: args.targetProjectId,
+		});
 
 		return await ctx.db.get(args.ideaId);
 	},
@@ -443,7 +402,7 @@ export const deleteIdea = mutation({
 		const membership = await ctx.db
 			.query("workspaceMembers")
 			.withIndex("by_workspace_user", (q) =>
-				q.eq("workspaceId", idea.workspaceId).eq("userId", userId)
+				q.eq("workspaceId", idea.workspaceId).eq("userId", userId),
 			)
 			.first();
 
@@ -465,14 +424,10 @@ export const deleteIdea = mutation({
 		});
 
 		// Log deletion event
-		await logEvent(
-			ctx,
-			idea.workspaceId,
-			"idea_deleted",
-			"idea",
-			args.ideaId,
-			{ ideaId: args.ideaId, ideaTitle: idea.title },
-		);
+		await logEvent(ctx, idea.workspaceId, "idea_deleted", "idea", args.ideaId, {
+			ideaId: args.ideaId,
+			ideaTitle: idea.title,
+		});
 	},
 });
 
@@ -557,13 +512,20 @@ export const getFolderHierarchy = query({
 			.collect();
 
 		// Build hierarchy
-		const folderMap = new Map(folders.map((f) => [f._id, { ...f, children: [] }]));
-		const rootFolders: any[] = [];
+		type FolderWithChildren = Doc<"folders"> & {
+			children: FolderWithChildren[];
+		};
+		const folderMap = new Map<Id<"folders">, FolderWithChildren>(
+			folders.map((f) => [f._id, { ...f, children: [] }]),
+		);
+		const rootFolders: FolderWithChildren[] = [];
 
 		folders.forEach((folder) => {
 			const folderWithChildren = folderMap.get(folder._id);
+			if (!folderWithChildren) return; // Skip if not found
+
 			if (folder.parentId && folderMap.has(folder.parentId)) {
-				folderMap.get(folder.parentId)!.children.push(folderWithChildren);
+				folderMap.get(folder.parentId)?.children.push(folderWithChildren);
 			} else {
 				rootFolders.push(folderWithChildren);
 			}
@@ -579,7 +541,7 @@ export const getFolderHierarchy = query({
 export const deleteFolder = mutation({
 	args: folderDeleteArgs,
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const folder = await ctx.db.get(args.folderId);
 		if (!folder) {
@@ -599,8 +561,8 @@ export const deleteFolder = mutation({
 			.filter((q) =>
 				q.and(
 					q.eq(q.field("parentId"), args.folderId),
-					q.eq(q.field("deletedAt"), undefined)
-				)
+					q.eq(q.field("deletedAt"), undefined),
+				),
 			)
 			.collect();
 
@@ -615,7 +577,7 @@ export const deleteFolder = mutation({
 		const ideasInFolder = await ctx.db
 			.query("ideas")
 			.withIndex("by_workspace_folder", (q) =>
-				q.eq("workspaceId", folder.workspaceId).eq("folderId", args.folderId)
+				q.eq("workspaceId", folder.workspaceId).eq("folderId", args.folderId),
 			)
 			.filter((q) => q.eq(q.field("deletedAt"), undefined))
 			.collect();
@@ -658,7 +620,7 @@ export const addContent = mutation({
 		content: v.string(),
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const _userId = await requireUserId(ctx);
 
 		const idea = await ctx.db.get(args.ideaId);
 		if (!idea) {
@@ -679,14 +641,11 @@ export const addContent = mutation({
 		});
 
 		// Log update event
-		await logEvent(
-			ctx,
-			idea.workspaceId,
-			"idea_updated",
-			"idea",
-			args.ideaId,
-			{ ideaId: args.ideaId, ideaTitle: idea.title, action: "content_added" },
-		);
+		await logEvent(ctx, idea.workspaceId, "idea_updated", "idea", args.ideaId, {
+			ideaId: args.ideaId,
+			ideaTitle: idea.title,
+			action: "content_added",
+		});
 	},
 });
 
@@ -704,8 +663,9 @@ export const createFromWebClip = mutation({
 		projectId: v.optional(v.id("projects")),
 		tags: v.optional(v.array(v.string())),
 	},
-	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+	returns: v.id("ideas"),
+	handler: async (ctx, args): Promise<Id<"ideas">> => {
+		const _userId = await requireUserId(ctx);
 
 		// Check permissions
 		await assertWriteEnabled(ctx, args.workspaceId, "editor");
@@ -722,18 +682,11 @@ export const createFromWebClip = mutation({
 		const ideaId = await ctx.runMutation(api.ideas.create, ideaData);
 
 		// Log web clip event
-		await logEvent(
-			ctx,
-			args.workspaceId,
-			"web_clip_created",
-			"idea",
+		await logEvent(ctx, args.workspaceId, "web_clip_created", "idea", ideaId, {
 			ideaId,
-			{
-				ideaId,
-				url: args.url,
-				ideaTitle: args.title,
-			},
-		);
+			url: args.url,
+			ideaTitle: args.title,
+		});
 
 		return ideaId;
 	},

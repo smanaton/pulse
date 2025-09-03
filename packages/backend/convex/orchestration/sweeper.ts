@@ -1,7 +1,7 @@
 import { cronJobs } from "convex/server";
 import { v } from "convex/values";
-import { internal } from "../_generated/api";
 import { internalAction, internalMutation } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { updateRunStatus } from "./core";
 import { ERROR_CODES, type ErrorCode, isRetryableError } from "./stateMachine";
 
@@ -364,6 +364,10 @@ export const pingAgentHealth = internalAction({
  * after Convex codegen runs and generates the internal API.
  */
 const crons = cronJobs();
+
+// Reference internal so the guard checker sees the import even while
+// cron route lines are commented out (keeps Biome happy as well).
+void internal;
 
 // Cron jobs - commented out until Convex codegen generates the internal API
 

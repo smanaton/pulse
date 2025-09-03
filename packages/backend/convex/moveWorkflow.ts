@@ -345,7 +345,7 @@ export const startMoveProjectWithFailure = mutation({
 		// Test utility to simulate partial failure
 		const now = Date.now();
 		const jobId = await ctx.db.insert("moveJobs", {
-			sourceWorkspaceId: "dummy" as any,
+			sourceWorkspaceId: "dummy" as unknown as Id<"workspaces">,
 			targetWorkspaceId,
 			projectId,
 			mode,

@@ -11,7 +11,7 @@ import {
 } from "flowbite-react";
 import { Plus, X } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { CreateKanbanTaskInput } from "../../types/kanban";
 
 interface CreateTaskModalProps {
@@ -38,6 +38,12 @@ export function CreateTaskModal({
 
 	const [tagInput, setTagInput] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const taskNameId = useId();
+	const descriptionId = useId();
+	const priorityId = useId();
+	const dueDateId = useId();
+	const estimatedHoursId = useId();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -99,7 +105,7 @@ export function CreateTaskModal({
 							Task Name *
 						</Label>
 						<TextInput
-							id="taskName"
+							id={taskNameId}
 							value={formData.name}
 							onChange={(e) =>
 								setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -115,7 +121,7 @@ export function CreateTaskModal({
 							Description
 						</Label>
 						<Textarea
-							id="description"
+							id={descriptionId}
 							value={formData.description}
 							onChange={(e) =>
 								setFormData((prev) => ({
@@ -134,7 +140,7 @@ export function CreateTaskModal({
 							Priority
 						</Label>
 						<Select
-							id="priority"
+							id={priorityId}
 							value={formData.priority}
 							onChange={(e) =>
 								setFormData((prev) => ({
@@ -161,7 +167,7 @@ export function CreateTaskModal({
 						</Label>
 						<input
 							type="date"
-							id="dueDate"
+							id={dueDateId}
 							className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 text-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
 							onChange={(e) =>
 								setFormData((prev) => ({
@@ -180,7 +186,7 @@ export function CreateTaskModal({
 							Estimated Hours
 						</Label>
 						<TextInput
-							id="estimatedHours"
+							id={estimatedHoursId}
 							type="number"
 							min="0"
 							step="0.5"

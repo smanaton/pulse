@@ -6,7 +6,7 @@ export default defineConfig({
 	plugins: [react()],
 	test: {
 		environment: "jsdom",
-		setupFiles: ["./src/test/setup.ts"],
+		setupFiles: ["./tests/integration/setup.ts"],
 		globals: true,
 		css: true,
 		clearMocks: true,
@@ -30,19 +30,20 @@ export default defineConfig({
 				"!src/**/*.d.ts",
 				"!src/test/**",
 			],
-			exclude: [
-				"src/test/**",
-				"**/*.config.*",
-				"**/node_modules/**",
-			],
+			exclude: ["src/test/**", "**/*.config.*", "**/node_modules/**"],
 		},
 		deps: {
-			inline: ["@convex-dev/auth", "convex", "msw"],
+			optimizer: {
+				web: {
+					include: ["@convex-dev/auth", "convex", "msw"],
+				},
+			},
 		},
 	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			"@test": path.resolve(__dirname, "./src/test"),
 		},
 	},
 });

@@ -164,8 +164,25 @@ async function stopDevServer() {
 	console.log(`Attempting to stop process tree with PID: ${pid}...`);
 
 	try {
+		// POSIX: try killing the entire process group first for a clean shutdown
+		if (!isWin) {
+			try {
+				process.kill(-pid, "SIGTERM");
+			} catch {}
+		}
+
+		// Fallback: use tree-kill to ensure we catch child processes on all platforms
 		await killAsync(pid);
-		console.log("Successfully stopped the development server process tree.");
+
+		// POSIX hard kill for stubborn groups after a short grace period
+		if (!isWin) {
+			await sleep(500);
+			try {
+				process.kill(-pid, "SIGKILL");
+			} catch {}
+		}
+
+		console.log("Successfully requested shutdown of the development server process tree.");
 	} catch (err) {
 		// It's common for the process to be already gone. We can ignore that error.
 		if (!err.message.includes("No such process")) {
@@ -186,7 +203,35 @@ async function stopDevServer() {
 			// If it's already gone, that's fine.
 		}
 		// Ensure ports are freed after the main PID is stopped with detailed reporting
-		await ensurePortsFreed();
+		const { ok, busyAfterPorts } = await ensurePortsFreed();
+		if (!ok && !isWin) {
+			// As an extra safety net on POSIX, try to kill any remaining processes by group ID
+			try {
+				execSync(`kill -TERM -- -${pid} 2>/dev/null || true`, { stdio: "ignore" });
+			} catch {}
+			await sleep(300);
+			const retry = await ensurePortsFreed();
+			if (!retry.ok) {
+				// Last resort, attempt to kill by common process names to avoid stale listeners
+				try {
+					execSync(
+						"pkill -f 'convex dev' 2>/dev/null || true; pkill -f 'vite --port=3003' 2>/dev/null || true",
+						{ stdio: "ignore" },
+					);
+				} catch {}
+				await ensurePortsFreed();
+				if (retry.busyAfterPorts?.length) {
+					console.log(
+						`Ports still busy after aggressive cleanup: ${retry.busyAfterPorts.join(", ")}.` +
+							" You may need to kill lingering processes manually.",
+					);
+				}
+			}
+		} else if (!ok) {
+			console.log(
+				`Ports still busy after cleanup: ${busyAfterPorts.join(", ")}. You may need to kill lingering processes manually.`,
+			);
+		}
 	}
 }
 

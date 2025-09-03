@@ -16,6 +16,8 @@ import type {
 	IFolderService,
 	IIdeaRepository,
 	IIdeaService,
+	FolderEntity,
+	FolderNode,
 } from "./interfaces";
 
 // ============================================================================
@@ -148,7 +150,7 @@ export class IdeaService implements IIdeaService {
 		await this.repository.delete(ideaId);
 	}
 
-	async get(ideaId: Id<"ideas">): Promise<any | null> {
+	async get(ideaId: Id<"ideas">): Promise<unknown | null> {
 		const idea = await this.repository.findById(ideaId);
 
 		// Check workspace access
@@ -163,7 +165,7 @@ export class IdeaService implements IIdeaService {
 		return idea;
 	}
 
-	async search(options: IdeaSearchOptions): Promise<any[]> {
+	async search(options: IdeaSearchOptions): Promise<unknown[]> {
 		// Ensure search is within user's workspace
 		if (
 			this.context.workspaceId &&
@@ -314,7 +316,7 @@ export class FolderService implements IFolderService {
 		await this.repository.delete(folderId);
 	}
 
-	async getHierarchy(workspaceId: Id<"workspaces">): Promise<any[]> {
+	async getHierarchy(workspaceId: Id<"workspaces">): Promise<FolderNode[]> {
 		// Check workspace access
 		if (this.context.workspaceId && this.context.workspaceId !== workspaceId) {
 			throw new PermissionError("Cannot access folders in different workspace");
@@ -345,9 +347,9 @@ export class FolderService implements IFolderService {
 		}
 	}
 
-	private buildFolderHierarchy(folders: any[]): any[] {
-		const folderMap = new Map();
-		const rootFolders: any[] = [];
+	private buildFolderHierarchy(folders: FolderEntity[]): FolderNode[] {
+		const folderMap = new Map<Id<"folders">, FolderNode>();
+		const rootFolders: FolderNode[] = [];
 
 		// Create a map of all folders
 		for (const folder of folders) {
@@ -357,9 +359,14 @@ export class FolderService implements IFolderService {
 		// Build the hierarchy
 		for (const folder of folders) {
 			const folderNode = folderMap.get(folder._id);
+			if (!folderNode) {
+				continue;
+			}
 
 			if (folder.parentId) {
-				const parent = folderMap.get(folder.parentId);
+				const parent = folder.parentId
+					? folderMap.get(folder.parentId)
+					: undefined;
 				if (parent) {
 					parent.children.push(folderNode);
 				} else {

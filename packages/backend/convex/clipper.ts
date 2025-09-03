@@ -9,6 +9,7 @@ import { api } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
 import { logEvent, sanitizeContent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
+import type { Id } from "./_generated/dataModel";
 
 /**
  * Create a new clipper task (simplified version)
@@ -43,11 +44,21 @@ export const createTask = action({
 
 		if (args.destination === "existing" && args.targetIdeaId) {
 			// Append to existing idea
-			const ideaId: string = await ctx.runMutation(api.ideas.appendWebClip, {
+			// Get existing idea
+			const existingIdea = await ctx.runQuery(api.ideas.get, {
 				ideaId: args.targetIdeaId,
-				content: formatContentForIdea(content, args),
-				metadata: content.metadata,
 			});
+			if (!existingIdea) {
+				throw new ConvexError("Idea not found");
+			}
+
+			// Append web clip content to existing idea
+			const newContent = `${existingIdea.contentMD}\n\n${formatContentForIdea(content, args)}`;
+			await ctx.runMutation(api.ideas.update, {
+				ideaId: args.targetIdeaId,
+				contentMD: newContent,
+			});
+			const ideaId: string = args.targetIdeaId;
 			return { taskId: ideaId, status: "completed" };
 		}
 		// Create new idea
@@ -134,15 +145,23 @@ export const processTask = action({
 				contentHash,
 			});
 
-			let ideaId: string;
+			let ideaId: Id<"ideas">;
 
 			if (task.destination === "existing" && task.targetIdeaId) {
 				// Append to existing idea
-				ideaId = await ctx.runMutation(api.ideas.appendWebClip, {
-					ideaId: task.targetIdeaId!,
-					content: formatContentForIdea(content, task),
-					metadata: content.metadata,
+				const existingIdea = await ctx.runQuery(api.ideas.get, {
+					ideaId: task.targetIdeaId,
 				});
+				if (!existingIdea) {
+					throw new ConvexError("Idea not found");
+				}
+
+				const newContent = `${existingIdea.contentMD}\n\n${formatContentForIdea(content, task)}`;
+				await ctx.runMutation(api.ideas.update, {
+					ideaId: task.targetIdeaId,
+					contentMD: newContent,
+				});
+				ideaId = task.targetIdeaId;
 			} else {
 				// Create new idea
 				const title = task.title || content.title || new URL(task.url).hostname;
@@ -161,7 +180,7 @@ export const processTask = action({
 			// Create web clip record
 			await ctx.runMutation(api.clipper.createWebClip, {
 				workspaceId: task.workspaceId,
-				ideaId: ideaId as any,
+				ideaId,
 				url: task.url,
 				canonicalUrl,
 				title: content.title || task.title || "",
@@ -176,7 +195,7 @@ export const processTask = action({
 			await ctx.runMutation(api.clipper.updateTaskStatus, {
 				taskId,
 				status: "completed",
-				resultIdeaId: ideaId as any,
+				resultIdeaId: ideaId,
 				completedAt: Date.now(),
 			});
 
@@ -379,8 +398,13 @@ async function extractWebContent(url: string, selection?: string) {
 /**
  * Extract metadata from HTML
  */
-function extractMetadata(html: string): any {
-	const metadata: any = {};
+type PageMetadata = {
+	title?: string;
+	description?: string;
+	author?: string;
+} & Record<string, string | undefined>;
+function extractMetadata(html: string): PageMetadata {
+	const metadata: PageMetadata = {};
 
 	// Basic title extraction
 	const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
@@ -503,7 +527,16 @@ async function generateContentHash(content: string): Promise<string> {
 /**
  * Format content for idea storage
  */
-function formatContentForIdea(content: any, task: any): string {
+type ExtractedContent = {
+	title?: string;
+	text: string;
+	metadata: Record<string, string | undefined>;
+};
+type TaskLike = { url: string; selection?: string };
+function formatContentForIdea(
+	content: ExtractedContent,
+	task: TaskLike,
+): string {
 	let formatted = "";
 
 	// Add source URL

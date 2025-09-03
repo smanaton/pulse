@@ -5,13 +5,13 @@
 export class PulseError extends Error {
 	public code: string;
 	public statusCode?: number;
-	public details?: Record<string, any>;
+	public details?: Record<string, unknown>;
 
 	constructor(
 		message: string,
 		code: string,
 		statusCode?: number,
-		details?: Record<string, any>,
+		details?: Record<string, unknown>,
 	) {
 		super(message);
 		this.name = "PulseError";
@@ -24,7 +24,7 @@ export class PulseError extends Error {
 export class AuthenticationError extends PulseError {
 	constructor(
 		message = "Authentication required",
-		details?: Record<string, any>,
+		details?: Record<string, unknown>,
 	) {
 		super(message, "AUTHENTICATION_REQUIRED", 401, details);
 		this.name = "AuthenticationError";
@@ -34,7 +34,7 @@ export class AuthenticationError extends PulseError {
 export class AuthorizationError extends PulseError {
 	constructor(
 		message = "Insufficient permissions",
-		details?: Record<string, any>,
+		details?: Record<string, unknown>,
 	) {
 		super(message, "AUTHORIZATION_FAILED", 403, details);
 		this.name = "AuthorizationError";
@@ -53,7 +53,7 @@ export class WorkspaceNotFoundError extends PulseError {
 export class MembershipError extends PulseError {
 	constructor(
 		message = "User is not a member of this workspace",
-		details?: Record<string, any>,
+		details?: Record<string, unknown>,
 	) {
 		super(message, "MEMBERSHIP_REQUIRED", 403, details);
 		this.name = "MembershipError";

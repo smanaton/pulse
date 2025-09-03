@@ -15,6 +15,7 @@ type HeadingBlock = Block & {
 	type: "heading";
 	props: {
 		level: 1 | 2 | 3 | 4 | 5 | 6;
+		// biome-ignore lint/suspicious/noExplicitAny: BlockNote requires flexible props
 		[key: string]: any;
 	};
 };

@@ -12,7 +12,7 @@
  */
 
 // Import all Convex function files and _generated files needed by convex-test
-export const modules = (import.meta as any).glob(
+export const modules = import.meta.glob(
 	[
 		"./*.ts",
 		"./orchestration/*.ts", // Include orchestration subdirectory
