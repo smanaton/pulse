@@ -18,13 +18,14 @@ vi.mock("../../../core/src/shared", () => ({
 	}),
 
 	sanitizeTitle: vi.fn((title: string) => {
-		return (
-			title
-				.trim()
-				// biome-ignore lint/suspicious/noControlCharactersInRegex: sanitize helper for test inputs
-				.replace(/[\u0000-\u001F\u007F]/g, "")
-				.substring(0, 200)
-		);
+		// Remove ASCII control characters (U+0000–U+001F and U+007F) without regex control escapes
+		const cleaned = Array.from(title.trim())
+			.filter((ch) => {
+				const code = ch.charCodeAt(0);
+				return code > 0x1f && code !== 0x7f; // keep non-control
+			})
+			.join("");
+		return cleaned.substring(0, 200);
 	}),
 
 	formatDate: vi.fn((timestamp: number) => {

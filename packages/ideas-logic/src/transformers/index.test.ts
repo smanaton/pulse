@@ -4,7 +4,8 @@
 
 import { describe, expect, it, vi } from "vitest";
 import type { UpdateIdeaInput } from "../types";
-import type { Id } from "@pulse/core/types";
+// Local Id type alias to avoid cross-package path resolution in tests
+type Id<T extends string> = string & { __tableName: T };
 
 // Mock @pulse/core/shared module - must be hoisted before imports
 vi.mock("@pulse/core/shared", () => ({
@@ -12,14 +13,14 @@ vi.mock("@pulse/core/shared", () => ({
 		content.replace(/<script.*?<\/script>/gi, ""),
 	sanitizeTitle: (title: string) => {
 		if (!title) return "";
-		return (
-			title
-				.trim()
-				// sanitize helper for test inputs - remove control characters
-				// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally removing control characters from test inputs
-				.replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
-				.substring(0, 200)
-		); // Limit title length
+		// Intentionally remove ASCII control characters from test inputs without regex control escapes
+		const cleaned = Array.from(title.trim())
+			.filter((ch) => {
+				const code = ch.charCodeAt(0);
+				return code > 0x1f && code !== 0x7f; // keep non-control
+			})
+			.join("");
+		return cleaned.substring(0, 200); // Limit title length
 	},
 }));
 
@@ -275,7 +276,14 @@ const code = "block";
 		};
 
 		it("should transform idea for JSON export", () => {
-			const result = transformIdeaForExport(sampleIdea, "json");
+			const result = transformIdeaForExport(sampleIdea, "json") as {
+				id: string;
+				title: string;
+				content: string;
+				status: string;
+				createdAt: number;
+				updatedAt: number;
+			};
 
 			expect(result.id).toBe("idea123");
 			expect(result.title).toBe("Test Idea");
@@ -285,7 +293,7 @@ const code = "block";
 		});
 
 		it("should transform idea for markdown export", () => {
-			const result = transformIdeaForExport(sampleIdea, "markdown");
+			const result = transformIdeaForExport(sampleIdea, "markdown") as string;
 
 			expect(result).toContain("# Test Idea");
 			expect(result).toContain(sampleIdea.contentMD);
@@ -294,7 +302,14 @@ const code = "block";
 		});
 
 		it("should transform idea for CSV export", () => {
-			const result = transformIdeaForExport(sampleIdea, "csv");
+			const result = transformIdeaForExport(sampleIdea, "csv") as {
+				id: string;
+				title: string;
+				content: string;
+				status: string;
+				created_at: string;
+				updated_at: string;
+			};
 
 			expect(result.id).toBe("idea123");
 			expect(result.title).toBe("Test Idea");
