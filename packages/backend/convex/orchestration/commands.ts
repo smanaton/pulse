@@ -384,7 +384,7 @@ export const getCommandStatus = query({
 		const run = await getRun(ctx, args.workspaceId, args.runId);
 
 		return {
-			lastCommand: run.lastCommand ?? null,
+			lastCommand: run.lastCommand ?? undefined,
 			isPending: !!(run.lastCommand && !run.lastCommand.acknowledgedAt),
 		};
 	},
