@@ -171,7 +171,7 @@ export const cancelRun = mutation({
 				lastCommand: {
 					type: "run.cancel",
 					issuedAt: Date.now(),
-					acknowledgedAt: null,
+					acknowledgedAt: undefined,
 				},
 			});
 
