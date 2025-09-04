@@ -4,20 +4,47 @@ import { cn } from "@/lib/utils";
 
 type LabelProps = React.ComponentProps<"label"> & { as?: "label" | "span" };
 
-function Label({ className, as, htmlFor, ...props }: LabelProps) {
-	// If htmlFor is provided (or caller forces as="label"), render a label; otherwise render a span to satisfy a11y rule.
-	const Comp: "label" | "span" = as ?? (htmlFor ? "label" : "span");
+function Label({ className, as, htmlFor, children, ...props }: LabelProps) {
+	// Only render <label> when we have a valid htmlFor to associate with a control.
+	const wantLabel = (as ?? (htmlFor ? "label" : "span")) === "label";
+	const useLabel = wantLabel && !!htmlFor;
+
 	const commonClass = cn(
 		"flex select-none items-center gap-2 font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50",
 		className,
 	);
 
-	if (Comp === "label") {
-		return <label data-slot="label" className={commonClass} htmlFor={htmlFor} {...props} />;
+	if (useLabel) {
+		// Render children inside label for accessible text; spread remaining props excluding children
+		const { children: _c, ...rest } = props as Record<string, unknown>;
+		return (
+			<label
+				data-slot="label"
+				className={commonClass}
+				htmlFor={htmlFor}
+				{...(rest as React.LabelHTMLAttributes<HTMLLabelElement>)}
+			>
+				{children}
+			</label>
+		);
 	}
-	// span path: do not pass htmlFor
-	const { /* eslint-disable-line */ ...rest } = props;
-	return <span data-slot="label" className={commonClass} {...rest} />;
+
+	// If caller forced as="label" but didn't provide htmlFor, fall back to span to satisfy a11y
+	// and avoid passing htmlFor down.
+	const {
+		htmlFor: _ignored,
+		children: _children,
+		...rest
+	} = props as Record<string, unknown>;
+	return (
+		<span
+			data-slot="label"
+			className={commonClass}
+			{...(rest as React.HTMLAttributes<HTMLSpanElement>)}
+		>
+			{children}
+		</span>
+	);
 }
 
 export { Label };
