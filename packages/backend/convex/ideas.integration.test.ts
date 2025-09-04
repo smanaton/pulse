@@ -267,7 +267,7 @@ describe("Ideas Module - Convex Integration", () => {
 			});
 
 			// Add small delay to ensure different timestamps
-			await new Promise(resolve => setTimeout(resolve, 1));
+			await new Promise((resolve) => setTimeout(resolve, 1));
 
 			// Act
 			await t
