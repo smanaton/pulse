@@ -72,3 +72,9 @@ ruler_aider_instructions.md.bak
 # Ignore per-package and per-app build artifacts
 packages/*/dist/
 apps/*/dist/
+
+# Ignore Storybook generated hashed assets (local builds)
+apps/storybook/storybook-static/assets/
+
+# Cover additional dist paths if present
+**/dist/
