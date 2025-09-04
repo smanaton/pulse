@@ -22,16 +22,36 @@ const createTestUser = (overrides = {}) => ({
 });
 
 const createTestWorkspace = (overrides = {}) => ({
+	// Required workspace fields per schema
+	type: "shared" as const,
+	isPersonal: false,
+	plan: "free" as const,
 	name: "Test Workspace",
+	ownerUserId: undefined, // For shared workspaces, ownerUserId is optional
 	createdAt: Date.now(),
 	updatedAt: Date.now(),
 	...overrides,
 });
 
-const createTestIdea = (workspaceId: string, overrides = {}) => ({
-	title: "Test Idea",
-	content: "This is a test idea content",
+const createTestIdea = (
+	workspaceId: string,
+	createdBy: Id<"users">,
+	overrides: Record<string, unknown> = {},
+) => ({
+	// Required idea fields per schema
 	workspaceId,
+	projectId: undefined,
+	folderId: undefined,
+	title: "Test Idea",
+	contentMD: "This is a test idea content",
+	contentBlocks: undefined,
+	problem: undefined,
+	hypothesis: undefined,
+	value: undefined,
+	risks: undefined,
+	aiSummary: undefined,
+	status: "draft" as const,
+	createdBy,
 	createdAt: Date.now(),
 	updatedAt: Date.now(),
 	...overrides,
@@ -133,7 +153,7 @@ describe("Ideas Module - Convex Integration", () => {
 						contentMD: "Should not work",
 						workspaceId: otherWorkspaceId,
 					}),
-			).rejects.toThrow("Access denied");
+			).rejects.toThrow("Not a workspace member");
 		});
 
 		test("Given_InvalidInput_When_CreatesIdea_Then_ValidatesAndThrows", async () => {
@@ -146,19 +166,19 @@ describe("Ideas Module - Convex Integration", () => {
 						contentMD: "Valid content",
 						workspaceId,
 					}),
-			).rejects.toThrow("Title is required");
+			).rejects.toThrow("Idea title is required");
 
-			// Act & Assert - Title too long
+			// Act & Assert - Title too long should be truncated, not throw
 			const longTitle = "A".repeat(201);
-			await expect(
-				t
-					.withIdentity({ tokenIdentifier: "test|user123" })
-					.mutation(api.ideas.create, {
-						title: longTitle,
-						contentMD: "Valid content",
-						workspaceId,
-					}),
-			).rejects.toThrow("Title too long");
+			const ideaId = await t
+				.withIdentity({ tokenIdentifier: "test|user123" })
+				.mutation(api.ideas.create, {
+					title: longTitle,
+					contentMD: "Valid content",
+					workspaceId,
+				});
+			const idea = await t.run(async (ctx) => ctx.db.get(ideaId));
+			expect(idea?.title.length).toBe(200);
 		});
 	});
 
@@ -168,9 +188,10 @@ describe("Ideas Module - Convex Integration", () => {
 			const _idea1Id = await t.run(async (ctx) => {
 				return await ctx.db.insert(
 					"ideas",
-					createTestIdea(workspaceId, {
+					createTestIdea(workspaceId, userId, {
 						title: "Older Idea",
 						createdAt: Date.now() - 1000,
+						updatedAt: Date.now() - 1000,
 					}),
 				);
 			});
@@ -178,9 +199,10 @@ describe("Ideas Module - Convex Integration", () => {
 			const _idea2Id = await t.run(async (ctx) => {
 				return await ctx.db.insert(
 					"ideas",
-					createTestIdea(workspaceId, {
+					createTestIdea(workspaceId, userId, {
 						title: "Newer Idea",
 						createdAt: Date.now(),
+						updatedAt: Date.now(),
 					}),
 				);
 			});
@@ -222,7 +244,7 @@ describe("Ideas Module - Convex Integration", () => {
 				t
 					.withIdentity({ tokenIdentifier: "test|user123" })
 					.query(api.ideas.list, { workspaceId: otherWorkspaceId }),
-			).rejects.toThrow("Access denied");
+			).rejects.toThrow("Not a workspace member");
 		});
 	});
 
@@ -231,7 +253,10 @@ describe("Ideas Module - Convex Integration", () => {
 
 		beforeEach(async () => {
 			ideaId = await t.run(async (ctx) => {
-				return await ctx.db.insert("ideas", createTestIdea(workspaceId));
+				return await ctx.db.insert(
+					"ideas",
+					createTestIdea(workspaceId, userId),
+				);
 			});
 		});
 
@@ -279,7 +304,7 @@ describe("Ideas Module - Convex Integration", () => {
 			});
 
 			expect(updatedIdea?.title).toBe("Only Title Updated");
-			expect(updatedIdea?.content).toBe(originalIdea?.content); // Unchanged
+			expect(updatedIdea?.contentMD).toBe(originalIdea?.contentMD); // Unchanged
 		});
 	});
 
@@ -288,7 +313,10 @@ describe("Ideas Module - Convex Integration", () => {
 
 		beforeEach(async () => {
 			ideaId = await t.run(async (ctx) => {
-				return await ctx.db.insert("ideas", createTestIdea(workspaceId));
+				return await ctx.db.insert(
+					"ideas",
+					createTestIdea(workspaceId, userId),
+				);
 			});
 		});
 
@@ -298,12 +326,12 @@ describe("Ideas Module - Convex Integration", () => {
 				.withIdentity({ tokenIdentifier: "test|user123" })
 				.mutation(api.ideas.deleteIdea, { ideaId });
 
-			// Assert
+			// Assert - soft delete: document remains with deletedAt set
 			const deletedIdea = await t.run(async (ctx) => {
 				return await ctx.db.get(ideaId);
 			});
 
-			expect(deletedIdea).toBeNull();
+			expect(deletedIdea?.deletedAt).toBeGreaterThan(0);
 		});
 
 		test("Given_NonExistentIdea_When_Deleted_Then_ThrowsError", async () => {
@@ -311,7 +339,7 @@ describe("Ideas Module - Convex Integration", () => {
 			const fakeId = await t.run(async (ctx) => {
 				const tempId = await ctx.db.insert(
 					"ideas",
-					createTestIdea(workspaceId),
+					createTestIdea(workspaceId, userId),
 				);
 				await ctx.db.delete(tempId);
 				return tempId;
