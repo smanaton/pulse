@@ -261,6 +261,14 @@ describe("Ideas Module - Convex Integration", () => {
 		});
 
 		test("Given_ValidUpdate_When_Updated_Then_ModifiesCorrectFields", async () => {
+			// Get original idea for timestamp comparison
+			const originalIdea = await t.run(async (ctx) => {
+				return await ctx.db.get(ideaId);
+			});
+
+			// Add small delay to ensure different timestamps
+			await new Promise(resolve => setTimeout(resolve, 1));
+
 			// Act
 			await t
 				.withIdentity({ tokenIdentifier: "test|user123" })
@@ -280,7 +288,7 @@ describe("Ideas Module - Convex Integration", () => {
 				contentMD: "Updated content",
 			});
 			expect(updatedIdea?.updatedAt).toBeGreaterThan(
-				updatedIdea?.createdAt || 0,
+				originalIdea?.createdAt || 0,
 			);
 		});
 
