@@ -68,3 +68,7 @@ ruler_aider_instructions.md
 ruler_aider_instructions.md.bak
 # END Ruler Generated Files
 .dev.pid
+
+# Ignore per-package and per-app build artifacts
+packages/*/dist/
+apps/*/dist/
