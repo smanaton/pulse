@@ -577,6 +577,7 @@ export default defineSchema({
 		workspaceId: v.id("workspaces"),
 		actorUserId: v.id("users"),
 		type: v.union(
+			v.literal("user_setup_completed"),
 			v.literal("personal_workspace_created"),
 			v.literal("workspace_created"),
 			v.literal("invite_sent"),

@@ -113,7 +113,6 @@ const TypingIndicator = () => (
 export function Dashboard() {
 	const user = useQuery(api.users.getCurrentUser);
 	const workspaceId = useCurrentWorkspaceId();
-	const createWorkspace = useMutation(api.workspaces.getOrCreatePersonal);
 	const processMessage = useAction(api.ai.processMessage);
 	const navigate = useNavigate();
 
@@ -199,13 +198,6 @@ export function Dashboard() {
 				badge: app.badge ? Number.parseInt(app.badge, 10) : undefined,
 			}));
 	}, [navigationPreferences, iconMap]);
-
-	// Create personal workspace if user is authenticated but has no workspace
-	React.useEffect(() => {
-		if (user && !workspaceId) {
-			createWorkspace();
-		}
-	}, [user, workspaceId, createWorkspace]);
 
 	// Show loading if we don't have a workspace yet
 	if (!workspaceId) {
