@@ -231,13 +231,6 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [setup, unit-tests]
-    services:
-      # Mock Convex service for integration tests
-      convex-mock:
-        image: node:22-alpine
-        ports:
-          - 8787:8787
-        options: --health-cmd="wget --no-verbose --tries=1 --spider http://localhost:8787/health || exit 1" --health-interval=30s --health-timeout=10s --health-retries=3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -269,8 +262,6 @@ jobs:
         run: pnpm -F web run test:integration --coverage
         env:
           CI: true
-          # Mock Convex URL for integration tests
-          CONVEX_URL: http://localhost:8787
 
       - name: Run integration tests (Backend)
         run: pnpm -F @pulse/backend run test:integration
