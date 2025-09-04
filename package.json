@@ -17,6 +17,7 @@
 		"check": "biome check .",
 		"biome:fix": "biome format --write . && biome lint --write .",
 		"build": "turbo build",
+		"build:ci": "turbo build:ci",
 		"build:schema": "node scripts/merge-schemas.mjs",
 		"setup:symlinks": "node scripts/setup-symlinks.js",
 		"cleanup:symlinks": "node scripts/cleanup-symlinks.js",

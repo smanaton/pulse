@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "vite --port=3003 --strictPort",
 		"build": "vite build",
+		"build:ci": "vite build",
 		"serve": "vite preview",
 		"start": "vite",
 		"check-types": "tsc --noEmit",

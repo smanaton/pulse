@@ -15,6 +15,7 @@
 	},
 	"scripts": {
 		"build": "tsc -b",
+		"build:ci": "tsc -b",
 		"check": "Biome check .",
 		"check:fix": "Biome check . --fix",
 		"typecheck": "tsc --noEmit",

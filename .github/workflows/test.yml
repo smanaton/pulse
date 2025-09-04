@@ -379,8 +379,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build all packages
-        run: pnpm build
+      - name: Build all packages (CI mode)
+        run: pnpm build:ci
         env:
           NODE_ENV: production
 
