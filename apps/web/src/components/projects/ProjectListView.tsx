@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useCallback, useId, useMemo, useState } from "react";
 import {
 	Badge,
 	Button,
@@ -18,7 +19,6 @@ import {
 	Search,
 	Target,
 } from "lucide-react";
-import { useMemo, useState } from "react";
 import { useWorkspaceContext } from "../../contexts/workspace-context";
 import {
 	type CreateProjectArgs,
@@ -37,9 +37,24 @@ interface ProjectListViewProps {
 
 export function ProjectListView({
 	onProjectClick,
-	selectedProject,
 	viewMode = "table",
 }: ProjectListViewProps) {
+	// Generate unique IDs for form elements
+	const nameId = useId();
+	const descriptionId = useId();
+	const priorityId = useId();
+	const colorId = useId();
+	const estimatedHoursId = useId();
+	const tagsId = useId();
+	const editNameId = useId();
+	const editDescriptionId = useId();
+	const editStatusId = useId();
+	const editPriorityId = useId();
+	const editColorId = useId();
+	const editProgressId = useId();
+	const editEstimatedHoursId = useId();
+	const editTagsId = useId();
+
 	const { currentWorkspace } = useWorkspaceContext();
 	const { projects, isLoading, createProject, updateProject, deleteProject } =
 		useProjects(currentWorkspace?._id);
@@ -79,20 +94,23 @@ export function ProjectListView({
 		setCreateModalOpen(true);
 	};
 
-	const handleEditProject = (project: Project) => {
+	const handleEditProject = useCallback((project: Project) => {
 		setEditingProject(project);
 		setEditModalOpen(true);
-	};
+	}, []);
 
-	const handleDeleteProject = async (project: Project) => {
-		if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
-			try {
-				await deleteProject({ projectId: project._id });
-			} catch (error) {
-				console.error("Failed to delete project:", error);
+	const handleDeleteProject = useCallback(
+		async (project: Project) => {
+			if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+				try {
+					await deleteProject({ projectId: project._id });
+				} catch (error) {
+					console.error("Failed to delete project:", error);
+				}
 			}
-		}
-	};
+		},
+		[deleteProject],
+	);
 
 	// Column definitions for the data table
 	const columns = useMemo<ColumnDef<Project>[]>(
@@ -215,7 +233,7 @@ export function ProjectListView({
 			{
 				accessorKey: "team",
 				header: "Team",
-				cell: ({ row }) => {
+				cell: () => {
 					// TODO: This would come from project members data
 					// For now, showing mock avatars based on project owner
 					const mockTeamSize = Math.floor(Math.random() * 5) + 1;
@@ -229,9 +247,9 @@ export function ProjectListView({
 
 					return (
 						<div className="flex items-center space-x-1">
-							{[...Array(Math.min(mockTeamSize, 3))].map((_, index) => (
+							{Array.from({ length: Math.min(mockTeamSize, 3) }, (_, index) => (
 								<div
-									key={index}
+									key={`avatar-${index}-${Math.random()}`}
 									className={`h-6 w-6 rounded-full ${avatarColors[index % avatarColors.length]} -ml-1 flex items-center justify-center border-2 border-white font-medium text-white text-xs first:ml-0 dark:border-gray-800`}
 								>
 									{String.fromCharCode(65 + index)}
@@ -348,8 +366,8 @@ export function ProjectListView({
 
 					return (
 						<div className="flex flex-wrap gap-1">
-							{tags.slice(0, 2).map((tag, index) => (
-								<Badge key={index} color="gray" size="xs">
+							{tags.slice(0, 2).map((tag) => (
+								<Badge key={tag} color="gray" size="xs">
 									{tag}
 								</Badge>
 							))}
@@ -381,6 +399,7 @@ export function ProjectListView({
 							<ul className="py-2 text-gray-700 text-sm dark:text-gray-200">
 								<li>
 									<button
+										type="button"
 										onClick={() => onProjectClick?.(project)}
 										className="flex w-full items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 									>
@@ -390,6 +409,7 @@ export function ProjectListView({
 								</li>
 								<li>
 									<button
+										type="button"
 										onClick={() => handleEditProject(project)}
 										className="flex w-full items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 									>
@@ -398,6 +418,7 @@ export function ProjectListView({
 								</li>
 								<li className="border-gray-100 border-t dark:border-gray-600">
 									<button
+										type="button"
 										onClick={() => handleDeleteProject(project)}
 										className="flex w-full items-center px-4 py-2 text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-600"
 									>
@@ -421,7 +442,8 @@ export function ProjectListView({
 				workspaceId: currentWorkspace._id,
 				name: formData.get("name") as string,
 				description: (formData.get("description") as string) || undefined,
-				priority: (formData.get("priority") as any) || "medium",
+				priority:
+					(formData.get("priority") as "low" | "medium" | "high") || "medium",
 				color: (formData.get("color") as string) || undefined,
 				estimatedHours: Number(formData.get("estimatedHours")) || undefined,
 				tags:
@@ -446,8 +468,13 @@ export function ProjectListView({
 				projectId: editingProject._id,
 				name: formData.get("name") as string,
 				description: (formData.get("description") as string) || undefined,
-				status: formData.get("status") as any,
-				priority: (formData.get("priority") as any) || "medium",
+				status: formData.get("status") as
+					| "archived"
+					| "active"
+					| "completed"
+					| "on_hold",
+				priority:
+					(formData.get("priority") as "low" | "medium" | "high") || "medium",
 				color: (formData.get("color") as string) || undefined,
 				estimatedHours: Number(formData.get("estimatedHours")) || undefined,
 				progress: Number(formData.get("progress")) || undefined,
@@ -554,18 +581,18 @@ export function ProjectListView({
 					<div className="space-y-6 p-6">
 						<div className="space-y-4">
 							<div>
-								<Label htmlFor="name">Project Name *</Label>
+								<Label htmlFor={nameId}>Project Name *</Label>
 								<TextInput
-									id="name"
+									id={nameId}
 									name="name"
 									required
 									placeholder="Enter project name"
 								/>
 							</div>
 							<div>
-								<Label htmlFor="description">Description</Label>
+								<Label htmlFor={descriptionId}>Description</Label>
 								<Textarea
-									id="description"
+									id={descriptionId}
 									name="description"
 									placeholder="Enter project description"
 									rows={3}
@@ -573,8 +600,8 @@ export function ProjectListView({
 							</div>
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<Label htmlFor="priority">Priority</Label>
-									<Select id="priority" name="priority" defaultValue="medium">
+									<Label htmlFor={priorityId}>Priority</Label>
+									<Select id={priorityId} name="priority" defaultValue="medium">
 										<option value="low">Low</option>
 										<option value="medium">Medium</option>
 										<option value="high">High</option>
@@ -582,9 +609,9 @@ export function ProjectListView({
 									</Select>
 								</div>
 								<div>
-									<Label htmlFor="color">Color</Label>
+									<Label htmlFor={colorId}>Color</Label>
 									<TextInput
-										id="color"
+										id={colorId}
 										name="color"
 										type="color"
 										defaultValue="#3b82f6"
@@ -592,18 +619,18 @@ export function ProjectListView({
 								</div>
 							</div>
 							<div>
-								<Label htmlFor="estimatedHours">Estimated Hours</Label>
+								<Label htmlFor={estimatedHoursId}>Estimated Hours</Label>
 								<TextInput
-									id="estimatedHours"
+									id={estimatedHoursId}
 									name="estimatedHours"
 									type="number"
 									placeholder="e.g. 40"
 								/>
 							</div>
 							<div>
-								<Label htmlFor="tags">Tags (comma-separated)</Label>
+								<Label htmlFor={tagsId}>Tags (comma-separated)</Label>
 								<TextInput
-									id="tags"
+									id={tagsId}
 									name="tags"
 									placeholder="e.g. web, frontend, design"
 								/>
@@ -640,9 +667,9 @@ export function ProjectListView({
 						<div className="space-y-6 p-6">
 							<div className="space-y-4">
 								<div>
-									<Label htmlFor="edit-name">Project Name *</Label>
+									<Label htmlFor={editNameId}>Project Name *</Label>
 									<TextInput
-										id="edit-name"
+										id={editNameId}
 										name="name"
 										required
 										defaultValue={editingProject.name}
@@ -650,9 +677,9 @@ export function ProjectListView({
 									/>
 								</div>
 								<div>
-									<Label htmlFor="edit-description">Description</Label>
+									<Label htmlFor={editDescriptionId}>Description</Label>
 									<Textarea
-										id="edit-description"
+										id={editDescriptionId}
 										name="description"
 										defaultValue={editingProject.description || ""}
 										placeholder="Enter project description"
@@ -661,9 +688,9 @@ export function ProjectListView({
 								</div>
 								<div className="grid grid-cols-2 gap-4">
 									<div>
-										<Label htmlFor="edit-status">Status</Label>
+										<Label htmlFor={editStatusId}>Status</Label>
 										<Select
-											id="edit-status"
+											id={editStatusId}
 											name="status"
 											defaultValue={editingProject.status}
 										>
@@ -674,9 +701,9 @@ export function ProjectListView({
 										</Select>
 									</div>
 									<div>
-										<Label htmlFor="edit-priority">Priority</Label>
+										<Label htmlFor={editPriorityId}>Priority</Label>
 										<Select
-											id="edit-priority"
+											id={editPriorityId}
 											name="priority"
 											defaultValue={editingProject.priority || "medium"}
 										>
@@ -689,18 +716,18 @@ export function ProjectListView({
 								</div>
 								<div className="grid grid-cols-2 gap-4">
 									<div>
-										<Label htmlFor="edit-color">Color</Label>
+										<Label htmlFor={editColorId}>Color</Label>
 										<TextInput
-											id="edit-color"
+											id={editColorId}
 											name="color"
 											type="color"
 											defaultValue={editingProject.color || "#3b82f6"}
 										/>
 									</div>
 									<div>
-										<Label htmlFor="edit-progress">Progress (%)</Label>
+										<Label htmlFor={editProgressId}>Progress (%)</Label>
 										<TextInput
-											id="edit-progress"
+											id={editProgressId}
 											name="progress"
 											type="number"
 											min="0"
@@ -710,9 +737,9 @@ export function ProjectListView({
 									</div>
 								</div>
 								<div>
-									<Label htmlFor="edit-estimatedHours">Estimated Hours</Label>
+									<Label htmlFor={editEstimatedHoursId}>Estimated Hours</Label>
 									<TextInput
-										id="edit-estimatedHours"
+										id={editEstimatedHoursId}
 										name="estimatedHours"
 										type="number"
 										defaultValue={editingProject.estimatedHours || ""}
@@ -720,9 +747,9 @@ export function ProjectListView({
 									/>
 								</div>
 								<div>
-									<Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+									<Label htmlFor={editTagsId}>Tags (comma-separated)</Label>
 									<TextInput
-										id="edit-tags"
+										id={editTagsId}
 										name="tags"
 										defaultValue={editingProject.tags?.join(", ") || ""}
 										placeholder="e.g. web, frontend, design"

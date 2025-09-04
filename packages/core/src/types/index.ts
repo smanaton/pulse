@@ -79,7 +79,7 @@ export interface Idea extends BaseEntity {
 	folderId?: Id<"folders">;
 	title: string;
 	contentMD: string;
-	contentBlocks?: any; // BlockNote structured content
+	contentBlocks?: unknown; // BlockNote structured content
 	status: IdeaStatus;
 	copiedFromId?: Id<"ideas">;
 	createdBy: Id<"users">;
@@ -128,17 +128,17 @@ export interface IdeaTag {
 // API Response Types
 // ============================================================================
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
 	success: boolean;
 	data?: T;
 	error?: {
 		code: string;
 		message: string;
-		details?: any;
+		details?: unknown;
 	};
 }
 
-export interface PaginatedResponse<T = any> {
+export interface PaginatedResponse<T = unknown> {
 	data: T[];
 	pagination: {
 		page: number;
@@ -167,11 +167,11 @@ export type EntityId<T extends string> = Id<T>;
 // Module Interface Types
 // ============================================================================
 
-export interface ModuleDefinition<T = any> {
+export interface ModuleDefinition<T = unknown> {
 	name: string;
 	version: string;
 	dependencies: string[];
-	schema: Record<string, any>;
+	schema: Record<string, unknown>;
 	functions: T;
 	permissions?: ModulePermissions;
 	config?: ModuleConfig;
@@ -184,5 +184,5 @@ export interface ModulePermissions {
 }
 
 export interface ModuleConfig {
-	[key: string]: any;
+	[key: string]: unknown;
 }

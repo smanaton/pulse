@@ -1,7 +1,8 @@
 import { Badge, Button, Card, Progress } from "flowbite-react";
 import { Calendar, Clock, MoreHorizontal, Target, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Project } from "@/hooks/use-projects";
+import { createSkeletonKeys } from "@/lib/skeleton-utils";
 
 interface ProjectGridViewProps {
 	projects: Project[];
@@ -15,6 +16,7 @@ export function ProjectGridView({
 	isLoading = false,
 }: ProjectGridViewProps) {
 	const [hoveredProject, setHoveredProject] = useState<string | null>(null);
+	const skeletonKeys = useMemo(() => createSkeletonKeys(6, "project-grid"), []);
 
 	const getStatusColor = (status: string) => {
 		switch (status) {
@@ -74,8 +76,8 @@ export function ProjectGridView({
 	if (isLoading) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{[...Array(6)].map((_, i) => (
-					<Card key={i} className="animate-pulse">
+				{skeletonKeys.map((key) => (
+					<Card key={key} className="animate-pulse">
 						<div className="space-y-4">
 							<div className="flex items-center justify-between">
 								<div className="h-4 w-3/4 rounded bg-gray-200" />
@@ -257,8 +259,8 @@ export function ProjectGridView({
 							{/* Tags */}
 							{project.tags && project.tags.length > 0 && (
 								<div className="flex flex-wrap gap-1 border-gray-100 border-t pt-2 dark:border-gray-700">
-									{project.tags.slice(0, 3).map((tag, index) => (
-										<Badge key={index} color="gray" size="xs">
+									{project.tags.slice(0, 3).map((tag, _index) => (
+										<Badge key={tag} color="gray" size="xs">
 											#{tag}
 										</Badge>
 									))}

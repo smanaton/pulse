@@ -243,8 +243,9 @@ export const list = query({
 
 		if (args.cursor) {
 			// Parse cursor for pagination (simplified implementation)
+			const cursor = args.cursor as string;
 			query = query.filter((q) =>
-				q.gt(q.field("_creationTime"), Number.parseInt(args.cursor!, 10)),
+				q.gt(q.field("_creationTime"), Number.parseInt(cursor, 10)),
 			);
 		}
 

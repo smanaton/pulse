@@ -3,7 +3,7 @@ import type { Id } from "@pulse/backend/dataModel";
 import { useMutation } from "convex/react";
 import { Button } from "flowbite-react";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,9 @@ export function IdeaForm({
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const titleId = useId();
+	const contentId = useId();
 
 	const createIdea = useMutation(api.ideas.create);
 
@@ -73,13 +76,13 @@ export function IdeaForm({
 					{/* Title */}
 					<div>
 						<Label
-							htmlFor="idea-title"
+							htmlFor={titleId}
 							className="font-medium text-gray-700 text-sm"
 						>
 							Title *
 						</Label>
 						<Input
-							id="idea-title"
+							id={titleId}
 							type="text"
 							placeholder="Enter idea title..."
 							value={title}
@@ -97,13 +100,13 @@ export function IdeaForm({
 					{/* Content */}
 					<div>
 						<Label
-							htmlFor="idea-content"
+							htmlFor={contentId}
 							className="font-medium text-gray-700 text-sm"
 						>
 							Content
 						</Label>
 						<textarea
-							id="idea-content"
+							id={contentId}
 							placeholder="Describe your idea..."
 							value={content}
 							onChange={(e) => setContent(e.target.value)}

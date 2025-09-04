@@ -1,26 +1,17 @@
+import type { Block as BlockNoteBlock } from "@blocknote/core";
 import { api } from "@pulse/backend";
 import type { Id } from "@pulse/backend/dataModel";
 import { Link } from "@tanstack/react-router";
 import { useMutation } from "convex/react";
 import { Button } from "flowbite-react";
 import { Edit, FileEdit, Save, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// Block types for structured content
-interface BlockContent {
-	text: string;
-}
-
-interface Block {
-	type: string;
-	content?: BlockContent[];
-	props?: {
-		level?: number;
-	};
-}
+// Use BlockNote's official Block type which includes unique IDs
+type Block = BlockNoteBlock;
 
 interface IdeaDetailModalProps {
 	idea: {
@@ -46,9 +37,7 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
 			const blocks = JSON.parse(idea.contentBlocks);
 			return (
 				<div className="space-y-3">
-					{(blocks as Block[]).map((block, index: number) =>
-						renderBlock(block, index),
-					)}
+					{(blocks as Block[]).map((block, index) => renderBlock(block, index))}
 				</div>
 			);
 		} catch (error) {
@@ -71,9 +60,30 @@ function renderIdeaContent(idea: IdeaDetailModalProps["idea"]) {
 /**
  * Render a single block in read-only mode
  */
-function renderBlock(block: Block, index: number) {
-	const getTextContent = (content: BlockContent[] | undefined) => {
-		return content?.map((item) => item.text).join("") || "";
+function renderBlock(block: Block, index?: number) {
+	// BlockNote blocks have different content structure
+	const getTextContent = (block: Block) => {
+		// BlockNote stores text content differently depending on the block type
+		if (block.content && Array.isArray(block.content)) {
+			return block.content
+				.map((item: unknown) => {
+					// Handle inline content
+					if (typeof item === "string") return item;
+					if (item && typeof item === "object" && "text" in item)
+						return item.text;
+					if (
+						item &&
+						typeof item === "object" &&
+						"type" in item &&
+						item.type === "text" &&
+						"text" in item
+					)
+						return item.text || "";
+					return "";
+				})
+				.join("");
+		}
+		return "";
 	};
 
 	switch (block.type) {
@@ -84,68 +94,64 @@ function renderBlock(block: Block, index: number) {
 			return React.createElement(
 				HeadingTag,
 				{
-					key: index,
+					key: block.id,
 					className: `font-bold ${
 						level === 1 ? "text-xl" : level === 2 ? "text-lg" : "text-base"
 					} text-gray-900`,
 				},
-				getTextContent(block.content),
+				getTextContent(block),
 			);
 		}
 
 		case "paragraph":
 			return (
-				<p key={index} className="text-gray-700 leading-relaxed">
-					{getTextContent(block.content) || "\u00A0"}
+				<p key={block.id} className="text-gray-700 leading-relaxed">
+					{getTextContent(block) || "\u00A0"}
 				</p>
 			);
 
 		case "bulletListItem":
 			return (
-				<div key={index} className="flex items-start gap-2">
+				<div key={block.id} className="flex items-start gap-2">
 					<span className="mt-2 text-gray-400 text-xs">•</span>
-					<span className="flex-1 text-gray-700">
-						{getTextContent(block.content)}
-					</span>
+					<span className="flex-1 text-gray-700">{getTextContent(block)}</span>
 				</div>
 			);
 
 		case "numberedListItem":
 			return (
-				<div key={index} className="flex items-start gap-2">
+				<div key={block.id} className="flex items-start gap-2">
 					<span className="mt-0 min-w-[1.5rem] text-gray-400 text-sm">
-						{index + 1}.
+						{(index ?? 0) + 1}.
 					</span>
-					<span className="flex-1 text-gray-700">
-						{getTextContent(block.content)}
-					</span>
+					<span className="flex-1 text-gray-700">{getTextContent(block)}</span>
 				</div>
 			);
 
 		case "codeBlock":
 			return (
 				<pre
-					key={index}
+					key={block.id}
 					className="overflow-x-auto rounded-md border bg-gray-100 p-3 font-mono text-gray-800 text-sm"
 				>
-					{getTextContent(block.content)}
+					{getTextContent(block)}
 				</pre>
 			);
 
 		case "quote":
 			return (
 				<blockquote
-					key={index}
+					key={block.id}
 					className="border-gray-300 border-l-4 bg-gray-50 py-2 pl-4 text-gray-700 italic"
 				>
-					{getTextContent(block.content)}
+					{getTextContent(block)}
 				</blockquote>
 			);
 
 		default:
 			return (
-				<div key={index} className="text-gray-700">
-					{getTextContent(block.content)}
+				<div key={block.id} className="text-gray-700">
+					{getTextContent(block)}
 				</div>
 			);
 	}
@@ -163,6 +169,10 @@ export function IdeaDetailModal({
 		idea.status,
 	);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const titleId = useId();
+	const statusId = useId();
+	const contentId = useId();
 
 	const updateIdea = useMutation(api.ideas.update);
 
@@ -292,13 +302,13 @@ export function IdeaDetailModal({
 								{/* Edit Form */}
 								<div>
 									<Label
-										htmlFor="edit-title"
+										htmlFor={titleId}
 										className="font-medium text-gray-700 text-sm"
 									>
 										Title *
 									</Label>
 									<Input
-										id="edit-title"
+										id={titleId}
 										type="text"
 										value={title}
 										onChange={(e) => setTitle(e.target.value)}
@@ -313,13 +323,13 @@ export function IdeaDetailModal({
 
 								<div>
 									<Label
-										htmlFor="edit-status"
+										htmlFor={statusId}
 										className="font-medium text-gray-700 text-sm"
 									>
 										Status
 									</Label>
 									<select
-										id="edit-status"
+										id={statusId}
 										value={status}
 										onChange={(e) =>
 											setStatus(
@@ -336,13 +346,13 @@ export function IdeaDetailModal({
 
 								<div>
 									<Label
-										htmlFor="edit-content"
+										htmlFor={contentId}
 										className="font-medium text-gray-700 text-sm"
 									>
 										Content
 									</Label>
 									<textarea
-										id="edit-content"
+										id={contentId}
 										value={content}
 										onChange={(e) => setContent(e.target.value)}
 										onKeyDown={handleKeyDown}

@@ -133,7 +133,8 @@ export function DataTable<TData, TValue>({
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => (
 									<TableHeadCell key={header.id} className="px-6 py-3">
-										<div
+										<button
+											type="button"
 											className={cn(
 												"flex items-center space-x-1",
 												header.column.getCanSort() &&
@@ -155,7 +156,7 @@ export function DataTable<TData, TValue>({
 													}[header.column.getIsSorted() as string] ?? "↕"}
 												</div>
 											)}
-										</div>
+										</button>
 									</TableHeadCell>
 								))}
 							</TableRow>

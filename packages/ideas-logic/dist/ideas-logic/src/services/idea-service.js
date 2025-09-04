@@ -16,9 +16,9 @@ export async function processIdeaCreation(input) {
         };
     }
     // Additional content validation - only if content exists
-    if (input.contentMD && input.contentMD.trim()) {
-        const trimmedContent = input.contentMD.trim();
-        const contentValidation = validateContent(trimmedContent);
+    const trimmedContentMD = input.contentMD?.trim();
+    if (trimmedContentMD) {
+        const contentValidation = validateContent(trimmedContentMD);
         if (!contentValidation.valid) {
             return {
                 success: false,
@@ -43,18 +43,17 @@ export async function processIdeaUpdate(input, existingIdea) {
             validation,
             errors: validation.errors.map((e) => e.message),
         };
+    }
     // Validate content if being updated and not empty
-    if (input.contentMD !== undefined && input.contentMD.trim()) {
-        const trimmedContent = input.contentMD.trim();
-        const contentValidation = validateContent(trimmedContent);
+    const trimmedContentMD = input.contentMD?.trim();
+    if (trimmedContentMD) {
+        const contentValidation = validateContent(trimmedContentMD);
         if (!contentValidation.valid) {
             return {
                 success: false,
                 validation: contentValidation,
                 errors: contentValidation.errors.map((e) => e.message),
             };
-        }
-    }
         }
     }
     // Transform input to database format

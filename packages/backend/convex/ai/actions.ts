@@ -7,7 +7,7 @@
 import { ConvexError, v } from "convex/values";
 import { internal } from "../_generated/api";
 import { action } from "../_generated/server";
-import { requireUserId } from "../server/lib/authz";
+// In actions, resolve user with internal query (no direct DB access in actions)
 import { getAIPolicyLimits } from "./config";
 import { AIContentServiceImpl } from "./contentService";
 import { AIModelService } from "./modelService";
@@ -80,7 +80,7 @@ export const processMessage = action({
 		error: v.optional(v.boolean()),
 	}),
 	handler: async (ctx, args): Promise<AIResponse> => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions and get workspace
 		const { workspace } = await ctx.runQuery(
@@ -164,7 +164,7 @@ export const suggestTags = action({
 	},
 	returns: v.array(v.string()),
 	handler: async (ctx, args): Promise<string[]> => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions
 		const { workspace } = await ctx.runQuery(
@@ -217,7 +217,7 @@ export const suggestTags = action({
 		const suggestions = await contentService.suggestTags(
 			idea.title,
 			idea.contentMD,
-			existingTags.map((t) => t.name),
+			existingTags.map((t: { name: string }) => t.name),
 		);
 
 		// Increment rate limit
@@ -254,7 +254,7 @@ export const summarizeIdea = action({
 		tokensUsed: v.number(),
 	}),
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions
 		const { workspace } = await ctx.runQuery(
@@ -346,7 +346,7 @@ export const qualifyIdea = action({
 		tokensUsed: v.number(),
 	}),
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions
 		const { workspace } = await ctx.runQuery(
@@ -463,7 +463,7 @@ export const contrarianView = action({
 		tokensUsed: v.number(),
 	}),
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions
 		const { workspace } = await ctx.runQuery(
@@ -582,7 +582,7 @@ export const ideaChat = action({
 		tokensUsed: v.number(),
 	}),
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx);
+		const userId = await ctx.runQuery(internal.internal.getUserIdInternal, {});
 
 		// Check permissions
 		const { workspace } = await ctx.runQuery(
@@ -641,7 +641,7 @@ ${idea.hypothesis ? `Hypothesis: ${idea.hypothesis}` : ""}
 ${idea.value ? `Value: ${idea.value}` : ""}
 
 Recent discussion:
-${discussionHistory.map((d) => `${d.role}: ${d.message}`).join("\n")}
+${discussionHistory.map((d: { role: string; message: string }) => `${d.role}: ${d.message}`).join("\n")}
 
 User's message:
 ${args.message}

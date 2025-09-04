@@ -82,10 +82,41 @@ console.log(
 	`${colors.cyan}🚀 Starting Pulse Development Environment${colors.reset}\n`,
 );
 
+// We run Convex in local mode (`npx convex dev --local`) so no project reconfiguration is needed here.
+
+// Preflight: recommend required Convex auth env vars if missing
+const checkConvexEnv = (name) => {
+		try {
+				const out = execSync(`cd packages/backend && npx convex env get ${name} 2>/dev/null || true`, { stdio: "pipe" }).toString().trim();
+				return out.length > 0 ? out : null;
+		} catch {
+				return null;
+		}
+};
+
+const siteUrl = checkConvexEnv("SITE_URL");
+const googleId = checkConvexEnv("AUTH_GOOGLE_ID");
+const googleSecret = checkConvexEnv("AUTH_GOOGLE_SECRET");
+const shouldSkipAuthCheck = process.env.PULSE_DEV_SKIP_AUTH_CHECK === "1";
+if (!siteUrl || !googleId || !googleSecret) {
+	console.log(`${colors.yellow}⚠️ OAuth configuration incomplete for Convex local dev:${colors.reset}`);
+	if (!siteUrl) console.log(`  • Missing SITE_URL. Set with:\n      npx convex env set SITE_URL "http://localhost:3003"`);
+	if (!googleId) console.log(`  • Missing AUTH_GOOGLE_ID. Set with:\n      npx convex env set AUTH_GOOGLE_ID "<your-google-client-id>"`);
+	if (!googleSecret) console.log(`  • Missing AUTH_GOOGLE_SECRET. Set with:\n      npx convex env set AUTH_GOOGLE_SECRET "<your-google-client-secret>"`);
+	console.log(`  These must be set in the Convex environment (not .env files).`);
+	if (!shouldSkipAuthCheck) {
+		console.log(`\n${colors.red}dev aborted:${colors.reset} Required Convex OAuth env vars are missing.`);
+		console.log(`Set them with the commands above, or bypass this check (not recommended) by setting PULSE_DEV_SKIP_AUTH_CHECK=1.`);
+		process.exit(1);
+	} else {
+		console.log(`${colors.yellow}Proceeding because PULSE_DEV_SKIP_AUTH_CHECK=1 is set.${colors.reset}`);
+	}
+}
+
 // Start backend and frontend concurrently
 const args = [
 	"concurrently",
-	'"pnpm -F @pulse/backend dev --verbose"',
+	'"pnpm -F @pulse/backend dev"',
 	'"pnpm -F web dev"',
 	"--names",
 	"backend,frontend",
@@ -102,7 +133,10 @@ const child = spawn(cmd, args, {
 	shell: isWin,
 });
 
-writeFileSync(".dev.pid", String(child.pid), "utf8");
+// Only write PID once we have a pid value
+if (child.pid) {
+	writeFileSync(".dev.pid", String(child.pid), "utf8");
+}
 
 // Display service URLs after a short delay
 setTimeout(() => {
@@ -126,7 +160,7 @@ const cleanup = () => {
 	try {
 		console.log(`\n${colors.red}🛑 Stopping all services...${colors.reset}`);
 		stopTree();
-		rmSync(".dev.pid");
+	try { rmSync(".dev.pid"); } catch {}
 	} catch {}
 };
 

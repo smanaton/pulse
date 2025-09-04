@@ -46,7 +46,9 @@ function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
+						aria-hidden="true"
 					>
+						<title>Document icon</title>
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"
@@ -71,7 +73,9 @@ function EmptyState({ onCreateNew }: { onCreateNew: () => void }) {
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
+						aria-hidden="true"
 					>
+						<title>Plus icon</title>
 						<path
 							strokeLinecap="round"
 							strokeLinejoin="round"

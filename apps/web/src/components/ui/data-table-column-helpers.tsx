@@ -1,10 +1,11 @@
+import type { Column } from "@tanstack/react-table";
 import { Badge, Button } from "flowbite-react";
 import { ArrowUpDown } from "lucide-react";
 import type { Client } from "../../hooks/use-clients";
 
 // Helper for creating sortable header
-export function createSortableHeader(title: string) {
-	return ({ column }: { column: any }) => {
+export function createSortableHeader<TData, TValue>(title: string) {
+	return ({ column }: { column: Column<TData, TValue> }) => {
 		return (
 			<button
 				type="button"
@@ -33,9 +34,9 @@ export function createActionsColumn<T>(
 
 			return (
 				<div className="flex items-center gap-2">
-					{actions.map((action, index) => (
+					{actions.map((action, _index) => (
 						<Button
-							key={index}
+							key={action.label}
 							size="xs"
 							color={action.variant === "danger" ? "failure" : "light"}
 							onClick={(e) => {
@@ -85,7 +86,7 @@ export function createStatusBadge(
 export const clientColumns = {
 	name: {
 		accessorKey: "name",
-		header: createSortableHeader("Name"),
+		header: createSortableHeader<Client, unknown>("Name"),
 		cell: ({ row }: { row: { original: Client } }) => (
 			<div className="font-medium">{row.original.name}</div>
 		),
@@ -122,7 +123,7 @@ export const clientColumns = {
 	},
 	createdAt: {
 		accessorKey: "createdAt",
-		header: createSortableHeader("Created"),
+		header: createSortableHeader<Client, unknown>("Created"),
 		cell: ({ row }: { row: { original: Client } }) =>
 			formatDate(row.original.createdAt),
 	},

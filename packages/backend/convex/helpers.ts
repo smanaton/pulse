@@ -6,7 +6,7 @@
  */
 
 import { ConvexError } from "convex/values";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import {
 	getUserId,
@@ -43,7 +43,7 @@ export async function assertMember(
 	ctx: QueryCtx | MutationCtx,
 	workspaceId: Id<"workspaces">,
 	minRole: Role = "viewer",
-): Promise<{ workspace: any; member?: any }> {
+): Promise<{ workspace: Doc<"workspaces">; member?: Doc<"workspaceMembers"> }> {
 	// Use appropriate auth function based on context type
 	// Check if it's a mutation context by looking for scheduler property
 	const isMutation = "scheduler" in ctx;
@@ -122,7 +122,7 @@ export async function assertMemberReadOnly(
 	ctx: QueryCtx,
 	workspaceId: Id<"workspaces">,
 	minRole: Role = "viewer",
-): Promise<{ workspace: any; member?: any }> {
+): Promise<{ workspace: Doc<"workspaces">; member?: Doc<"workspaceMembers"> }> {
 	// Use unified auth shim - works in production and tests
 	const userId = await requireUserIdReadOnly(ctx);
 	if (!userId) {
@@ -192,7 +192,7 @@ export async function assertWriteEnabled(
 	ctx: QueryCtx | MutationCtx,
 	workspaceId: Id<"workspaces">,
 	minRole: Role = "editor",
-): Promise<{ workspace: any; member?: any }> {
+): Promise<{ workspace: Doc<"workspaces">; member?: Doc<"workspaceMembers"> }> {
 	const result = await assertMember(ctx, workspaceId, minRole);
 
 	// Kill switch blocks all writes
@@ -209,7 +209,7 @@ export async function assertWriteEnabled(
 /**
  * Check if workspace can accept invites
  */
-export function assertCanInvite(workspace: any): void {
+export function assertCanInvite(workspace: Doc<"workspaces">): void {
 	if (workspace.isPersonal) {
 		throw new ConvexError({
 			code: "FORBIDDEN",
@@ -326,10 +326,10 @@ export function normalizeSlug(raw: string): string {
 export async function logEvent(
 	ctx: MutationCtx,
 	workspaceId: Id<"workspaces">,
-	type: string,
+	type: Doc<"events">["type"],
 	entity: string,
 	entityId: string,
-	meta?: Record<string, any>,
+	meta?: Record<string, unknown>,
 ): Promise<void> {
 	const userId = await getUserId(ctx);
 	if (!userId) return; // Skip logging if no user
@@ -340,7 +340,7 @@ export async function logEvent(
 	await ctx.db.insert("events", {
 		workspaceId,
 		actorUserId: userId,
-		type: type as any, // Type will be validated by schema
+		type,
 		entity,
 		entityId,
 		meta: sanitizedMeta,
@@ -352,8 +352,10 @@ export async function logEvent(
  * Sanitize event metadata to remove PII.
  * This is critical for GDPR compliance and security.
  */
-function sanitizeEventMeta(meta: Record<string, any>): Record<string, any> {
-	const sanitized: Record<string, any> = {};
+function sanitizeEventMeta(
+	meta: Record<string, unknown>,
+): Record<string, unknown> {
+	const sanitized: Record<string, unknown> = {};
 
 	const SENSITIVE_KEYS = new Set([
 		"email",
@@ -404,7 +406,7 @@ function sanitizeEventMeta(meta: Record<string, any>): Record<string, any> {
 		/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email pattern
 	];
 
-	function isSensitive(key: string, value: any): boolean {
+	function isSensitive(key: string, value: unknown): boolean {
 		// Check key names
 		if (SENSITIVE_KEYS.has(key.toLowerCase())) return true;
 
@@ -453,7 +455,7 @@ function sanitizeEventMeta(meta: Record<string, any>): Record<string, any> {
 export async function checkRateLimit(
 	ctx: QueryCtx | MutationCtx,
 	userId: Id<"users">,
-	type: string,
+	type: Doc<"rateLimits">["type"],
 	workspaceId?: Id<"workspaces">,
 	limit = 10,
 	windowMinutes = 60,
@@ -465,9 +467,9 @@ export async function checkRateLimit(
 		.query("rateLimits")
 		.withIndex(workspaceId ? "by_workspace_type" : "by_user_type", (q) => {
 			if (workspaceId) {
-				return q.eq("workspaceId", workspaceId).eq("type", type as any);
+				return q.eq("workspaceId", workspaceId).eq("type", type);
 			}
-			return q.eq("userId", userId).eq("type", type as any);
+			return q.eq("userId", userId).eq("type", type);
 		})
 		.unique();
 
@@ -488,7 +490,7 @@ export async function checkRateLimit(
 export async function incrementRateLimit(
 	ctx: MutationCtx,
 	userId: Id<"users">,
-	type: string,
+	type: Doc<"rateLimits">["type"],
 	workspaceId?: Id<"workspaces">,
 	windowMinutes = 60,
 ): Promise<void> {
@@ -500,9 +502,9 @@ export async function incrementRateLimit(
 		.query("rateLimits")
 		.withIndex(workspaceId ? "by_workspace_type" : "by_user_type", (q) => {
 			if (workspaceId) {
-				return q.eq("workspaceId", workspaceId).eq("type", type as any);
+				return q.eq("workspaceId", workspaceId).eq("type", type);
 			}
-			return q.eq("userId", userId).eq("type", type as any);
+			return q.eq("userId", userId).eq("type", type);
 		})
 		.unique();
 
@@ -518,7 +520,7 @@ export async function incrementRateLimit(
 			await ctx.db.replace(existing._id, {
 				userId,
 				workspaceId,
-				type: type as any,
+				type,
 				count: 1,
 				windowStart: now,
 				windowEnd,
@@ -528,7 +530,7 @@ export async function incrementRateLimit(
 			await ctx.db.insert("rateLimits", {
 				userId,
 				workspaceId,
-				type: type as any,
+				type,
 				count: 1,
 				windowStart: now,
 				windowEnd,
@@ -587,7 +589,7 @@ export async function logActivity(
 			| "commented"
 			| "completed";
 		description: string;
-		metadata?: Record<string, any>;
+		metadata?: Record<string, unknown>;
 	},
 ): Promise<void> {
 	await ctx.db.insert("activities", {

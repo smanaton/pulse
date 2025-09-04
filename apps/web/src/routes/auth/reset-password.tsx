@@ -3,7 +3,7 @@ import { api } from "@pulse/backend";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Button, Card } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 interface ResetPasswordSearch {
 	email?: string;
@@ -37,6 +37,11 @@ function ResetPasswordPage() {
 	const [code, setCode] = useState(codeFromSearch || "");
 	const [newPassword, setNewPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const emailId = useId();
+	const codeId = useId();
+	const newPasswordId = useId();
+	const confirmPasswordId = useId();
 
 	// Redirect if already authenticated
 	useEffect(() => {
@@ -171,7 +176,7 @@ function ResetPasswordPage() {
 							</label>
 							<input
 								type="email"
-								id="email"
+								id={emailId}
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
@@ -207,7 +212,7 @@ function ResetPasswordPage() {
 							</label>
 							<input
 								type="email"
-								id="email"
+								id={emailId}
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
@@ -225,7 +230,7 @@ function ResetPasswordPage() {
 							</label>
 							<input
 								type="text"
-								id="code"
+								id={codeId}
 								value={code}
 								onChange={(e) => setCode(e.target.value)}
 								required
@@ -243,7 +248,7 @@ function ResetPasswordPage() {
 							</label>
 							<input
 								type="password"
-								id="newPassword"
+								id={newPasswordId}
 								value={newPassword}
 								onChange={(e) => setNewPassword(e.target.value)}
 								required
@@ -265,7 +270,7 @@ function ResetPasswordPage() {
 							</label>
 							<input
 								type="password"
-								id="confirmPassword"
+								id={confirmPasswordId}
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
 								required

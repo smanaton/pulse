@@ -32,62 +32,39 @@ export interface IAppContainer {
 // Container Factory
 // ============================================================================
 
-export class ContainerFactory {
-	/**
-	 * Create a complete application container with all dependencies
-	 */
-	static async create(
-		ctx: MutationCtx | QueryCtx,
-		userId: Id<"users">,
-		workspaceId?: Id<"workspaces">,
-	): Promise<IAppContainer> {
-		// Create business context
-		const businessContext = await ContainerFactory.createBusinessContext(
-			ctx,
-			userId,
-			workspaceId,
-		);
+/**
+ * Create a complete application container with all dependencies
+ */
+export async function createAppContainer(
+	ctx: MutationCtx | QueryCtx,
+	userId: Id<"users">,
+	workspaceId?: Id<"workspaces">,
+): Promise<IAppContainer> {
+	const businessContext = await createBusinessContext(ctx, userId, workspaceId);
+	const repositories = createRepositories(ctx);
+	const services = createServices(repositories, businessContext);
+	return { repositories, services, context: businessContext };
+}
 
-		// Create repositories with Convex context
-		const repositories = createRepositories(ctx);
-
-		// Create services with repositories and business context
-		const services = createServices(repositories, businessContext);
-
-		return {
-			repositories,
-			services,
-			context: businessContext,
-		};
+/**
+ * Create business context with user role lookup
+ */
+async function createBusinessContext(
+	ctx: MutationCtx | QueryCtx,
+	userId: Id<"users">,
+	workspaceId?: Id<"workspaces">,
+): Promise<IBusinessContext> {
+	let userRole: string | undefined;
+	if (workspaceId) {
+		const membership = await ctx.db
+			.query("workspaceMembers")
+			.withIndex("by_workspace_user", (q) =>
+				q.eq("workspaceId", workspaceId).eq("userId", userId),
+			)
+			.first();
+		userRole = membership?.role;
 	}
-
-	/**
-	 * Create business context with user role lookup
-	 */
-	private static async createBusinessContext(
-		ctx: MutationCtx | QueryCtx,
-		userId: Id<"users">,
-		workspaceId?: Id<"workspaces">,
-	): Promise<IBusinessContext> {
-		let userRole: string | undefined;
-
-		// Get user's role in the workspace if provided
-		if (workspaceId) {
-			const membership = await ctx.db
-				.query("workspaceMembers")
-				.withIndex("by_workspace_user", (q) =>
-					q.eq("workspaceId", workspaceId).eq("userId", userId),
-				)
-				.first();
-			userRole = membership?.role;
-		}
-
-		return {
-			userId,
-			workspaceId,
-			userRole,
-		};
-	}
+	return { userId, workspaceId, userRole };
 }
 
 // ============================================================================
@@ -100,40 +77,27 @@ export class ContainerFactory {
  * This provides a simpler alternative to full DI for cases where
  * you just need quick access to services.
  */
-export class ServiceLocator {
-	private static containers = new Map<string, IAppContainer>();
+const containers = new Map<string, IAppContainer>();
 
-	/**
-	 * Get or create a container for the current request context
-	 */
-	static async getContainer(
-		ctx: MutationCtx | QueryCtx,
-		userId: Id<"users">,
-		workspaceId?: Id<"workspaces">,
-	): Promise<IAppContainer> {
-		const key = ServiceLocator.createKey(userId, workspaceId);
-
-		if (!ServiceLocator.containers.has(key)) {
-			const container = await ContainerFactory.create(ctx, userId, workspaceId);
-			ServiceLocator.containers.set(key, container);
-		}
-
-		return ServiceLocator.containers.get(key)!;
+/** Get or create a container for the current request context */
+export async function getContainer(
+	ctx: MutationCtx | QueryCtx,
+	userId: Id<"users">,
+	workspaceId?: Id<"workspaces">,
+): Promise<IAppContainer> {
+	const key = `${userId}-${workspaceId || "no-workspace"}`;
+	if (!containers.has(key)) {
+		const container = await createAppContainer(ctx, userId, workspaceId);
+		containers.set(key, container);
 	}
+	const c = containers.get(key);
+	if (!c) throw new Error("Container not initialized");
+	return c;
+}
 
-	/**
-	 * Clear container cache (call at end of request)
-	 */
-	static clearCache(): void {
-		ServiceLocator.containers.clear();
-	}
-
-	private static createKey(
-		userId: Id<"users">,
-		workspaceId?: Id<"workspaces">,
-	): string {
-		return `${userId}-${workspaceId || "no-workspace"}`;
-	}
+/** Clear container cache (call at end of request) */
+export function clearContainerCache(): void {
+	containers.clear();
 }
 
 // ============================================================================
@@ -168,7 +132,7 @@ export async function createContainer(
  * This could be used to automatically inject dependencies into
  * Convex function handlers.
  */
-export function withContainer<T extends any[], R>(
+export function withContainer<T extends unknown[], R>(
 	handler: (container: IAppContainer, ...args: T) => Promise<R>,
 ) {
 	return async (ctx: MutationCtx | QueryCtx, ...args: T): Promise<R> => {
@@ -176,13 +140,13 @@ export function withContainer<T extends any[], R>(
 		const userId = await extractUserId(ctx);
 		const workspaceId = extractWorkspaceId(args);
 
-		const container = await ContainerFactory.create(ctx, userId, workspaceId);
+		const container = await createAppContainer(ctx, userId, workspaceId);
 
 		try {
 			return await handler(container, ...args);
 		} finally {
 			// Cleanup if needed
-			ServiceLocator.clearCache();
+			clearContainerCache();
 		}
 	};
 }
@@ -198,8 +162,12 @@ async function extractUserId(
 	throw new Error("Implement userId extraction from context");
 }
 
-function extractWorkspaceId(args: any[]): Id<"workspaces"> | undefined {
+function extractWorkspaceId(args: unknown[]): Id<"workspaces"> | undefined {
 	// Extract workspaceId from function arguments
 	const firstArg = args[0];
-	return firstArg?.workspaceId;
+	if (firstArg && typeof firstArg === "object" && "workspaceId" in firstArg) {
+		const ws = (firstArg as { workspaceId?: Id<"workspaces"> }).workspaceId;
+		return ws;
+	}
+	return undefined;
 }

@@ -3,7 +3,7 @@ import { api } from "@pulse/backend";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Button, Card } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 export const Route = createFileRoute("/auth/forgot-password")({
 	component: ForgotPasswordPage,
@@ -17,6 +17,8 @@ function ForgotPasswordPage() {
 	const [success, setSuccess] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [email, setEmail] = useState("");
+
+	const emailId = useId();
 
 	// Redirect if already authenticated
 	useEffect(() => {
@@ -94,7 +96,7 @@ function ForgotPasswordPage() {
 						</label>
 						<input
 							type="email"
-							id="email"
+							id={emailId}
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							required

@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import type {
+	Id,
 	Idea,
 	ModuleDefinition,
 	User,
@@ -14,7 +15,7 @@ import type {
 describe("Core Types", () => {
 	it("should have correct User interface structure", () => {
 		const user: User = {
-			_id: "user123" as any,
+			_id: "user123" as Id<"users">,
 			_creationTime: 1234567890000,
 			email: "test@example.com",
 			name: "Test User",
@@ -30,7 +31,7 @@ describe("Core Types", () => {
 
 	it("should have correct Workspace interface structure", () => {
 		const workspace: Workspace = {
-			_id: "workspace123" as any,
+			_id: "workspace123" as Id<"workspaces">,
 			_creationTime: 1234567890000,
 			type: "shared",
 			isPersonal: false,
@@ -49,10 +50,10 @@ describe("Core Types", () => {
 
 	it("should have correct WorkspaceMember interface structure", () => {
 		const member: WorkspaceMember = {
-			_id: "member123" as any,
+			_id: "member123" as Id<"workspaceMembers">,
 			_creationTime: 1234567890000,
-			workspaceId: "workspace123" as any,
-			userId: "user123" as any,
+			workspaceId: "workspace123" as Id<"workspaces">,
+			userId: "user123" as Id<"users">,
 			role: "editor",
 			createdAt: 1234567890000,
 			updatedAt: 1234567890000,
@@ -65,13 +66,13 @@ describe("Core Types", () => {
 
 	it("should have correct Idea interface structure", () => {
 		const idea: Idea = {
-			_id: "idea123" as any,
+			_id: "idea123" as Id<"ideas">,
 			_creationTime: 1234567890000,
-			workspaceId: "workspace123" as any,
+			workspaceId: "workspace123" as Id<"workspaces">,
 			title: "Test Idea",
 			contentMD: "# Test Content",
 			status: "active",
-			createdBy: "user123" as any,
+			createdBy: "user123" as Id<"users">,
 			createdAt: 1234567890000,
 			updatedAt: 1234567890000,
 		};
@@ -103,7 +104,7 @@ describe("Core Types", () => {
 
 	it("should support optional fields correctly", () => {
 		const workspace: Workspace = {
-			_id: "workspace123" as any,
+			_id: "workspace123" as Id<"workspaces">,
 			_creationTime: 1234567890000,
 			type: "personal",
 			isPersonal: true,

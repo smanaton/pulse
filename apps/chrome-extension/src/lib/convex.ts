@@ -31,10 +31,18 @@ interface FormatContentData {
 	selection?: string;
 	metadata?: WebClipMetadata;
 }
+export function getConvexUrl(): string {
+	// Use Vite's build-time env var when provided. Trim to avoid accidental
+	// whitespace, and fall back to the local Convex dev URL for development.
+	// Cast to any because Vite's `import.meta.env` typing is injected at build time
+	// and may not be visible to the TypeScript server in this environment.
+	const meta: any = import.meta;
+	return (meta.env?.VITE_CONVEX_URL as string | undefined)?.trim() ?? "http://127.0.0.1:3210";
+}
+
 export function createConvexClient(apiKey: string) {
-	// Use Vite's import.meta.env which works in the browser
-	// Falls back to local dev server if not configured
-	const convexUrl = import.meta.env?.VITE_CONVEX_URL || "http://127.0.0.1:3210";
+	// Resolve the Convex base URL once so it can be reused elsewhere.
+	const convexUrl = getConvexUrl();
 
 	const baseHeaders = {
 		Authorization: `Bearer ${apiKey}`,

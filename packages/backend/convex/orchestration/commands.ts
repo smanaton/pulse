@@ -14,12 +14,13 @@ import {
 /**
  * Emit a control event to an agent
  */
+import type { MutationCtx } from "../_generated/server";
 async function emitControlEvent(
-	ctx: any,
+	ctx: MutationCtx,
 	workspaceId: Id<"workspaces">,
 	runId: string,
 	command: ControlCommand,
-	data?: any,
+	data?: Record<string, unknown>,
 ): Promise<void> {
 	const eventId = crypto.randomUUID();
 
@@ -165,11 +166,12 @@ export const cancelRun = mutation({
 				};
 			}
 
-			// Update run with command tracking
+			// Update run with command tracking (cancel executes synchronously, acknowledge immediately)
 			await ctx.db.patch(run._id, {
 				lastCommand: {
 					type: "run.cancel",
 					issuedAt: Date.now(),
+					acknowledgedAt: Date.now(),
 				},
 			});
 

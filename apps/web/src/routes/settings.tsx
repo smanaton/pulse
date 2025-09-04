@@ -1,8 +1,10 @@
 import { api } from "@pulse/backend";
+import type { Id } from "@pulse/backend/dataModel";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
+import { Button } from "flowbite-react";
 import { CheckCircle, Copy, Key, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { AppLayout } from "@/components/layouts/dashboard/layout";
 import { useWorkspace } from "@/hooks/useWorkspace";
 
@@ -17,6 +19,8 @@ function SettingsPage() {
 		api.apiKeys.list,
 		currentWorkspace ? { workspaceId: currentWorkspace._id } : "skip",
 	);
+	const deviceId = useId();
+	const nameId = useId();
 
 	const generateApiKey = useMutation(api.apiKeys.generate);
 	const revokeApiKey = useMutation(api.apiKeys.revoke);
@@ -84,7 +88,7 @@ function SettingsPage() {
 			)
 		) {
 			try {
-				await revokeApiKey({ apiKeyId: keyId as any });
+				await revokeApiKey({ apiKeyId: keyId as Id<"apiKeys"> });
 			} catch (error) {
 				console.error("Failed to revoke API key:", error);
 			}
@@ -127,15 +131,14 @@ function SettingsPage() {
 									</p>
 								</div>
 							</div>
-							<button
+							<Button
 								onClick={() =>
 									setKeyForm({ ...keyForm, name: "Chrome Extension" })
 								}
-								className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 font-medium text-sm text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:focus:ring-blue-800 dark:hover:bg-blue-700"
 							>
 								<Plus className="h-4 w-4" />
 								Generate Key
-							</button>
+							</Button>
 						</div>
 					</div>
 
@@ -144,10 +147,14 @@ function SettingsPage() {
 						<div className="border-gray-200 border-b bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900">
 							<div className="space-y-4">
 								<div>
-									<label className="mb-2 block font-medium text-gray-900 text-sm dark:text-white">
+									<label
+										htmlFor="{nameId}"
+										className="mb-2 block font-medium text-gray-900 text-sm dark:text-white"
+									>
 										Key Name
 									</label>
 									<input
+										id={nameId}
 										type="text"
 										value={keyForm.name}
 										onChange={(e) =>
@@ -159,10 +166,14 @@ function SettingsPage() {
 								</div>
 
 								<div>
-									<label className="mb-2 block font-medium text-gray-900 text-sm dark:text-white">
+									<label
+										htmlFor="{deviceId}"
+										className="mb-2 block font-medium text-gray-900 text-sm dark:text-white"
+									>
 										Device Type
 									</label>
 									<select
+										id={deviceId}
 										value={keyForm.device}
 										onChange={(e) =>
 											setKeyForm({ ...keyForm, device: e.target.value })
@@ -177,7 +188,7 @@ function SettingsPage() {
 								</div>
 
 								<div className="flex gap-3">
-									<button
+									<Button
 										onClick={handleGenerateKey}
 										disabled={isGenerating || !keyForm.name.trim()}
 										className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 font-medium text-sm text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:bg-gray-400 dark:bg-blue-600 dark:focus:ring-blue-800 dark:hover:bg-blue-700"
@@ -193,13 +204,13 @@ function SettingsPage() {
 												Generate API Key
 											</>
 										)}
-									</button>
-									<button
+									</Button>
+									<Button
 										onClick={() => setKeyForm({ ...keyForm, name: "" })}
 										className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-900 text-sm hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:focus:ring-gray-700 dark:hover:bg-gray-700 dark:hover:text-white"
 									>
 										Cancel
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>
@@ -260,13 +271,13 @@ function SettingsPage() {
 													{new Date(key.createdAt).toLocaleDateString()}
 												</td>
 												<td className="px-4 py-4">
-													<button
+													<Button
 														onClick={() => handleRevokeKey(key.id)}
 														className="inline-flex items-center gap-1 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
 													>
 														<Trash2 className="h-4 w-4" />
 														Revoke
-													</button>
+													</Button>
 												</td>
 											</tr>
 										))}
@@ -344,7 +355,7 @@ function SettingsPage() {
 										<code className="break-all font-mono text-gray-900 text-sm dark:text-white">
 											{newKey.key}
 										</code>
-										<button
+										<Button
 											onClick={handleCopyKey}
 											className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 										>
@@ -353,18 +364,18 @@ function SettingsPage() {
 											) : (
 												<Copy className="h-4 w-4" />
 											)}
-										</button>
+										</Button>
 									</div>
 								</div>
 								<div className="flex gap-3">
-									<button
+									<Button
 										onClick={handleCopyKey}
 										className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2 font-medium text-sm text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300"
 									>
 										<Copy className="h-4 w-4" />
 										{copiedKey ? "Copied!" : "Copy Key"}
-									</button>
-									<button
+									</Button>
+									<Button
 										onClick={() => {
 											setShowKeyModal(false);
 											setNewKey(null);
@@ -373,7 +384,7 @@ function SettingsPage() {
 										className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-900 text-sm hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
 									>
 										Close
-									</button>
+									</Button>
 								</div>
 							</div>
 						</div>

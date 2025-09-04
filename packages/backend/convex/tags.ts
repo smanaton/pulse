@@ -7,6 +7,7 @@
 
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 import { tagCreateArgs } from "./validators";
@@ -51,7 +52,7 @@ export const create = mutation({
 		}
 
 		// Validate color if provided
-		let validatedColor;
+		let validatedColor: string | undefined;
 		if (color) {
 			const colorRegex = /^#[0-9A-Fa-f]{6}$/;
 			if (colorRegex.test(color)) {
@@ -122,7 +123,7 @@ export const update = mutation({
 		// Check permissions (editor required)
 		await assertWriteEnabled(ctx, tag.workspaceId, "editor");
 
-		const updates: any = {
+		const updates: Partial<Doc<"tags">> = {
 			updatedAt: Date.now(),
 		};
 
@@ -293,7 +294,7 @@ export const findOrCreate = mutation({
 		const now = Date.now();
 
 		// Validate color if provided
-		let validatedColor;
+		let validatedColor: string | undefined;
 		if (color) {
 			const colorRegex = /^#[0-9A-Fa-f]{6}$/;
 			if (colorRegex.test(color)) {

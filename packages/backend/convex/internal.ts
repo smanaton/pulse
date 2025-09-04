@@ -6,6 +6,7 @@
  */
 
 import { v } from "convex/values";
+import { eventType, rateLimitType } from "./validators";
 import { internalMutation, internalQuery } from "./_generated/server";
 import {
 	assertMember,
@@ -15,6 +16,8 @@ import {
 	logEvent,
 } from "./helpers";
 import { ideasRepository } from "./server/lib/repository";
+import type { Role } from "./helpers";
+import { requireUserId } from "./server/lib/authz";
 
 /**
  * Internal version of assertMember for use in actions.
@@ -25,7 +28,7 @@ export const assertMemberInternal = internalQuery({
 		minRole: v.optional(v.string()),
 	},
 	handler: async (ctx, { workspaceId, minRole = "viewer" }) => {
-		return await assertMember(ctx, workspaceId, minRole as any);
+		return await assertMember(ctx, workspaceId, minRole as Role);
 	},
 });
 
@@ -38,7 +41,7 @@ export const assertWriteEnabledInternal = internalQuery({
 		minRole: v.optional(v.string()),
 	},
 	handler: async (ctx, { workspaceId, minRole = "editor" }) => {
-		return await assertWriteEnabled(ctx, workspaceId, minRole as any);
+		return await assertWriteEnabled(ctx, workspaceId, minRole as Role);
 	},
 });
 
@@ -48,7 +51,7 @@ export const assertWriteEnabledInternal = internalQuery({
 export const logEventInternal = internalMutation({
 	args: {
 		workspaceId: v.id("workspaces"),
-		type: v.string(),
+		type: eventType,
 		entity: v.string(),
 		entityId: v.string(),
 		meta: v.optional(v.any()),
@@ -64,7 +67,7 @@ export const logEventInternal = internalMutation({
 export const checkRateLimitInternal = internalQuery({
 	args: {
 		userId: v.id("users"),
-		type: v.string(),
+		type: rateLimitType,
 		workspaceId: v.optional(v.id("workspaces")),
 		limit: v.optional(v.number()),
 		windowMinutes: v.optional(v.number()),
@@ -90,7 +93,7 @@ export const checkRateLimitInternal = internalQuery({
 export const incrementRateLimitInternal = internalMutation({
 	args: {
 		userId: v.id("users"),
-		type: v.string(),
+		type: rateLimitType,
 		workspaceId: v.optional(v.id("workspaces")),
 		windowMinutes: v.optional(v.number()),
 	},
@@ -221,6 +224,16 @@ export const addIdeaDiscussionInternal = internalMutation({
 			metadata: args.metadata,
 			createdAt: Date.now(),
 		});
+	},
+});
+
+/**
+ * Resolve current user id for use in actions (auth in query context)
+ */
+export const getUserIdInternal = internalQuery({
+	args: {},
+	handler: async (ctx) => {
+		return await requireUserId(ctx);
 	},
 });
 

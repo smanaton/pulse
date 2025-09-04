@@ -11,7 +11,7 @@ import {
 } from "flowbite-react";
 import { Save, Trash2, X } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { KanbanTask, UpdateKanbanTaskInput } from "../../types/kanban";
 
 interface EditTaskModalProps {
@@ -44,6 +44,14 @@ export function EditTaskModal({
 
 	const [tagInput, setTagInput] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const taskNameId = useId();
+	const descriptionId = useId();
+	const priorityId = useId();
+	const statusId = useId();
+	const dueDateId = useId();
+	const estimatedHoursId = useId();
+	const actualHoursId = useId();
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	// Update form data when task changes
@@ -127,7 +135,7 @@ export function EditTaskModal({
 							Task Name *
 						</Label>
 						<TextInput
-							id="taskName"
+							id={taskNameId}
 							value={formData.name || ""}
 							onChange={(e) =>
 								setFormData((prev) => ({ ...prev, name: e.target.value }))
@@ -143,7 +151,7 @@ export function EditTaskModal({
 							Description
 						</Label>
 						<Textarea
-							id="description"
+							id={descriptionId}
 							value={formData.description || ""}
 							onChange={(e) =>
 								setFormData((prev) => ({
@@ -163,7 +171,7 @@ export function EditTaskModal({
 								Priority
 							</Label>
 							<Select
-								id="priority"
+								id={priorityId}
 								value={formData.priority || "medium"}
 								onChange={(e) =>
 									setFormData((prev) => ({
@@ -188,7 +196,7 @@ export function EditTaskModal({
 								Status
 							</Label>
 							<Select
-								id="status"
+								id={statusId}
 								value={formData.status || "todo"}
 								onChange={(e) =>
 									setFormData((prev) => ({
@@ -216,7 +224,7 @@ export function EditTaskModal({
 						</Label>
 						<input
 							type="date"
-							id="dueDate"
+							id={dueDateId}
 							value={formatDate(formData.dueDate)}
 							className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 text-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
 							onChange={(e) =>
@@ -237,7 +245,7 @@ export function EditTaskModal({
 								Estimated Hours
 							</Label>
 							<TextInput
-								id="estimatedHours"
+								id={estimatedHoursId}
 								type="number"
 								min="0"
 								step="0.5"
@@ -259,7 +267,7 @@ export function EditTaskModal({
 								Actual Hours
 							</Label>
 							<TextInput
-								id="actualHours"
+								id={actualHoursId}
 								type="number"
 								min="0"
 								step="0.5"

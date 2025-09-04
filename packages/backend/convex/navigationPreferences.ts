@@ -307,7 +307,7 @@ export const toggleApplicationVisibility = mutation({
 		);
 
 		// Toggle the specific application
-		const updatedApps = prefs.applications.map((app: any) =>
+		const updatedApps = prefs.applications.map((app) =>
 			app.id === args.applicationId
 				? { ...app, isVisible: !app.isVisible }
 				: app,

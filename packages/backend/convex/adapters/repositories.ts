@@ -13,6 +13,7 @@ import type {
 	IFolderRepository,
 	IIdeaRepository,
 } from "@pulse/core/ideas/interfaces";
+import type { Doc } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 
 // ============================================================================
@@ -90,7 +91,7 @@ export class ConvexIdeaRepository
 		});
 	}
 
-	async findById(id: Id<"ideas">): Promise<any | null> {
+	async findById(id: Id<"ideas">): Promise<Doc<"ideas"> | null> {
 		const idea = await this.ctx.db.get(id);
 
 		// Filter out soft-deleted ideas
@@ -104,7 +105,7 @@ export class ConvexIdeaRepository
 	async findByWorkspace(
 		workspaceId: Id<"workspaces">,
 		limit = 50,
-	): Promise<any[]> {
+	): Promise<Doc<"ideas">[]> {
 		const ideas = await this.ctx.db
 			.query("ideas")
 			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))
@@ -115,7 +116,7 @@ export class ConvexIdeaRepository
 		return ideas;
 	}
 
-	async search(options: IdeaSearchOptions): Promise<any[]> {
+	async search(options: IdeaSearchOptions): Promise<Doc<"ideas">[]> {
 		let query = this.ctx.db
 			.query("ideas")
 			.withIndex("by_workspace", (q) =>
@@ -185,7 +186,7 @@ export class ConvexFolderRepository
 		return await this.ctx.db.insert("folders", folderData);
 	}
 
-	async findById(id: Id<"folders">): Promise<any | null> {
+	async findById(id: Id<"folders">): Promise<Doc<"folders"> | null> {
 		const folder = await this.ctx.db.get(id);
 
 		// Filter out soft-deleted folders
@@ -196,7 +197,9 @@ export class ConvexFolderRepository
 		return folder;
 	}
 
-	async findByWorkspace(workspaceId: Id<"workspaces">): Promise<any[]> {
+	async findByWorkspace(
+		workspaceId: Id<"workspaces">,
+	): Promise<Doc<"folders">[]> {
 		const folders = await this.ctx.db
 			.query("folders")
 			.withIndex("by_workspace", (q) => q.eq("workspaceId", workspaceId))

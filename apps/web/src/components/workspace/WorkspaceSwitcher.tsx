@@ -118,8 +118,6 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({
 			<>
 				<div className="px-3 py-2">
 					<Dropdown
-						arrowIcon={false}
-						inline
 						label={dropdownTrigger}
 						className="w-80"
 						theme={{
@@ -157,8 +155,6 @@ export const WorkspaceSwitcher: FC<WorkspaceSwitcherProps> = ({
 		<>
 			<div className="border-gray-200 border-b pb-3 dark:border-gray-700">
 				<Dropdown
-					arrowIcon={false}
-					inline
 					label={dropdownTrigger}
 					theme={{
 						floating: {

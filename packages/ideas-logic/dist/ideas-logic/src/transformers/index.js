@@ -246,9 +246,6 @@ export function buildSearchTerms(query) {
     }
     return terms;
 }
-// ============================================================================
-// Export Transformers
-// ============================================================================
 export function transformIdeaForExport(idea, format) {
     switch (format) {
         case "json":

@@ -12,14 +12,17 @@
  */
 
 // Import all Convex function files and _generated files needed by convex-test
-export const modules = (import.meta as any).glob(
+export const modules = import.meta.glob(
 	[
 		"./*.ts",
+		"./orchestration/*.ts", // Include orchestration subdirectory
 		"./_generated/*.js", // Include generated API files that convex-test needs
 		"!./*.test.ts",
 		"!./*.spec.ts",
 		"!./*.d.ts",
 		"!./test.setup.ts",
+		"!./orchestration/*.test.ts",
+		"!./orchestration/*.spec.ts",
 	],
 	{ eager: false },
 ); // Lazy loading for better performance

@@ -3,12 +3,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type {
-	CreateFolderInput,
-	CreateIdeaInput,
-	CreateTagInput,
-	UpdateIdeaInput,
-} from "../types";
+import type { CreateIdeaInput, UpdateIdeaInput } from "../types";
 import {
 	validateBulkCreateIdeas,
 	validateContent,
@@ -17,16 +12,17 @@ import {
 	validateCreateTagInput,
 	validateUpdateIdeaInput,
 } from "./index";
+import {
+	IdeaFactory,
+	FolderFactory,
+	TagFactory,
+	ValidationTestData,
+} from "../test/factories";
 
 describe("Ideas Logic Validators", () => {
 	describe("Idea Validation", () => {
 		it("should validate correct idea input", () => {
-			const validInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				title: "Test Idea",
-				contentMD: "This is test content",
-				createdBy: "user123" as any,
-			};
+			const validInput = ValidationTestData.validIdeaInput;
 
 			const result = validateCreateIdeaInput(validInput);
 			expect(result.valid).toBe(true);
@@ -34,12 +30,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject idea without title", () => {
-			const invalidInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				title: "",
-				contentMD: "This is test content",
-				createdBy: "user123" as any,
-			};
+			const invalidInput = ValidationTestData.invalidIdeaInputs.emptyTitle;
 
 			const result = validateCreateIdeaInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -47,12 +38,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject idea with too long title", () => {
-			const invalidInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				title: "a".repeat(250),
-				contentMD: "Content",
-				createdBy: "user123" as any,
-			};
+			const invalidInput = ValidationTestData.invalidIdeaInputs.longTitle;
 
 			const result = validateCreateIdeaInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -60,12 +46,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject idea with too long content", () => {
-			const invalidInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				title: "Valid Title",
-				contentMD: "a".repeat(60000),
-				createdBy: "user123" as any,
-			};
+			const invalidInput = ValidationTestData.invalidIdeaInputs.longContent;
 
 			const result = validateCreateIdeaInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -75,39 +56,22 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject idea with invalid block content", () => {
-			const invalidInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				title: "Valid Title",
-				contentMD: "Valid content",
-				contentBlocks: "invalid json",
-				createdBy: "user123" as any,
-			};
+			// Test with a circular reference that can't be JSON.stringified
+			const circularInput = ValidationTestData.invalidIdeaInputs.circularBlocks;
 
-			// This should trigger the JSON.stringify validation
-			expect(() => JSON.stringify(invalidInput.contentBlocks)).not.toThrow();
+			// The validator should catch the JSON.stringify error and return validation result
+			const result = validateCreateIdeaInput(circularInput);
 
-			// But let's test with a circular reference
-			const circular: any = {};
-			circular.self = circular;
-
-			const circularInput: CreateIdeaInput = {
-				...invalidInput,
-				contentBlocks: circular,
-			};
-
-			expect(() => {
-				const _result = validateCreateIdeaInput(circularInput);
-				// The validator uses JSON.stringify which will throw on circular references
-			}).toThrow();
+			expect(result.valid).toBe(false);
+			expect(result.errors).toHaveLength(1);
+			expect(result.errors[0].field).toBe("contentBlocks");
+			expect(result.errors[0].code).toBe("INVALID_BLOCKS");
 		});
 	});
 
 	describe("Idea Update Validation", () => {
 		it("should validate correct update input", () => {
-			const validUpdate: UpdateIdeaInput = {
-				title: "Updated Title",
-				status: "active",
-			};
+			const validUpdate = ValidationTestData.validIdeaUpdate;
 
 			const result = validateUpdateIdeaInput(validUpdate);
 			expect(result.valid).toBe(true);
@@ -115,9 +79,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject empty title in update", () => {
-			const invalidUpdate: UpdateIdeaInput = {
-				title: "",
-			};
+			const invalidUpdate = ValidationTestData.invalidIdeaUpdates.emptyTitle;
 
 			const result = validateUpdateIdeaInput(invalidUpdate);
 			expect(result.valid).toBe(false);
@@ -125,9 +87,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject invalid status in update", () => {
-			const invalidUpdate: UpdateIdeaInput = {
-				status: "invalid-status" as any,
-			};
+			const invalidUpdate = ValidationTestData.invalidIdeaUpdates.invalidStatus;
 
 			const result = validateUpdateIdeaInput(invalidUpdate);
 			expect(result.valid).toBe(false);
@@ -146,11 +106,7 @@ describe("Ideas Logic Validators", () => {
 
 	describe("Folder Validation", () => {
 		it("should validate correct folder input", () => {
-			const validInput: CreateFolderInput = {
-				workspaceId: "workspace123" as any,
-				name: "Test Folder",
-				createdBy: "user123" as any,
-			};
+			const validInput = ValidationTestData.validFolderInput;
 
 			const result = validateCreateFolderInput(validInput);
 			expect(result.valid).toBe(true);
@@ -158,11 +114,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject folder without name", () => {
-			const invalidInput: CreateFolderInput = {
-				workspaceId: "workspace123" as any,
-				name: "",
-				createdBy: "user123" as any,
-			};
+			const invalidInput = FolderFactory.createInput({ name: "" });
 
 			const result = validateCreateFolderInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -170,11 +122,7 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject folder with too long name", () => {
-			const invalidInput: CreateFolderInput = {
-				workspaceId: "workspace123" as any,
-				name: "a".repeat(150),
-				createdBy: "user123" as any,
-			};
+			const invalidInput = FolderFactory.longNameInput();
 
 			const result = validateCreateFolderInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -184,12 +132,10 @@ describe("Ideas Logic Validators", () => {
 
 	describe("Tag Validation", () => {
 		it("should validate correct tag input", () => {
-			const validInput: CreateTagInput = {
-				workspaceId: "workspace123" as any,
+			const validInput = TagFactory.createInput({
 				name: "Test Tag",
 				color: "#FF6B6B",
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = validateCreateTagInput(validInput);
 			expect(result.valid).toBe(true);
@@ -197,12 +143,10 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should reject tag with invalid color", () => {
-			const invalidInput: CreateTagInput = {
-				workspaceId: "workspace123" as any,
+			const invalidInput = TagFactory.createInput({
 				name: "Test Tag",
 				color: "invalid-color",
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = validateCreateTagInput(invalidInput);
 			expect(result.valid).toBe(false);
@@ -210,11 +154,9 @@ describe("Ideas Logic Validators", () => {
 		});
 
 		it("should accept tag without color", () => {
-			const validInput: CreateTagInput = {
-				workspaceId: "workspace123" as any,
+			const validInput = TagFactory.createInput({
 				name: "Test Tag",
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = validateCreateTagInput(validInput);
 			expect(result.valid).toBe(true);
@@ -265,18 +207,14 @@ describe("Ideas Logic Validators", () => {
 	describe("Bulk Validation", () => {
 		it("should validate multiple ideas correctly", () => {
 			const ideas: CreateIdeaInput[] = [
-				{
-					workspaceId: "workspace123" as any,
+				IdeaFactory.createInput({
 					title: "Idea 1",
 					contentMD: "Content 1",
-					createdBy: "user123" as any,
-				},
-				{
-					workspaceId: "workspace123" as any,
+				}),
+				IdeaFactory.createInput({
 					title: "Idea 2",
 					contentMD: "Content 2",
-					createdBy: "user123" as any,
-				},
+				}),
 			];
 
 			const results = validateBulkCreateIdeas(ideas);
@@ -287,18 +225,14 @@ describe("Ideas Logic Validators", () => {
 
 		it("should identify invalid ideas in bulk validation", () => {
 			const ideas: CreateIdeaInput[] = [
-				{
-					workspaceId: "workspace123" as any,
+				IdeaFactory.createInput({
 					title: "Valid Idea",
 					contentMD: "Valid content",
-					createdBy: "user123" as any,
-				},
-				{
-					workspaceId: "workspace123" as any,
+				}),
+				IdeaFactory.createInput({
 					title: "", // Invalid
 					contentMD: "Content",
-					createdBy: "user123" as any,
-				},
+				}),
 			];
 
 			const results = validateBulkCreateIdeas(ideas);

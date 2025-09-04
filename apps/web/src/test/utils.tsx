@@ -1,10 +1,11 @@
-import { type RenderOptions, render } from "@testing-library/react";
-import type { ReactElement } from "react";
-import { vi } from "vitest";
+// tests/utils.ts
+import { render, type RenderOptions } from "@testing-library/react";
+import type { PropsWithChildren, ReactElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Mock user data for testing
+// Mock user fixture
 export const mockUser = {
-	_id: "user123" as any,
+	_id: "user123",
 	_creationTime: Date.now(),
 	email: "test@example.com",
 	name: "Test User",
@@ -14,29 +15,32 @@ export const mockUser = {
 	updatedAt: Date.now(),
 };
 
-// Mock auth actions
-export const mockAuthActions = {
-	signIn: vi.fn(),
-	signOut: vi.fn(),
+// Mock error for testing error states
+export const mockError = new Error("Test error message");
+
+// Common test data
+export const testData = {
+	user: mockUser,
+	error: mockError,
+	loading: undefined as unknown, // Convex uses undefined for loading
 };
 
-// Mock navigate function - Note: Router is mocked globally in setup.ts
-export const mockNavigate = vi.fn();
+// Create a fresh QueryClient per render to avoid state leakage across tests
+export const createTestQueryClient = () =>
+	new QueryClient({
+		defaultOptions: {
+			queries: { retry: false, gcTime: 0 },
+			mutations: { retry: false },
+		},
+	});
 
-// Mock auth state helper
-export const mockAuthState = (user: any) => {
-	// Access the global mock functions
-	const mockUseQuery = (global as any).__mockUseQuery;
-	if (mockUseQuery) {
-		mockUseQuery.mockReturnValue(user);
-	}
-};
-
-// Note: Auth hooks are mocked globally in setup.ts
-
-// Test wrapper component
-const TestWrapper = ({ children }: { children: React.ReactNode }) => {
-	return <div data-testid="test-wrapper">{children}</div>;
+const TestWrapper = ({ children }: PropsWithChildren) => {
+	const queryClient = createTestQueryClient();
+	return (
+		<QueryClientProvider client={queryClient}>
+			<div data-testid="test-wrapper">{children}</div>
+		</QueryClientProvider>
+	);
 };
 
 // Custom render function with providers
@@ -53,12 +57,9 @@ export { customRender as render };
 export const waitForAsync = () =>
 	new Promise((resolve) => setTimeout(resolve, 0));
 
-// Mock error for testing error states
-export const mockError = new Error("Test error message");
-
-// Common test data
-export const testData = {
-	user: mockUser,
-	error: mockError,
-	loading: undefined, // Convex uses undefined for loading state
+// Mock auth state helper
+export const mockAuthState = (user: Partial<typeof mockUser> | undefined) => {
+	// This function can be used to mock authentication state in tests
+	// The actual implementation would depend on your auth system
+	console.log("Mocking auth state for user:", user);
 };

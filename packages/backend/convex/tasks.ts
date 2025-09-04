@@ -7,6 +7,7 @@
 
 import { ConvexError } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
 import { requireUserId } from "./server/lib/authz";
 import {
@@ -251,9 +252,10 @@ export const list = query({
 
 		// Filter by project if specified
 		if (args.projectId) {
+			const projectId = args.projectId as NonNullable<typeof args.projectId>;
 			query = ctx.db
 				.query("tasks")
-				.withIndex("by_project", (q) => q.eq("projectId", args.projectId!))
+				.withIndex("by_project", (q) => q.eq("projectId", projectId))
 				.filter((q) => q.eq(q.field("deletedAt"), undefined));
 		}
 
@@ -347,7 +349,7 @@ export const update = mutation({
 			});
 		}
 
-		const updates: any = {
+		const updates: Partial<Doc<"tasks">> = {
 			updatedAt: Date.now(),
 		};
 

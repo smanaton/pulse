@@ -17,17 +17,32 @@ export interface IdeaCreateInput {
 	folderId?: Id<"folders">;
 	title: string;
 	contentMD: string;
-	contentBlocks?: any; // BlockNote structured content
+	contentBlocks?: unknown; // BlockNote structured content
 }
 
 export interface IdeaUpdateInput {
 	title?: string;
 	contentMD?: string;
-	contentBlocks?: any;
+	contentBlocks?: unknown;
 	projectId?: Id<"projects">;
 	folderId?: Id<"folders">;
 	status?: "draft" | "active" | "archived";
 }
+
+// Minimal domain entities used by services and repositories
+export interface IdeaEntity {
+	workspaceId: Id<"workspaces">;
+	status: "draft" | "active" | "archived";
+	createdBy: Id<"users">;
+}
+
+export interface FolderEntity {
+	_id: Id<"folders">;
+	workspaceId: Id<"workspaces">;
+	parentId?: Id<"folders">;
+}
+
+export type FolderNode = FolderEntity & { children: FolderNode[] };
 
 export interface IdeaSearchOptions {
 	workspaceId: Id<"workspaces">;
@@ -48,12 +63,12 @@ export interface IIdeaRepository {
 	): Promise<Id<"ideas">>;
 	update(id: Id<"ideas">, data: Partial<IdeaUpdateInput>): Promise<void>;
 	delete(id: Id<"ideas">): Promise<void>;
-	findById(id: Id<"ideas">): Promise<any | null>; // Using any for now, could be typed better
+	findById(id: Id<"ideas">): Promise<IdeaEntity | null>;
 	findByWorkspace(
 		workspaceId: Id<"workspaces">,
 		limit?: number,
-	): Promise<any[]>;
-	search(options: IdeaSearchOptions): Promise<any[]>;
+	): Promise<IdeaEntity[]>;
+	search(options: IdeaSearchOptions): Promise<unknown[]>;
 }
 
 export interface IFolderRepository {
@@ -63,8 +78,8 @@ export interface IFolderRepository {
 		parentId?: Id<"folders">;
 		createdBy: Id<"users">;
 	}): Promise<Id<"folders">>;
-	findById(id: Id<"folders">): Promise<any | null>;
-	findByWorkspace(workspaceId: Id<"workspaces">): Promise<any[]>;
+	findById(id: Id<"folders">): Promise<FolderEntity | null>;
+	findByWorkspace(workspaceId: Id<"workspaces">): Promise<FolderEntity[]>;
 	delete(id: Id<"folders">): Promise<void>;
 }
 
@@ -91,12 +106,12 @@ export interface IIdeaService {
 	/**
 	 * Get idea by ID with permission checking
 	 */
-	get(ideaId: Id<"ideas">): Promise<any | null>;
+	get(ideaId: Id<"ideas">): Promise<unknown | null>;
 
 	/**
 	 * Search ideas with full-text and filters
 	 */
-	search(options: IdeaSearchOptions): Promise<any[]>;
+	search(options: IdeaSearchOptions): Promise<unknown[]>;
 
 	/**
 	 * Move idea to different folder/project
@@ -126,7 +141,7 @@ export interface IFolderService {
 	/**
 	 * Get folder hierarchy for workspace
 	 */
-	getHierarchy(workspaceId: Id<"workspaces">): Promise<any[]>;
+	getHierarchy(workspaceId: Id<"workspaces">): Promise<FolderNode[]>;
 }
 
 // ============================================================================
@@ -134,8 +149,8 @@ export interface IFolderService {
 // ============================================================================
 
 export interface IConvexContext {
-	db: any; // Database context from Convex
-	storage: any; // Storage context from Convex
+	db: unknown; // Database context from Convex
+	storage: unknown; // Storage context from Convex
 }
 
 export interface IBusinessContext {

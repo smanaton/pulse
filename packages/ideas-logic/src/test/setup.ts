@@ -18,10 +18,14 @@ vi.mock("../../../core/src/shared", () => ({
 	}),
 
 	sanitizeTitle: vi.fn((title: string) => {
-		return title
-			.trim()
-			.replace(/[\x00-\x1F\x7F]/g, "")
-			.substring(0, 200);
+		// Remove ASCII control characters (U+0000–U+001F and U+007F) without regex control escapes
+		const cleaned = Array.from(title.trim())
+			.filter((ch) => {
+				const code = ch.charCodeAt(0);
+				return code > 0x1f && code !== 0x7f; // keep non-control
+			})
+			.join("");
+		return cleaned.substring(0, 200);
 	}),
 
 	formatDate: vi.fn((timestamp: number) => {

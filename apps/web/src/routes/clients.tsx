@@ -4,6 +4,7 @@ import { useQuery } from "convex/react";
 import { SidebarLayout } from "@/components/layouts/dashboard/layout";
 import { ClientsTable } from "../components/clients/ClientsTable";
 import { useWorkspaceContext } from "../contexts/workspace-context";
+import type { Client } from "../hooks/use-clients";
 
 export const Route = createFileRoute("/clients")({
 	component: ClientsPage,
@@ -31,11 +32,11 @@ function ClientsPage() {
 		// TODO: Open create client modal
 	};
 
-	const handleEditClient = (_client: any) => {
+	const handleEditClient = (_client: Client) => {
 		// TODO: Open edit client modal
 	};
 
-	const handleViewClient = (_client: any) => {
+	const handleViewClient = (_client: Client) => {
 		// TODO: Navigate to client detail page or open modal
 	};
 

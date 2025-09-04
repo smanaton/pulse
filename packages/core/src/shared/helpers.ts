@@ -21,11 +21,17 @@ export function sanitizeContent(content: string): string {
 
 export function sanitizeTitle(title: string): string {
 	if (!title) return "";
-
-	return title
-		.trim()
-		.replace(/[\x00-\x1F\x7F]/g, "") // Remove control characters
-		.substring(0, 200); // Limit title length
+	const trimmed = title.trim();
+	let out = "";
+	for (let i = 0; i < trimmed.length; i++) {
+		const ch = trimmed.charCodeAt(i);
+		// Skip ASCII control chars (0-31) and DEL (127)
+		if (ch >= 32 && ch !== 127) {
+			out += trimmed[i] as string;
+			if (out.length >= 200) break;
+		}
+	}
+	return out;
 }
 
 // ============================================================================
@@ -152,7 +158,10 @@ export function groupBy<T, K extends string | number | symbol>(
 	);
 }
 
-export function sortBy<T>(array: T[], key: (item: T) => any): T[] {
+export function sortBy<T, K extends string | number | boolean>(
+	array: T[],
+	key: (item: T) => K,
+): T[] {
 	return [...array].sort((a, b) => {
 		const aVal = key(a);
 		const bVal = key(b);

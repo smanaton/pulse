@@ -1,7 +1,7 @@
 import type { Id } from "@pulse/backend/dataModel";
 import { Alert, Button, Modal, Select, TextInput } from "flowbite-react";
 import type { FC } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
 	HiExclamationCircle,
 	HiOfficeBuilding,
@@ -21,6 +21,9 @@ export const CreateWorkspaceModal: FC<CreateWorkspaceModalProps> = ({
 	isOpen,
 	onClose,
 }) => {
+	const nameId = useId();
+	const slugId = useId();
+	const planId = useId();
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [plan, setPlan] = useState<"free" | "team">("free");
@@ -165,13 +168,13 @@ export const CreateWorkspaceModal: FC<CreateWorkspaceModalProps> = ({
 
 					<div>
 						<label
-							htmlFor="workspace-name"
+							htmlFor={nameId}
 							className="mb-2 block font-medium text-gray-900 text-sm dark:text-white"
 						>
 							Workspace Name
 						</label>
 						<TextInput
-							id="workspace-name"
+							id={nameId}
 							type="text"
 							placeholder="My Company"
 							value={name}
@@ -197,7 +200,7 @@ export const CreateWorkspaceModal: FC<CreateWorkspaceModalProps> = ({
 								pulse.app/w/
 							</span>
 							<TextInput
-								id="workspace-slug"
+								id={slugId}
 								type="text"
 								placeholder="my-company"
 								value={slug}
@@ -217,13 +220,13 @@ export const CreateWorkspaceModal: FC<CreateWorkspaceModalProps> = ({
 
 					<div>
 						<label
-							htmlFor="workspace-plan"
+							htmlFor={planId}
 							className="mb-2 block font-medium text-gray-900 text-sm dark:text-white"
 						>
 							Plan
 						</label>
 						<Select
-							id="workspace-plan"
+							id={planId}
 							value={plan}
 							onChange={(e) => setPlan(e.target.value as "free" | "team")}
 							disabled={isCreating}

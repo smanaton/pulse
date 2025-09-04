@@ -8,7 +8,6 @@
  */
 
 import { ConvexError, v } from "convex/values";
-import { internal } from "./_generated/api";
 import type { Doc } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { assertMember, assertWriteEnabled, logEvent } from "./helpers";
@@ -354,7 +353,7 @@ export const promoteToProject = mutation({
 
 		if (significantDiscussions.length > 0) {
 			// Create a charter note summarizing the idea development process
-			const charterSummary = `# Idea Development History
+			const _charterSummary = `# Idea Development History
 
 This project was promoted from idea "${idea.title}".
 
@@ -481,8 +480,7 @@ export const getIdeaDiscussion = query({
  * Helper function to build project description from idea
  */
 function buildProjectDescription(idea: Doc<"ideas">): string {
-	let description =
-		idea.contentMD && idea.contentMD.trim() ? idea.contentMD.trim() : "";
+	let description = idea.contentMD?.trim() ? idea.contentMD.trim() : "";
 
 	if (idea.aiSummary) {
 		description = `${idea.aiSummary}\n\n---\n\n${description}`;

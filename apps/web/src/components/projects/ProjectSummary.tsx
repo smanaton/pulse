@@ -162,8 +162,8 @@ export function ProjectSummary({ project, onEdit }: ProjectSummaryProps) {
 			value:
 				project.tags && project.tags.length > 0 ? (
 					<div className="flex flex-wrap gap-1">
-						{project.tags.slice(0, 3).map((tag, index) => (
-							<Badge key={index} color="gray" size="xs">
+						{project.tags.slice(0, 3).map((tag) => (
+							<Badge key={tag} color="gray" size="xs">
 								{tag}
 							</Badge>
 						))}
@@ -215,9 +215,9 @@ export function ProjectSummary({ project, onEdit }: ProjectSummaryProps) {
 				{/* Left Column */}
 				<div className="space-y-6">
 					<dl className="space-y-4">
-						{leftColumnItems.map((item, index) => (
+						{leftColumnItems.map((item) => (
 							<div
-								key={index}
+								key={item.label}
 								className="border-gray-100 border-b pb-3 last:border-b-0 last:pb-0 dark:border-gray-700"
 							>
 								<dt className="mb-1 font-medium text-gray-500 text-sm dark:text-gray-400">
@@ -234,9 +234,9 @@ export function ProjectSummary({ project, onEdit }: ProjectSummaryProps) {
 				{/* Right Column */}
 				<div className="space-y-6">
 					<dl className="space-y-4">
-						{rightColumnItems.map((item, index) => (
+						{rightColumnItems.map((item) => (
 							<div
-								key={index}
+								key={item.label}
 								className="border-gray-100 border-b pb-3 last:border-b-0 last:pb-0 dark:border-gray-700"
 							>
 								<dt className="mb-1 font-medium text-gray-500 text-sm dark:text-gray-400">
@@ -283,6 +283,7 @@ export function ProjectSummary({ project, onEdit }: ProjectSummaryProps) {
 			{project.description && project.description.length > 200 && (
 				<div className="mt-4">
 					<button
+						type="button"
 						onClick={() => setIsExpanded(!isExpanded)}
 						className="text-blue-600 text-sm hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
 					>

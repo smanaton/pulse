@@ -1,0 +1,19 @@
+{
+  "name": "contracts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "3.2.4"
+  }
+}

@@ -21,7 +21,7 @@ export class NotFoundError extends Error {
 export class ConflictError extends Error {
 	public statusCode = 409;
 
-	constructor(message: string, _details?: Record<string, any>) {
+	constructor(message: string, _details?: Record<string, unknown>) {
 		super(message);
 		this.name = "ConflictError";
 	}

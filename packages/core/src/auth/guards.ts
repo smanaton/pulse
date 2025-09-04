@@ -13,9 +13,9 @@ import type { Id } from "../types";
 
 export interface ConvexContext {
 	auth: {
-		getUserIdentity(): Promise<any>;
+		getUserIdentity(): Promise<unknown>;
 	};
-	db: any;
+	db: unknown;
 }
 
 export interface AuthGuardResult {

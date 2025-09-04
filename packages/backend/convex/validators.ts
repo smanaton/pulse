@@ -124,6 +124,8 @@ export const rateLimitType = v.union(
 	v.literal("invite_per_workspace"),
 	v.literal("invite_per_user"),
 	v.literal("ai_tokens_daily"),
+	v.literal("ai_tags_daily"),
+	v.literal("ai_summaries_daily"),
 	v.literal("move_operations"),
 );
 
@@ -138,6 +140,11 @@ export const eventType = v.union(
 	v.literal("idea_moved"),
 	v.literal("project_created"),
 	v.literal("project_updated"),
+	v.literal("project_deleted"),
+	v.literal("projects_reordered"),
+	v.literal("member_added"),
+	v.literal("member_updated"),
+	v.literal("member_removed"),
 	v.literal("folder_created"),
 	v.literal("tag_created"),
 	v.literal("move_started"),
@@ -171,6 +178,11 @@ export const ideaCreateArgs = {
 	title,
 	contentMD,
 	contentBlocks,
+	// Structured idea fields for qualifying lightbulb moments
+	problem: v.optional(v.string()),
+	hypothesis: v.optional(v.string()),
+	value: v.optional(v.string()),
+	risks: v.optional(v.string()),
 };
 
 // Idea update args (using partial pattern for optional updates)
@@ -183,6 +195,11 @@ export const ideaUpdateArgs = {
 		status: statusType,
 		projectId,
 		folderId,
+		// Structured idea fields for qualifying lightbulb moments
+		problem: v.string(),
+		hypothesis: v.string(),
+		value: v.string(),
+		risks: v.string(),
 	}),
 };
 
@@ -398,13 +415,32 @@ export const tagIdeaRemoveArgs = {
 // Idea search args
 export const ideaSearchArgs = {
 	workspaceId,
-	query: v.string(),
+	query: v.optional(v.string()),
 	limit,
 };
 
 // Idea delete args
 export const ideaDeleteArgs = {
 	ideaId,
+};
+
+// Folder creation args
+export const folderCreateArgs = {
+	workspaceId,
+	name,
+	parentId: v.optional(v.id("folders")),
+};
+
+// Folder delete args
+export const folderDeleteArgs = {
+	folderId,
+};
+
+// Idea move args
+export const ideaMoveArgs = {
+	ideaId,
+	targetFolderId: v.optional(v.id("folders")),
+	targetProjectId: v.optional(v.id("projects")),
 };
 
 // Get idea tags args

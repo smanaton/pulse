@@ -25,6 +25,13 @@ interface Workspace {
 	_creationTime: number;
 }
 
+interface WorkspaceMember {
+	userId: Id<"users">;
+	role: "viewer" | "editor" | "admin";
+	name?: string;
+	email?: string;
+}
+
 // Custom hooks using TanStack Query + Convex
 
 export function useWorkspaces() {
@@ -241,7 +248,7 @@ export function useUpdateMemberRole() {
 			// Update member in cache
 			queryClient.setQueryData(
 				queryKeys.workspaces.members(variables.workspaceId),
-				(old: any[] | undefined) => {
+				(old: WorkspaceMember[] | undefined) => {
 					if (!old) return old;
 					return old.map((member) =>
 						member.userId === variables.userId

@@ -250,7 +250,7 @@ export const recordUsage = mutation({
 		// Log activity for agent usage
 		await logActivity(ctx, {
 			workspaceId: agent.workspaceId,
-			actorId: args.agentId as any, // Agent is the actor here
+			actorId: args.agentId as unknown as Id<"users">, // TODO: Schema should support agents as actors
 			actorType: "agent",
 			entityType: "workspace",
 			entityId: agent.workspaceId,

@@ -302,33 +302,39 @@ export const watchAgentHealth = query({
 		const enrichedAgents = await Promise.all(
 			agents.map(async (agent) => {
 				// Get recent heartbeat
-				const recentHeartbeat = await ctx.db
-					.query("agentHeartbeats")
-					.withIndex("by_workspace_agent", (q) =>
-						q.eq("workspaceId", args.workspaceId).eq("agentId", agent.agentId!),
-					)
-					.order("desc")
-					.first();
+				const recentHeartbeat = agent.agentId
+					? await ctx.db
+							.query("agentHeartbeats")
+							.withIndex("by_workspace_agent", (q) =>
+								q
+									.eq("workspaceId", args.workspaceId)
+									.eq("agentId", agent.agentId as string),
+							)
+							.order("desc")
+							.first()
+					: null;
 
 				// Count active runs
-				const activeRunCount = await ctx.db
-					.query("orchestrationRuns")
-					.withIndex("by_workspace_status", (q) =>
-						q.eq("workspaceId", args.workspaceId),
-					)
-					.filter((q) =>
-						q.and(
-							q.eq(q.field("assignedTo"), agent.agentId!),
-							q.or(
-								q.eq(q.field("status"), "assigned"),
-								q.eq(q.field("status"), "started"),
-								q.eq(q.field("status"), "progress"),
-								q.eq(q.field("status"), "blocked"),
-								q.eq(q.field("status"), "paused"),
-							),
-						),
-					)
-					.collect();
+				const activeRunCount = agent.agentId
+					? await ctx.db
+							.query("orchestrationRuns")
+							.withIndex("by_workspace_status", (q) =>
+								q.eq("workspaceId", args.workspaceId),
+							)
+							.filter((q) =>
+								q.and(
+									q.eq(q.field("assignedTo"), agent.agentId as string),
+									q.or(
+										q.eq(q.field("status"), "assigned"),
+										q.eq(q.field("status"), "started"),
+										q.eq(q.field("status"), "progress"),
+										q.eq(q.field("status"), "blocked"),
+										q.eq(q.field("status"), "paused"),
+									),
+								),
+							)
+							.collect()
+					: [];
 
 				return {
 					...agent,
@@ -376,14 +382,16 @@ export const watchJobProgress = query({
 			.collect();
 
 		// Get plan if exists
-		const plan = job.planId
-			? await ctx.db
-					.query("orchestrationPlans")
-					.withIndex("by_workspace_planId", (q) =>
-						q.eq("workspaceId", args.workspaceId).eq("planId", job.planId!),
-					)
-					.first()
-			: null;
+		let plan: Doc<"orchestrationPlans"> | null = null;
+		if (job.planId) {
+			const planId = job.planId;
+			plan = await ctx.db
+				.query("orchestrationPlans")
+				.withIndex("by_workspace_planId", (q) =>
+					q.eq("workspaceId", args.workspaceId).eq("planId", planId),
+				)
+				.first();
+		}
 
 		// Calculate progress
 		const totalSteps = plan?.steps.length ?? 1;
@@ -409,3 +417,4 @@ export const watchJobProgress = query({
 		};
 	},
 });
+import type { Doc } from "../_generated/dataModel";

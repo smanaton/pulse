@@ -7,6 +7,11 @@
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
 			"outputs": ["dist/**"]
 		},
+		"build:ci": {
+			"dependsOn": ["^build:ci"],
+			"inputs": ["$TURBO_DEFAULT$", ".env*"],
+			"outputs": ["dist/**"]
+		},
 		"lint": {
 			"dependsOn": ["^lint"]
 		},
@@ -20,7 +25,37 @@
 				"**/*.test.*",
 				"**/*.spec.*",
 				"**/test/**",
-				"**/tests/**"
+				"**/tests/**",
+				"vitest.config.*",
+				"package.json",
+				"tsconfig*.json"
+			],
+			"outputs": ["coverage/**", ".vitest-reports/**"],
+			"cache": true
+		},
+		"test:unit": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*",
+				"**/*.test.*",
+				"**/*.spec.*",
+				"**/test/**",
+				"vitest.config.*",
+				"package.json",
+				"tsconfig*.json"
+			],
+			"outputs": ["coverage/**", ".vitest-reports/**"],
+			"cache": true
+		},
+		"test:integration": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*",
+				"**/*.integration.test.*",
+				"**/tests/integration/**",
+				"vitest.integration.config.*",
+				"package.json",
+				"tsconfig*.json"
 			],
 			"outputs": ["coverage/**", ".vitest-reports/**"],
 			"cache": true

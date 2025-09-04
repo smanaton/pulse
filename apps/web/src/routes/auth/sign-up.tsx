@@ -3,7 +3,7 @@ import { api } from "@pulse/backend";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "convex/react";
 import { Button, Card } from "flowbite-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 export const Route = createFileRoute("/auth/sign-up")({
 	component: SignUpPage,
@@ -18,6 +18,10 @@ function SignUpPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const emailId = useId();
+	const passwordId = useId();
+	const confirmPasswordId = useId();
 
 	// Redirect if already authenticated - handled by __root.tsx
 
@@ -170,14 +174,14 @@ function SignUpPage() {
 					<form onSubmit={handlePasswordSignUp} className="space-y-4">
 						<div>
 							<label
-								htmlFor="email"
+								htmlFor={emailId}
 								className="block font-medium text-gray-700 text-sm dark:text-gray-300"
 							>
 								Email address
 							</label>
 							<input
 								type="email"
-								id="email"
+								id={emailId}
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
@@ -188,14 +192,14 @@ function SignUpPage() {
 
 						<div>
 							<label
-								htmlFor="password"
+								htmlFor={passwordId}
 								className="block font-medium text-gray-700 text-sm dark:text-gray-300"
 							>
 								Password
 							</label>
 							<input
 								type="password"
-								id="password"
+								id={passwordId}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								required
@@ -210,14 +214,14 @@ function SignUpPage() {
 
 						<div>
 							<label
-								htmlFor="confirmPassword"
+								htmlFor={confirmPasswordId}
 								className="block font-medium text-gray-700 text-sm dark:text-gray-300"
 							>
 								Confirm Password
 							</label>
 							<input
 								type="password"
-								id="confirmPassword"
+								id={confirmPasswordId}
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
 								required

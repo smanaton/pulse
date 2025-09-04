@@ -32,8 +32,6 @@ export function ThemeToggle({ hideSearch = false }: ThemeToggleProps) {
 
 	return (
 		<Dropdown
-			arrowIcon={false}
-			inline
 			label={
 				<Tooltip content={getTooltipText()}>
 					<div

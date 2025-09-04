@@ -33,7 +33,7 @@ export type WorkspaceSoftDeletableEntity = BaseEntity &
  * Creates a new entity with base fields (timestamps and audit).
  * Use this for entities that don't belong to a workspace.
  */
-export function createEntity<T extends Record<string, any>>(
+export function createEntity<T extends Record<string, unknown>>(
 	data: T,
 	userId: Id<"users">,
 ): T & BaseEntity {
@@ -50,7 +50,7 @@ export function createEntity<T extends Record<string, any>>(
  * Creates a new workspace-scoped entity with base fields.
  * Use this for most entities in the system.
  */
-export function createWorkspaceEntity<T extends Record<string, any>>(
+export function createWorkspaceEntity<T extends Record<string, unknown>>(
 	data: T,
 	userId: Id<"users">,
 	workspaceId: Id<"workspaces">,
@@ -69,7 +69,7 @@ export function createWorkspaceEntity<T extends Record<string, any>>(
  * Adds updatedAt timestamp to entity updates.
  * Use this for all entity patch operations.
  */
-export function withUpdatedAt<T extends Record<string, any>>(
+export function withUpdatedAt<T extends Record<string, unknown>>(
 	updates: T,
 ): T & { updatedAt: number } {
 	return {

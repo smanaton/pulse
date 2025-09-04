@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { CreateIdeaInput, UpdateIdeaInput } from "../types";
+import type { Id } from "@pulse/core/types";
 import {
 	enhanceIdeaMetadata,
 	processBatchIdeaCreation,
@@ -12,16 +13,15 @@ import {
 	processIdeaUpdate,
 	processStatusChange,
 } from "./idea-service";
+import { IdeaFactory } from "../test/factories";
 
 describe("Idea Service", () => {
 	describe("Idea Creation", () => {
 		it("should process valid idea creation successfully", async () => {
-			const validInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
+			const validInput = IdeaFactory.createInput({
 				title: "Test Idea",
 				contentMD: "This is a test idea with meaningful content.",
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = await processIdeaCreation(validInput);
 
@@ -29,19 +29,17 @@ describe("Idea Service", () => {
 			expect(result.data).toBeDefined();
 			expect(result.data?.title).toBe("Test Idea");
 			expect(result.data?.status).toBe("draft");
-			expect(result.data?.workspaceId).toBe("workspace123");
-			expect(result.data?.createdBy).toBe("user123");
+			expect(result.data?.workspaceId).toBe(validInput.workspaceId);
+			expect(result.data?.createdBy).toBe(validInput.createdBy);
 			expect(typeof result.data?.createdAt).toBe("number");
 			expect(typeof result.data?.updatedAt).toBe("number");
 		});
 
 		it("should reject invalid idea creation", async () => {
-			const invalidInput: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
+			const invalidInput = IdeaFactory.createInput({
 				title: "", // Invalid title
 				contentMD: "Content",
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = await processIdeaCreation(invalidInput);
 
@@ -52,12 +50,10 @@ describe("Idea Service", () => {
 		});
 
 		it("should sanitize title and content", async () => {
-			const inputWithWhitespace: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
+			const inputWithWhitespace = IdeaFactory.createInput({
 				title: "   Test Idea   ",
 				contentMD: '<script>alert("xss")</script>Safe content',
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = await processIdeaCreation(inputWithWhitespace);
 
@@ -66,21 +62,19 @@ describe("Idea Service", () => {
 		});
 
 		it("should handle optional fields correctly", async () => {
-			const inputWithOptionals: CreateIdeaInput = {
-				workspaceId: "workspace123" as any,
-				projectId: "project123" as any,
-				folderId: "folder123" as any,
+			const inputWithOptionals = IdeaFactory.createInput({
+				projectId: "project123" as Id<"projects">,
+				folderId: "folder123" as Id<"folders">,
 				title: "Test Idea",
 				contentMD: "Content",
 				contentBlocks: { type: "doc", content: [] },
-				createdBy: "user123" as any,
-			};
+			});
 
 			const result = await processIdeaCreation(inputWithOptionals);
 
 			expect(result.success).toBe(true);
-			expect(result.data?.projectId).toBe("project123");
-			expect(result.data?.folderId).toBe("folder123");
+			expect(result.data?.projectId).toBe(inputWithOptionals.projectId);
+			expect(result.data?.folderId).toBe(inputWithOptionals.folderId);
 			expect(result.data?.contentBlocks).toBeDefined();
 		});
 	});
@@ -90,8 +84,8 @@ describe("Idea Service", () => {
 			title: "Original Title",
 			contentMD: "Original content",
 			status: "draft" as const,
-			projectId: "project1" as any,
-			folderId: "folder1" as any,
+			projectId: "project1" as Id<"projects">,
+			folderId: "folder1" as Id<"folders">,
 		};
 
 		it("should process valid idea update successfully", async () => {
@@ -218,42 +212,46 @@ describe("Idea Service", () => {
 			title: "Original Idea",
 			contentMD: "Original content",
 			contentBlocks: { type: "doc", content: [] },
-			workspaceId: "workspace123" as any,
-			projectId: "project123" as any,
-			folderId: "folder123" as any,
+			workspaceId: "workspace123" as Id<"workspaces">,
+			projectId: "project123" as Id<"projects">,
+			folderId: "folder123" as Id<"folders">,
 		};
 
 		it("should duplicate idea correctly", () => {
-			const result = processDuplicateIdea(originalIdea, "user123" as any);
+			const userId = "user123" as Id<"users">;
+			const result = processDuplicateIdea(originalIdea, userId);
 
 			expect(result.success).toBe(true);
 			expect(result.data).toBeDefined();
 			expect(result.data?.title).toBe("Copy of Original Idea");
 			expect(result.data?.contentMD).toBe("Original content");
 			expect(result.data?.status).toBe("draft");
-			expect(result.data?.createdBy).toBe("user123");
+			expect(result.data?.createdBy).toBe(userId);
 			expect(result.data?.workspaceId).toBe(originalIdea.workspaceId);
 		});
 
 		it("should allow custom options for duplication", () => {
 			const options = {
 				newTitle: "Custom Copy Title",
-				newFolderId: "newfolder123" as any,
+				newFolderId: "newfolder123" as Id<"folders">,
 			};
 
 			const result = processDuplicateIdea(
 				originalIdea,
-				"user123" as any,
+				"user123" as Id<"users">,
 				options,
 			);
 
 			expect(result.success).toBe(true);
-			expect(result.data?.title).toBe("Custom Copy Title");
-			expect(result.data?.folderId).toBe("newfolder123");
+			expect(result.data?.title).toBe(options.newTitle);
+			expect(result.data?.folderId).toBe(options.newFolderId);
 		});
 
 		it("should deep clone content blocks", () => {
-			const result = processDuplicateIdea(originalIdea, "user123" as any);
+			const result = processDuplicateIdea(
+				originalIdea,
+				"user123" as Id<"users">,
+			);
 
 			expect(result.data?.contentBlocks).not.toBe(originalIdea.contentBlocks);
 			expect(result.data?.contentBlocks).toEqual(originalIdea.contentBlocks);
@@ -263,18 +261,14 @@ describe("Idea Service", () => {
 	describe("Batch Operations", () => {
 		it("should process multiple valid ideas", async () => {
 			const ideas: CreateIdeaInput[] = [
-				{
-					workspaceId: "workspace123" as any,
+				IdeaFactory.createInput({
 					title: "Idea 1",
 					contentMD: "Content 1",
-					createdBy: "user123" as any,
-				},
-				{
-					workspaceId: "workspace123" as any,
+				}),
+				IdeaFactory.createInput({
 					title: "Idea 2",
 					contentMD: "Content 2",
-					createdBy: "user123" as any,
-				},
+				}),
 			];
 
 			const result = await processBatchIdeaCreation(ideas);
@@ -286,18 +280,14 @@ describe("Idea Service", () => {
 
 		it("should handle mixed valid and invalid ideas", async () => {
 			const ideas: CreateIdeaInput[] = [
-				{
-					workspaceId: "workspace123" as any,
+				IdeaFactory.createInput({
 					title: "Valid Idea",
 					contentMD: "Valid content",
-					createdBy: "user123" as any,
-				},
-				{
-					workspaceId: "workspace123" as any,
+				}),
+				IdeaFactory.createInput({
 					title: "", // Invalid
 					contentMD: "Content",
-					createdBy: "user123" as any,
-				},
+				}),
 			];
 
 			const result = await processBatchIdeaCreation(ideas);

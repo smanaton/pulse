@@ -250,7 +250,7 @@ function FolderItem({
 	return (
 		<div>
 			{/* Folder Header */}
-			<div
+			<fieldset
 				className="group flex items-center rounded px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
 				style={{ paddingLeft: `${8 + depth * 16}px` }}
 				onMouseEnter={() => setShowActions(true)}
@@ -290,7 +290,7 @@ function FolderItem({
 						</button>
 					</div>
 				)}
-			</div>
+			</fieldset>
 
 			{/* Folder Contents */}
 			{isExpanded && (

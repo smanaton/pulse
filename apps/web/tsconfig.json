@@ -11,8 +11,9 @@
 		"types": ["vitest/globals", "@testing-library/jest-dom", "node"],
 		"rootDirs": ["."],
 		"baseUrl": ".",
-		"paths": {
-			"@/*": ["./src/*"]
-		}
-	}
+        "paths": {
+            "@/*": ["./src/*"],
+            "@test/*": ["./src/test/*"]
+        }
+    }
 }

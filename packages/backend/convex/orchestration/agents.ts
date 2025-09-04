@@ -154,7 +154,7 @@ export const listAgents = query({
 		// Filter by capability if specified
 		if (args.capability) {
 			agents = agents.filter((agent) =>
-				agent.capabilities.includes(args.capability!),
+				agent.capabilities.includes(args.capability as string),
 			);
 		}
 
@@ -209,12 +209,13 @@ export const matchCapability = query({
 			.collect();
 
 		// Filter by capability and exclusions
-		agents = agents.filter(
-			(agent) =>
-				agent.capabilities.includes(args.capability) &&
-				(!args.excludeAgentIds ||
-					!args.excludeAgentIds.includes(agent.agentId!)),
-		);
+		agents = agents.filter((agent) => {
+			if (!agent.capabilities.includes(args.capability)) return false;
+			if (!args.excludeAgentIds) return true;
+			return agent.agentId
+				? !args.excludeAgentIds.includes(agent.agentId)
+				: true;
+		});
 
 		// Sort by health and load
 		agents.sort((a, b) => {

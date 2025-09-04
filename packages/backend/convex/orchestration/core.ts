@@ -40,7 +40,7 @@ export const submitJob = mutation({
 		const withinLimit = await checkRateLimit(
 			ctx,
 			userId,
-			"orchestration_job",
+			"ai_tokens_daily",
 			args.workspaceId,
 			10,
 			60,
@@ -80,7 +80,7 @@ export const submitJob = mutation({
 		await incrementRateLimit(
 			ctx,
 			userId,
-			"orchestration_job",
+			"ai_tokens_daily",
 			args.workspaceId,
 			60,
 		);
@@ -347,7 +347,7 @@ export async function getRun(
  * Internal helper to update run status with validation
  */
 export async function updateRunStatus(
-	ctx: any,
+	ctx: MutationCtx,
 	run: Doc<"orchestrationRuns">,
 	newStatus: RunStatus,
 	errorCode?: ErrorCode,
@@ -360,7 +360,7 @@ export async function updateRunStatus(
 		);
 	}
 
-	const updateFields: any = {
+	const updateFields: Partial<Doc<"orchestrationRuns">> = {
 		status: newStatus,
 		lastEventAt: Date.now(),
 	};

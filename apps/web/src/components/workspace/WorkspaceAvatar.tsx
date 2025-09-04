@@ -31,9 +31,9 @@ function generateColorFromName(name: string): string {
 		"bg-gray-500",
 	];
 
-	const hash = name.split("").reduce((a, b) => {
-		a = (a << 5) - a + b.charCodeAt(0);
-		return a & a;
+	const hash = name.split("").reduce((acc, char) => {
+		const newAcc = (acc << 5) - acc + char.charCodeAt(0);
+		return newAcc & newAcc;
 	}, 0);
 
 	return colors[Math.abs(hash) % colors.length];

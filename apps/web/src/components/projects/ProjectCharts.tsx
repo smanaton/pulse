@@ -39,7 +39,7 @@ interface DonutChartProps {
 	title: string;
 }
 
-function DonutChart({ data, title }: DonutChartProps) {
+function DonutChart({ data, title: _title }: DonutChartProps) {
 	const total = data.reduce((sum, item) => sum + item.value, 0);
 	const radius = 80;
 	const strokeWidth = 20;
@@ -55,7 +55,9 @@ function DonutChart({ data, title }: DonutChartProps) {
 					height={radius * 2}
 					width={radius * 2}
 					className="-rotate-90 transform"
+					aria-label="Progress chart"
 				>
+					<title>Progress Chart</title>
 					<circle
 						stroke="#e5e7eb"
 						fill="transparent"
@@ -65,7 +67,7 @@ function DonutChart({ data, title }: DonutChartProps) {
 						cy={radius}
 						className="dark:stroke-gray-700"
 					/>
-					{data.map((item, index) => {
+					{data.map((item, _index) => {
 						const percentage = total > 0 ? (item.value / total) * 100 : 0;
 						const strokeDasharray = `${(percentage * circumference) / 100} ${circumference}`;
 						const strokeDashoffset =
@@ -74,7 +76,7 @@ function DonutChart({ data, title }: DonutChartProps) {
 
 						return (
 							<circle
-								key={index}
+								key={item.label}
 								stroke={item.color}
 								fill="transparent"
 								strokeWidth={strokeWidth}
@@ -100,8 +102,8 @@ function DonutChart({ data, title }: DonutChartProps) {
 				</div>
 			</div>
 			<div className="mt-4 space-y-2">
-				{data.map((item, index) => (
-					<div key={index} className="flex items-center text-sm">
+				{data.map((item, _index) => (
+					<div key={item.label} className="flex items-center text-sm">
 						<div
 							className="mr-2 h-3 w-3 rounded-full"
 							style={{ backgroundColor: item.color }}
@@ -125,16 +127,16 @@ interface BarChartProps {
 	title: string;
 }
 
-function BarChart({ data, title }: BarChartProps) {
+function BarChart({ data, title: _title }: BarChartProps) {
 	const maxValue = Math.max(...data.map((item) => item.value));
 
 	return (
 		<div className="space-y-4">
-			{data.map((item, index) => {
+			{data.map((item, _index) => {
 				const percentage = maxValue > 0 ? (item.value / maxValue) * 100 : 0;
 
 				return (
-					<div key={index} className="space-y-1">
+					<div key={item.label} className="space-y-1">
 						<div className="flex justify-between text-sm">
 							<span className="text-gray-600 dark:text-gray-400">
 								{item.label}
@@ -256,7 +258,7 @@ export function ProjectCharts({ charts }: ProjectChartsProps) {
 						<TrendingUp className="h-5 w-5 text-gray-500 dark:text-gray-400" />
 					</div>
 					<div className="space-y-4">
-						{charts.workload.map((member, index) => {
+						{charts.workload.map((member, _index) => {
 							const maxTasks = Math.max(
 								...(charts.workload?.map((m) => m.tasks) || [0]),
 							);
@@ -264,7 +266,7 @@ export function ProjectCharts({ charts }: ProjectChartsProps) {
 								maxTasks > 0 ? (member.tasks / maxTasks) * 100 : 0;
 
 							return (
-								<div key={index} className="space-y-2">
+								<div key={member.user} className="space-y-2">
 									<div className="flex items-center justify-between">
 										<span className="font-medium text-gray-900 text-sm dark:text-white">
 											{member.user}

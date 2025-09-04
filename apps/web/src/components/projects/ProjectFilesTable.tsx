@@ -1,4 +1,5 @@
 import type { Id } from "@pulse/backend/dataModel";
+import { useId } from "react";
 import {
 	Badge,
 	Button,
@@ -24,6 +25,7 @@ import {
 	Upload,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { createSkeletonKeys } from "@/lib/skeleton-utils";
 
 interface ProjectFile {
 	_id: string;
@@ -119,13 +121,19 @@ function getFileTypeLabel(mimeType: string, fileName: string): string {
 }
 
 export function ProjectFilesTable({
-	projectId,
+	projectId: _projectId,
 	files = [],
 	onUpload,
 	onDelete,
 	onDownload,
 	isLoading = false,
 }: ProjectFilesTableProps) {
+	const fileUploadId = useId();
+	const skeletonKeys = useMemo(
+		() => createSkeletonKeys(5, "file-skeleton"),
+		[],
+	);
+
 	const [searchQuery, setSearchQuery] = useState("");
 	const [uploadModalOpen, setUploadModalOpen] = useState(false);
 	const [uploading, setUploading] = useState(false);
@@ -259,9 +267,9 @@ export function ProjectFilesTable({
 						<div className="h-6 w-48 rounded bg-gray-200" />
 						<div className="h-10 w-32 rounded bg-gray-200" />
 					</div>
-					{[...Array(5)].map((_, i) => (
+					{skeletonKeys.map((key) => (
 						<div
-							key={i}
+							key={key}
 							className="flex items-center space-x-4 rounded border p-4"
 						>
 							<div className="h-10 w-10 rounded bg-gray-200" />
@@ -384,8 +392,8 @@ export function ProjectFilesTable({
 
 												{file.tags && file.tags.length > 0 && (
 													<div className="mt-2 flex flex-wrap gap-1">
-														{file.tags.map((tag, index) => (
-															<Badge key={index} color="blue" size="xs">
+														{file.tags.map((tag, _index) => (
+															<Badge key={tag} color="blue" size="xs">
 																#{tag}
 															</Badge>
 														))}
@@ -408,6 +416,7 @@ export function ProjectFilesTable({
 											<ul className="py-2 text-gray-700 text-sm dark:text-gray-200">
 												<li>
 													<button
+														type="button"
 														onClick={() => onDownload?.(file._id)}
 														className="flex w-full items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"
 													>
@@ -417,6 +426,7 @@ export function ProjectFilesTable({
 												</li>
 												<li>
 													<button
+														type="button"
 														onClick={() => {
 															// Preview file functionality
 														}}
@@ -428,6 +438,7 @@ export function ProjectFilesTable({
 												</li>
 												<li className="border-gray-100 border-t dark:border-gray-600">
 													<button
+														type="button"
 														onClick={() => handleDeleteFile(file._id)}
 														className="flex w-full items-center px-4 py-2 text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-600"
 													>
@@ -492,7 +503,7 @@ export function ProjectFilesTable({
 						<div className="space-y-4">
 							<div className="flex w-full items-center justify-center">
 								<label
-									htmlFor="file-upload"
+									htmlFor={fileUploadId}
 									className="flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-800"
 								>
 									<div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -506,7 +517,7 @@ export function ProjectFilesTable({
 										</p>
 									</div>
 									<input
-										id="file-upload"
+										id={fileUploadId}
 										type="file"
 										className="hidden"
 										multiple

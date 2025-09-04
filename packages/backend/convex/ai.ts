@@ -13,6 +13,9 @@ export {
 	processMessage,
 	suggestTags,
 	summarizeIdea,
+	ideaChat,
+	qualifyIdea,
+	contrarianView,
 } from "./ai/actions";
 
 // Export types for frontend use
