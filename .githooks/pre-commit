@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Opt-in pre-commit hook. Configure once per repo:
+#   git config core.hooksPath .githooks
+# Bypass with: BYPASS_VERIFY=1 git commit -m "..."
+
+if [ "${BYPASS_VERIFY}" = "1" ]; then
+  echo "⚠️  Bypassing verify (BYPASS_VERIFY=1)"
+  exit 0
+fi
+
+# Ensure pnpm exists
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "✖ pnpm not found. Install pnpm 10.15.x."
+  exit 1
+fi
+
+# Run fast verification
+pnpm verify:fast
+status=$?
+if [ $status -ne 0 ]; then
+  echo "✖ Pre-commit checks failed. Fix issues or bypass with BYPASS_VERIFY=1."
+  exit $status
+fi
+
+echo "✔ Pre-commit checks passed."
+exit 0

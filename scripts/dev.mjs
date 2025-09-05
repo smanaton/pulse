@@ -1,5 +1,5 @@
 import { execSync, spawn } from "node:child_process";
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync, readFileSync } from "node:fs";
 
 const isWin = process.platform === "win32";
 const cmd = isWin ? "pnpm.cmd" : "pnpm";
@@ -101,7 +101,8 @@ const args = [
 const child = spawn(cmd, args, {
 	stdio: "inherit",
 	detached: !isWin,
-	shell: isWin,
+	// Use a shell on all platforms so quoted concurrent commands are parsed correctly
+	shell: true,
 });
 
 // Only write PID once we have a pid value
