@@ -1,0 +1,161 @@
+---
+title: Development Workflow
+description: Solo developer Git workflow with protected master and PR-based changes.
+sidebar:
+  order: 20
+---
+
+import { Callout } from "astro:components";
+
+# Development Workflow Guide
+
+> Solo Developer Quick Reference — proper Git workflow with branch protection
+
+<Callout type="warning">The `master` branch is PROTECTED. You cannot push directly to it. All changes must go through pull requests.</Callout>
+
+## Daily Workflow Checklist
+
+### 1) Start New Work
+
+```bash
+# Always start from master and pull latest changes
+git checkout master
+git pull origin master
+
+# Create a new feature branch (use descriptive names)
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/bug-description
+# or
+git checkout -b docs/update-readme
+```
+
+### 2) Work & Commit
+
+```bash
+# Make your changes...
+# When ready to commit:
+git add .
+git commit -m "descriptive commit message"
+
+# Push your feature branch
+git push origin feature/your-feature-name
+```
+
+### 3) Create Pull Request
+
+```bash
+# Using GitHub CLI (recommended)
+gh pr create --title "Brief description" --body "Detailed description of changes"
+# Or create PR on GitHub.com
+```
+
+### 4) Wait for Checks & Merge
+1. Wait for CI (typecheck, tests, lint)
+2. Review your own code in the PR
+3. Merge via GitHub UI when green
+4. Clean up local branches
+
+### 5) Clean Up
+
+```bash
+# Switch back to master
+git checkout master
+# Pull the merged changes
+git pull origin master
+# Delete the feature branch locally
+git branch -d feature/your-feature-name
+# Delete the remote branch (optional)
+git push origin --delete feature/your-feature-name
+```
+
+## Quick Commands Cheat Sheet
+
+### Common Branch Names
+
+```bash
+# Features
+git checkout -b feature/ideas-sidebar
+git checkout -b feature/user-authentication
+git checkout -b feature/search-functionality
+
+# Bug fixes
+git checkout -b fix/typescript-errors
+git checkout -b fix/missing-validation
+git checkout -b fix/ui-layout-issue
+
+# Documentation
+git checkout -b docs/api-documentation
+git checkout -b docs/setup-guide
+git checkout -b docs/architecture-update
+
+# Refactoring
+git checkout -b refactor/service-layer
+git checkout -b refactor/component-structure
+```
+
+### Emergency: I Made Changes on Master
+
+```bash
+# If you accidentally made changes on master:
+# 1) Stash changes
+git stash
+# 2) Create a feature branch
+git checkout -b fix/accidental-master-changes
+# 3) Apply your changes
+git stash pop
+# 4) Commit and push
+git add . && git commit -m "fix: move accidental master changes to proper branch"
+git push origin fix/accidental-master-changes
+# 5) Create PR as normal
+gh pr create --title "Fix: Move accidental changes from master"
+```
+
+## Troubleshooting
+
+### Forgot to Branch, Made Changes
+
+```bash
+# Before committing:
+git stash
+git checkout -b feature/my-changes
+git stash pop
+git add . && git commit -m "message"
+```
+
+### Branch Behind Master
+
+```bash
+# Update your feature branch with latest master
+git checkout master
+git pull origin master
+git checkout your-feature-branch
+git rebase master # or: git merge master
+git push --force-with-lease origin your-feature-branch
+```
+
+### CI Failing
+
+```bash
+pnpm typecheck     # Fix TypeScript errors
+pnpm test          # Fix failing tests
+pnpm check         # Fix linting issues
+pnpm check --write # Auto-fix where possible
+```
+
+## Repository Status Commands
+
+```bash
+git status            # Current status
+git branch -a         # All branches
+git diff master       # Diff vs master
+git log --oneline -10 # Last 10 commits
+```
+
+## Tips
+
+- Use descriptive branch names
+- Keep changes small and focused
+- Review your own PRs
+- Use draft PRs for WIP
+- Set git aliases to speed up common commands

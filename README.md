@@ -56,9 +56,18 @@ pnpm dev
 ```
 
 Open [http://localhost:3003](http://localhost:3003) in your browser to see the web application.
+### Troubleshooting sign-in
+
+- If you see "Invalid verifier" in the Convex logs during OAuth sign-in, ensure the auth cookie domain matches the frontend origin. We set domain to SITE_URL (fallback to CONVEX_SITE_URL) in `packages/backend/convex/auth.config.ts`. Verify:
+  - SITE_URL = http://localhost:3003
+  - CONVEX_SITE_URL = http://127.0.0.1:3210
+  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET are set in the Convex env
+- If you see `Missing environment variable JWT_PRIVATE_KEY`, generate a PKCS#8 RSA key and set it in Convex:
+  - node scripts/generate-jwt-key.mjs | npx convex env set JWT_PRIVATE_KEY
+
 Notes:
-- The dev script will fail fast if `SITE_URL`, `AUTH_GOOGLE_ID`, or `AUTH_GOOGLE_SECRET` are missing. Bypass with `PULSE_DEV_SKIP_AUTH_CHECK=1 pnpm dev` if you don't need OAuth locally.
 - Convex dev runs locally at http://127.0.0.1:3210; the web app points to it via `VITE_CONVEX_URL`.
+- The dev script doesn't pre-check OAuth env vars; if sign-in fails, see the Troubleshooting section above for the exact variables to set in Convex.
 
 
 

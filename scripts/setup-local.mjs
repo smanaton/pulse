@@ -41,7 +41,9 @@ console.log('     cd apps/web && pnpm dev');
 
 console.log('\nOptional: Persist important Convex envs to your Convex deployment with the Convex CLI:');
 console.log('  npx convex env set CONVEX_URL "http://127.0.0.1:3210"');
+console.log('  npx convex env set CONVEX_SITE_URL "http://127.0.0.1:3210"');
 console.log('  npx convex env set SITE_URL "http://localhost:3003"');
 console.log('  npx convex env set AUTH_GOOGLE_ID "your-google-client-id"');
 console.log('  npx convex env set AUTH_GOOGLE_SECRET "your-google-client-secret"');
+console.log('  node scripts/generate-jwt-key.mjs | npx convex env set JWT_PRIVATE_KEY');
 console.log('\nDone.');

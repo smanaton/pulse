@@ -1,0 +1,33 @@
+---
+title: Test Results Summary
+description: Verification results and current test suite status.
+sidebar:
+  order: 20
+---
+
+# Test Suite Implementation — Verification Results
+
+## Successfully Implemented & Verified
+- React unit tests
+- Core pure-function tests
+- Convex integration tests (convex-test)
+
+## Test Infrastructure
+- Builders, MSW handlers, Convex harness, Playwright config
+
+## Partially Implemented
+- Contract tests: Zod API schemas (fix workspace deps)
+- Integration (router + MSW): path adjustments as needed
+- E2E: smoke tests configured but optional locally
+
+## Performance Snapshot
+- Unit ~seconds
+- Convex integration ~seconds
+- Contract/E2E — pending full runs
+
+## Quick Commands
+```bash
+# Sample, per package
+cd packages/core && npx vitest run tests/unit/date-helpers.spec.ts
+cd packages/backend && npx vitest run
+```

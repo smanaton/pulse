@@ -1,5 +1,5 @@
 import { execSync, spawn } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
 
 const isWin = process.platform === "win32";
 const cmd = isWin ? "pnpm.cmd" : "pnpm";
@@ -84,35 +84,6 @@ console.log(
 
 // We run Convex in local mode (`npx convex dev --local`) so no project reconfiguration is needed here.
 
-// Preflight: recommend required Convex auth env vars if missing
-const checkConvexEnv = (name) => {
-		try {
-				const out = execSync(`cd packages/backend && npx convex env get ${name} 2>/dev/null || true`, { stdio: "pipe" }).toString().trim();
-				return out.length > 0 ? out : null;
-		} catch {
-				return null;
-		}
-};
-
-const siteUrl = checkConvexEnv("SITE_URL");
-const googleId = checkConvexEnv("AUTH_GOOGLE_ID");
-const googleSecret = checkConvexEnv("AUTH_GOOGLE_SECRET");
-const shouldSkipAuthCheck = process.env.PULSE_DEV_SKIP_AUTH_CHECK === "1";
-if (!siteUrl || !googleId || !googleSecret) {
-	console.log(`${colors.yellow}⚠️ OAuth configuration incomplete for Convex local dev:${colors.reset}`);
-	if (!siteUrl) console.log(`  • Missing SITE_URL. Set with:\n      npx convex env set SITE_URL "http://localhost:3003"`);
-	if (!googleId) console.log(`  • Missing AUTH_GOOGLE_ID. Set with:\n      npx convex env set AUTH_GOOGLE_ID "<your-google-client-id>"`);
-	if (!googleSecret) console.log(`  • Missing AUTH_GOOGLE_SECRET. Set with:\n      npx convex env set AUTH_GOOGLE_SECRET "<your-google-client-secret>"`);
-	console.log(`  These must be set in the Convex environment (not .env files).`);
-	if (!shouldSkipAuthCheck) {
-		console.log(`\n${colors.red}dev aborted:${colors.reset} Required Convex OAuth env vars are missing.`);
-		console.log(`Set them with the commands above, or bypass this check (not recommended) by setting PULSE_DEV_SKIP_AUTH_CHECK=1.`);
-		process.exit(1);
-	} else {
-		console.log(`${colors.yellow}Proceeding because PULSE_DEV_SKIP_AUTH_CHECK=1 is set.${colors.reset}`);
-	}
-}
-
 // Start backend and frontend concurrently
 const args = [
 	"concurrently",
@@ -153,6 +124,11 @@ setTimeout(() => {
 
 	console.log(
 		`${colors.yellow}💡 Press Ctrl+C to stop all services${colors.reset}\n`,
+	);
+
+	// Helpful tip if auth fails at runtime
+	console.log(
+		`${colors.yellow}If sign-in fails (e.g., "Invalid verifier" or missing JWT key), ensure Convex env vars are set:${colors.reset}\n  - SITE_URL -> http://localhost:3003\n  - CONVEX_SITE_URL -> http://127.0.0.1:3210\n  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET -> your OAuth credentials\n  - JWT_PRIVATE_KEY -> a PKCS#8 RSA private key (use scripts/generate-jwt-key.mjs)\n  Set them via: npx convex env set <NAME> <VALUE> in packages/backend`,
 	);
 }, 3000);
 
