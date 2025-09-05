@@ -9,7 +9,7 @@
 		"test": "vitest",
 		"test:ci": "pnpm run test:unit && pnpm run test:integration",
 		"test:unit": "vitest run convex/**/*.{test,mock.test,unit.test}.ts",
-		"test:integration": "vitest --config vitest.integration.config.ts",
+		"test:integration": "vitest run --config vitest.integration.config.ts",
 		"test:watch": "vitest --watch",
 		"test:coverage": "vitest --coverage",
 		"test:all": "npm run test:unit && npm run test:integration",

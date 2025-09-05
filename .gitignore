@@ -68,3 +68,13 @@ ruler_aider_instructions.md
 ruler_aider_instructions.md.bak
 # END Ruler Generated Files
 .dev.pid
+
+# Ignore per-package and per-app build artifacts
+packages/*/dist/
+apps/*/dist/
+
+# Ignore Storybook generated static output (local builds)
+apps/storybook/storybook-static/
+
+# Cover additional dist paths if present
+**/dist/

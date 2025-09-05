@@ -45,21 +45,26 @@ async function createSymlinks() {
 				process.exit(1);
 			}
 
-			// Remove existing symlink if it exists
+			// Remove existing symlink if it exists; if it's a real dir, skip to avoid data loss
 			if (fs.existsSync(target)) {
 				const stats = fs.lstatSync(target);
 				if (stats.isSymbolicLink()) {
 					fs.unlinkSync(target);
 					console.log(`🗑️  Removed existing symlink: ${name}`);
+				} else if (stats.isDirectory()) {
+					console.log(`ℹ️  Target directory already exists (not a symlink): ${target} — skipping`);
+					continue;
 				} else {
-					console.error(`❌ Target exists but is not a symlink: ${target}`);
+					console.error(`❌ Target exists and is not a symlink/dir: ${target}`);
 					process.exit(1);
 				}
 			}
 
 			// Create symlink
 			const relativePath = path.relative(path.dirname(target), source);
-			fs.symlinkSync(relativePath, target, "dir");
+			// On Windows, use 'junction' for directory links
+			const type = process.platform === 'win32' ? 'junction' : 'dir';
+			fs.symlinkSync(relativePath, target, type);
 			console.log(`✅ Created symlink: ${name} -> ${relativePath}`);
 		} catch (error) {
 			console.error(`❌ Failed to create symlink for ${name}:`, error.message);

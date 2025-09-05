@@ -230,7 +230,7 @@ describe("Ideas System", () => {
 	});
 
 	describe("Idea Retrieval", () => {
-		let ideaId: string;
+		let ideaId: Id<"ideas">;
 
 		beforeEach(async () => {
 			ideaId = await t
@@ -294,7 +294,7 @@ describe("Ideas System", () => {
 	});
 
 	describe("Idea Updates", () => {
-		let ideaId: string;
+		let ideaId: Id<"ideas">;
 
 		beforeEach(async () => {
 			ideaId = await t
@@ -549,7 +549,7 @@ describe("Ideas System", () => {
 	});
 
 	describe("Idea Deletion", () => {
-		let ideaId: string;
+		let ideaId: Id<"ideas">;
 
 		beforeEach(async () => {
 			ideaId = await t
@@ -610,9 +610,9 @@ describe("Ideas System", () => {
 	});
 
 	describe("Idea Organization", () => {
-		let sourceIdeaId: string;
-		let targetFolderId: string;
-		let targetProjectId: string;
+		let sourceIdeaId: Id<"ideas">;
+		let targetFolderId: Id<"folders">;
+		let targetProjectId: Id<"projects">;
 
 		beforeEach(async () => {
 			// Create idea to move

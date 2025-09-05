@@ -1,4 +1,0 @@
-/**
- * Workspace Types
- */
-export {};

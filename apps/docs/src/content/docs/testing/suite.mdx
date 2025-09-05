@@ -1,0 +1,36 @@
+---
+title: Test Suite Documentation
+description: Structure, commands, and best practices for Pulse testing.
+sidebar:
+  order: 30
+---
+
+# Test Suite Documentation
+
+A pragmatic test suite implementing the modern test pyramid for speed and reliability.
+
+## Structure
+```
+/tests
+  harness/
+  contracts/
+apps/web/tests
+packages/backend/convex
+```
+
+## Commands
+```bash
+pnpm test:unit
+pnpm test:integration
+pnpm test:contracts
+pnpm test:e2e:smoke
+```
+
+## CI Pipeline
+- Lint/Typecheck → Unit → Integration → Contracts → E2E (on main)
+
+## Best Practices
+- Behavior over implementation
+- Deterministic builders
+- Contract tests for shapes
+- Minimal E2E

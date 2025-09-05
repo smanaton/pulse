@@ -13,9 +13,9 @@ const path = require("node:path");
 const CONVEX_DIR = path.join(__dirname, "..", "packages", "backend", "convex");
 const BAD_PATTERNS = [
 	// String literal internal calls
-	/ctx\.run(?:Query|Mutation|Action)\(['"`]internal\./,
+	/ctx\.run(?:Query|Mutation|Action)\(['"`]internal\./g,
 	// Old style API calls
-	/ctx\.run(?:Query|Mutation|Action)\(['"`]api\./,
+	/ctx\.run(?:Query|Mutation|Action)\(['"`]api\./g,
 ];
 
 const GOOD_PATTERN =
@@ -27,17 +27,18 @@ function checkFile(filePath) {
 	const errors = [];
 
 	// Check for bad patterns
-	BAD_PATTERNS.forEach((pattern, _index) => {
-		const matches = content.match(pattern);
-		if (matches) {
-			const lines = content.split("\n");
-			matches.forEach((match) => {
-				const lineNum = lines.findIndex((line) => line.includes(match)) + 1;
-				errors.push({
-					file: fileName,
-					line: lineNum,
-					issue: `String literal API call found: "${match.substring(0, 50)}..."`,
-				});
+	BAD_PATTERNS.forEach((pattern) => {
+		// Use regex with global flag; iterate all matches and find their line numbers
+		const lines = content.split("\n");
+		let m;
+		while ((m = pattern.exec(content)) !== null) {
+			const upto = content.slice(0, m.index);
+			const lineNum = upto.split("\n").length; // 1-based
+			const snippet = content.slice(m.index, m.index + 80).replace(/\n/g, " ");
+			errors.push({
+				file: fileName,
+				line: lineNum,
+				issue: `String literal API call found: "${snippet}..."`,
 			});
 		}
 	});

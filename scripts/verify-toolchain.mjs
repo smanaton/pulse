@@ -7,18 +7,25 @@ if (process.env.BYPASS_VERIFY === "1") {
 }
 
 const nodeV = process.version; // e.g., v22.12.0
-const pnpmV = execSync("pnpm -v").toString().trim();
+let pnpmV = "unknown";
+try {
+	pnpmV = execSync("pnpm -v").toString().trim();
+} catch (e) {
+	console.error("✖ pnpm not found in PATH. Please install pnpm 10.15.0.");
+	process.exit(1);
+}
 
-// Accept Node 20.11.x OR any 22.x (block 21/23+)
-const okNode = /^v20\.11\.\d+$/.test(nodeV) || /^v22\.\d+\.\d+$/.test(nodeV);
-const okPnpm = /^10\.(14|15)\./.test(pnpmV);
+// Accept Node >=22 <23 to match package.json engines
+const okNode = /^v22\.\d+\.\d+$/.test(nodeV);
+// Accept pnpm 10.15.x to match packageManager field
+const okPnpm = /^10\.15\./.test(pnpmV);
 
 if (!okNode) {
-	console.error(`✖ Node ${nodeV} detected. Require 20.11.x or 22.x`);
+	console.error(`✖ Node ${nodeV} detected. Require >=22 <23 (see package.json engines)`);
 	process.exit(1);
 }
 if (!okPnpm) {
-	console.error(`✖ pnpm ${pnpmV} detected. Require 9.10.x`);
+	console.error(`✖ pnpm ${pnpmV} detected. Require 10.15.x (see packageManager)`);
 	process.exit(1);
 }
 console.log(`✔ Toolchain OK (Node ${nodeV}, pnpm ${pnpmV})`);

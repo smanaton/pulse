@@ -1,0 +1,48 @@
+---
+title: Testing Strategy
+description: Comprehensive testing strategy for Pulse with a modern test pyramid.
+sidebar:
+  order: 10
+---
+
+# Testing Strategy & Implementation Plan
+
+This page documents our testing philosophy, categories, stack, and current status.
+
+## Philosophy
+- Test behavior, not implementation
+- Modern test pyramid (70–80% unit, 15–25% integration, 1–5% E2E)
+- Fast, deterministic runs
+- Given_When_Then naming
+- No duplication across layers
+- Prefer contract tests over E2E when possible
+
+## Categories
+- Unit, Integration, Contract, and E2E smoke tests
+
+## Backend Testing (Convex)
+- Vitest + convex-test
+- Naming: `*.convex.test.ts`
+- Builders for data, mock identity via `withIdentity()`
+
+## Frontend Testing (React)
+- Vitest + Testing Library (jsdom)
+- MSW for API mocking, user-event interactions
+
+## E2E
+- Playwright, only critical journeys
+
+## Implementation Status (snapshot)
+- API Keys ✅
+- Auth ✅
+- Projects ✅
+- Tasks ▶️ (todo)
+- Ideas ⚠️ blocked by business logic
+- Agents, AI, Files ▶️ (planned)
+
+## Quality Targets
+- Backend 90%+ coverage for business logic
+- Error handling and permissions fully covered
+
+## Next Steps
+- Implement Tasks tests, unblock Ideas, add Agents/AI/Files suites

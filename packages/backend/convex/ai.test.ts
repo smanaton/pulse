@@ -20,6 +20,7 @@ import schema from "./schema";
 import { modules } from "./test.setup";
 import type { Id } from "./_generated/dataModel";
 import { idOf } from "../test-utils";
+// Removed unused GenericId import; use Id<> from dataModel in helper types
 
 // Helper to safely access workspaceId in tests without non-null assertions
 // prefer idOf helper
@@ -267,7 +268,7 @@ describe("AI Services System", () => {
 			try {
 				const tags = await t.withIdentity(identity).action(api.ai.suggestTags, {
 					workspaceId: idOf(workspace, "workspace"),
-					ideaId: idea,
+					ideaId: _idea,
 				});
 
 				expect(Array.isArray(tags)).toBe(true);
@@ -374,7 +375,7 @@ Key features include workflow mapping, performance analytics, automated recommen
 					.withIdentity(identity)
 					.action(api.ai.summarizeIdea, {
 						workspaceId: idOf(workspace, "workspace"),
-						ideaId: idea,
+						ideaId: _idea,
 					});
 
 				expect(result).toBeDefined();
@@ -410,14 +411,14 @@ Key features include workflow mapping, performance analytics, automated recommen
 			try {
 				await t.withIdentity(identity).action(api.ai.summarizeIdea, {
 					workspaceId: idOf(workspace, "workspace"),
-					ideaId: idea,
+					ideaId: _idea,
 				});
 
 				// Check if idea was updated (would need to verify the content includes summary)
 				const updatedIdea = await t
 					.withIdentity(identity)
 					.query(api.ideas.get, {
-						ideaId: idea,
+						ideaId: _idea,
 					});
 
 				expect(updatedIdea).toBeDefined();
@@ -908,18 +909,18 @@ Key features include workflow mapping, performance analytics, automated recommen
 					.withIdentity(identity)
 					.action(api.ai.suggestTags, {
 						workspaceId: wId(workspace),
-						ideaId: idea,
+						ideaId: _idea,
 					});
 
-				if (tags) {
-					expect(Array.isArray(tags)).toBe(true);
+				if (_tags) {
+					expect(Array.isArray(_tags)).toBe(true);
 				}
 
 				const summary = await t
 					.withIdentity(identity)
 					.action(api.ai.summarizeIdea, {
 						workspaceId: wId(workspace),
-						ideaId: idea,
+						ideaId: _idea,
 					});
 
 				if (summary) {
@@ -932,3 +933,23 @@ Key features include workflow mapping, performance analytics, automated recommen
 		});
 	});
 });
+function wId(
+	workspace: {
+		_id: Id<"workspaces">;
+		_creationTime: number;
+		slug?: string | undefined;
+		ownerUserId?: Id<"users"> | undefined;
+		disabled?: boolean | undefined;
+		name: string;
+		createdAt: number;
+		updatedAt: number;
+		type: "personal" | "shared";
+		isPersonal: boolean;
+		plan: "free" | "team";
+	} | null,
+): Id<"workspaces"> {
+	if (!workspace) {
+		throw new Error("Workspace is null or undefined.");
+	}
+	return workspace._id;
+}
