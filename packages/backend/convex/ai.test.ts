@@ -933,20 +933,8 @@ Key features include workflow mapping, performance analytics, automated recommen
 		});
 	});
 });
-function wId(
-	_workspace: {
-		_id: GenericId<"workspaces">;
-		_creationTime: number;
-		slug?: string | undefined;
-		ownerUserId?: GenericId<"users"> | undefined;
-		disabled?: boolean | undefined;
-		name: string;
-		createdAt: number;
-		updatedAt: number;
-		type: "personal" | "shared";
-		isPersonal: boolean;
-		plan: "free" | "team";
-	} | null,
-): import("convex/values").GenericId<"workspaces"> {
-	throw new Error("Function not implemented.");
+	if (!_workspace) {
+		throw new Error("Workspace is null or undefined.");
+	}
+	return _workspace._id;
 }
