@@ -73,8 +73,8 @@ ruler_aider_instructions.md.bak
 packages/*/dist/
 apps/*/dist/
 
-# Ignore Storybook generated hashed assets (local builds)
-apps/storybook/storybook-static/assets/
+# Ignore Storybook generated static output (local builds)
+apps/storybook/storybook-static/
 
 # Cover additional dist paths if present
 **/dist/
