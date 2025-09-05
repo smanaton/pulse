@@ -1,10 +1,8 @@
 export default {
 	providers: [
 		{
-			// Prefer the frontend origin for cookie domain; fallback to Convex local URL
-			domain:
-				process.env.SITE_URL?.replace("localhost", "127.0.0.1") ??
-				process.env.CONVEX_SITE_URL,
+			// The issuer must match the Convex server base URL (token iss/aud)
+			domain: process.env.CONVEX_SITE_URL ?? "http://127.0.0.1:3210",
 			applicationID: "convex",
 		},
 		{
