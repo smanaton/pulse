@@ -113,13 +113,13 @@ if (child.pid) {
 setTimeout(() => {
 	console.log(`\n${colors.green}📡 Service URLs:${colors.reset}`);
 	console.log(
-		`${colors.magenta}  Backend (Convex):${colors.reset} http://localhost:3210`,
+		`${colors.magenta}  Backend (Convex):${colors.reset} http://127.0.0.1:3210`,
 	);
 	console.log(
 		`${colors.magenta}  Convex Dashboard:${colors.reset} https://dashboard.convex.dev`,
 	);
 	console.log(
-		`${colors.cyan}  Web UI:${colors.reset} http://localhost:3003${colors.reset}\n`,
+		`${colors.cyan}  Web UI:${colors.reset} http://127.0.0.1:3003${colors.reset}\n`,
 	);
 
 	console.log(
@@ -128,7 +128,7 @@ setTimeout(() => {
 
 	// Helpful tip if auth fails at runtime
 	console.log(
-		`${colors.yellow}If sign-in fails (e.g., "Invalid verifier" or missing JWT key), ensure Convex env vars are set:${colors.reset}\n  - SITE_URL -> http://localhost:3003\n  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET -> your OAuth credentials\n  - JWT_PRIVATE_KEY -> a PKCS#8 RSA private key (use scripts/generate-jwt-key.mjs)\n  Note: Run these in ${colors.cyan}packages/backend${colors.reset}: npx convex env set <NAME> <VALUE>`,
+		`${colors.yellow}If sign-in fails (e.g., "Invalid verifier" or missing JWT key), ensure Convex env vars are set:${colors.reset}\n  - SITE_URL -> http://127.0.0.1:3003\n  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET -> your OAuth credentials\n  - JWT_PRIVATE_KEY -> a PKCS#8 RSA private key (use scripts/generate-jwt-key.mjs)\n  Note: Run these in ${colors.cyan}packages/backend${colors.reset}: npx convex env set <NAME> <VALUE>`,
 	);
 }, 3000);
 
