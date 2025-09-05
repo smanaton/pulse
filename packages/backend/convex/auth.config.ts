@@ -1,7 +1,8 @@
 export default {
 	providers: [
 		{
-			domain: process.env.CONVEX_SITE_URL,
+			// Prefer the frontend origin for cookie domain; fallback to Convex local URL
+			domain: process.env.SITE_URL ?? process.env.CONVEX_SITE_URL,
 			applicationID: "convex",
 		},
 		{
