@@ -20,7 +20,7 @@ import schema from "./schema";
 import { modules } from "./test.setup";
 import type { Id } from "./_generated/dataModel";
 import { idOf } from "../test-utils";
-import type { GenericId } from "convex/values";
+// Removed unused GenericId import; use Id<> from dataModel in helper types
 
 // Helper to safely access workspaceId in tests without non-null assertions
 // prefer idOf helper
@@ -933,8 +933,23 @@ Key features include workflow mapping, performance analytics, automated recommen
 		});
 	});
 });
-	if (!_workspace) {
+function wId(
+	workspace: {
+		_id: Id<"workspaces">;
+		_creationTime: number;
+		slug?: string | undefined;
+		ownerUserId?: Id<"users"> | undefined;
+		disabled?: boolean | undefined;
+		name: string;
+		createdAt: number;
+		updatedAt: number;
+		type: "personal" | "shared";
+		isPersonal: boolean;
+		plan: "free" | "team";
+	} | null,
+): Id<"workspaces"> {
+	if (!workspace) {
 		throw new Error("Workspace is null or undefined.");
 	}
-	return _workspace._id;
+	return workspace._id;
 }
