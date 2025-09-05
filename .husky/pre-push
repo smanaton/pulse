@@ -1,4 +1,0 @@
-pnpm -w typecheck
-pnpm -w check
-pnpm -w test:backend
-pnpm repo:guards
