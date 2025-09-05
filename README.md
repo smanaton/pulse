@@ -35,7 +35,7 @@ pnpm dev:setup
 
 Follow the prompts to create a new Convex project and connect it to your application.
 
-Then, set required Convex auth environment variables (Convex reads these from its own environment, not .env files):
+Then, set required Convex auth environment variables from the backend folder (Convex reads these from its own environment, not .env files):
 
 ```bash
 cd packages/backend
@@ -58,9 +58,8 @@ pnpm dev
 Open [http://localhost:3003](http://localhost:3003) in your browser to see the web application.
 ### Troubleshooting sign-in
 
-- If you see "Invalid verifier" in the Convex logs during OAuth sign-in, ensure the auth cookie domain matches the frontend origin. We set domain to SITE_URL (fallback to CONVEX_SITE_URL) in `packages/backend/convex/auth.config.ts`. Verify:
+- If you see "Invalid verifier" in the Convex logs during OAuth sign-in, ensure the auth cookie domain matches the frontend origin. We set domain to SITE_URL (fallback to built-in Convex URL) in `packages/backend/convex/auth.config.ts`. Verify:
   - SITE_URL = http://localhost:3003
-  - CONVEX_SITE_URL = http://127.0.0.1:3210
   - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET are set in the Convex env
 - If you see `Missing environment variable JWT_PRIVATE_KEY`, generate a PKCS#8 RSA key and set it in Convex:
   - node scripts/generate-jwt-key.mjs | npx convex env set JWT_PRIVATE_KEY

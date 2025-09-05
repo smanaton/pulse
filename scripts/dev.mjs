@@ -128,7 +128,7 @@ setTimeout(() => {
 
 	// Helpful tip if auth fails at runtime
 	console.log(
-		`${colors.yellow}If sign-in fails (e.g., "Invalid verifier" or missing JWT key), ensure Convex env vars are set:${colors.reset}\n  - SITE_URL -> http://localhost:3003\n  - CONVEX_SITE_URL -> http://127.0.0.1:3210\n  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET -> your OAuth credentials\n  - JWT_PRIVATE_KEY -> a PKCS#8 RSA private key (use scripts/generate-jwt-key.mjs)\n  Set them via: npx convex env set <NAME> <VALUE> in packages/backend`,
+		`${colors.yellow}If sign-in fails (e.g., "Invalid verifier" or missing JWT key), ensure Convex env vars are set:${colors.reset}\n  - SITE_URL -> http://localhost:3003\n  - AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET -> your OAuth credentials\n  - JWT_PRIVATE_KEY -> a PKCS#8 RSA private key (use scripts/generate-jwt-key.mjs)\n  Note: Run these in ${colors.cyan}packages/backend${colors.reset}: npx convex env set <NAME> <VALUE>`,
 	);
 }, 3000);
 
